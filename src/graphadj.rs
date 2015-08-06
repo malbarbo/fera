@@ -32,46 +32,49 @@ impl StaticGraph {
 }
 
 
-impl<'a> Basic<'a> for StaticGraph {
+impl Basic for StaticGraph {
     type Vertex = usize;
     type Edge = usize;
     type VertexIter = std::ops::Range<Self::Vertex>;
     type EdgeIter = std::ops::Range<Self::Vertex>;
 
-    fn num_vertices(&'a self) ->  usize {
+    fn num_vertices(&self) ->  usize {
         self.num_vertices
     }
 
-    fn vertices(&'a self) -> Self::VertexIter {
+    fn vertices(&self) -> Self::VertexIter {
         0..self.num_vertices
     }
 
-    fn source(&'a self, e: Self::Edge) -> Self::Vertex {
+    fn source(&self, e: Self::Edge) -> Self::Vertex {
         self.sources[e]
     }
 
-    fn target(&'a self, e: Self::Edge) -> Self::Vertex {
+    fn target(&self, e: Self::Edge) -> Self::Vertex {
         self.targets[e]
     }
 
-    fn num_edges(&'a self) -> usize {
+    fn num_edges(& self) -> usize {
         self.sources.len()
     }
 
-    fn edges(&'a self) -> Self::EdgeIter {
+    fn edges(&self) -> Self::EdgeIter {
         0..self.num_edges()
     }
 }
 
-impl<'a> Degree<'a> for StaticGraph {
-    fn degree(&'a self, v: Self::Vertex) -> usize {
+impl Degree for StaticGraph {
+    fn degree(&self, v: Self::Vertex) -> usize {
         self.adj[v].len()
     }
 }
 
-impl<'a> Adj<'a> for StaticGraph {
-    type NeighborsIter = std::iter::Cloned<std::slice::Iter<'a, Self::Vertex>>;
-    fn neighbors(&'a self, v: Self::Vertex) -> Self::NeighborsIter {
+impl<'a> AdjIter<'a> for StaticGraph {
+    type Type = std::iter::Cloned<std::slice::Iter<'a, Self::Vertex>>;
+}
+
+impl Adj for StaticGraph {
+    fn neighbors<'a>(&'a self, v: Self::Vertex) -> <Self as AdjIter<'a>>::Type {
         self.adj[v].iter().cloned()
     }
 }

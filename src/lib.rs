@@ -2,82 +2,82 @@ pub mod graphadj;
 
 // Basic
 
-pub trait Basic<'a> {
+pub trait Basic {
     type Vertex: Copy;
     type Edge: Copy;
     type VertexIter: Iterator<Item=Self::Vertex>;
     type EdgeIter: Iterator<Item=Self::Edge>;
 
-    fn num_vertices(&'a self) -> usize;
-    fn vertices(&'a self) -> Self::VertexIter;
+    fn num_vertices(&self) -> usize;
+    fn vertices(&self) -> Self::VertexIter;
 
-    fn num_edges(&'a self) -> usize;
-    fn edges(&'a self) -> Self::EdgeIter;
+    fn num_edges(&self) -> usize;
+    fn edges(&self) -> Self::EdgeIter;
 
-    fn source(&'a self, e: Self::Edge) -> Self::Vertex;
-    fn target(&'a self, e: Self::Edge) -> Self::Vertex;
+    fn source(&self, e: Self::Edge) -> Self::Vertex;
+    fn target(&self, e: Self::Edge) -> Self::Vertex;
 
-    fn edge_vertices(&'a self, e: Self::Edge) -> (Self::Vertex, Self::Vertex) {
+    fn edge_vertices(&self, e: Self::Edge) -> (Self::Vertex, Self::Vertex) {
         (self.source(e), self.target(e))
     }
 
     // FIXME: make a lazy iterator
-    fn edges_as_vertex_pairs(&'a self) -> Vec<(Self::Vertex, Self::Vertex)> {
-        fn f<'a, T: ?Sized + Basic<'a>>(x: &'a T) -> Vec<(T::Vertex, T::Vertex)> {
-            x.edges().map(|e| x.edge_vertices(e)).collect()
-        }
-        f(self)
+    fn edges_as_vertex_pairs(&self) -> Vec<(Self::Vertex, Self::Vertex)> {
+        self.edges().map(|e| self.edge_vertices(e)).collect()
     }
 }
 
 
 // Degree
 
-pub trait Degree<'a>: Basic<'a> {
-    fn degree(&'a self, v: Self::Vertex) -> usize;
+pub trait Degree: Basic {
+    fn degree(&self, v: Self::Vertex) -> usize;
 }
 
 
 // Adj
 
-pub trait Adj<'a>: Basic<'a> {
-    type NeighborsIter: Iterator<Item=Self::Vertex>;
-    fn neighbors(&'a self, v: Self::Vertex) -> Self::NeighborsIter;
+pub trait AdjIter<'a>: Basic {
+    type Type: Iterator<Item=Self::Vertex>;
+}
+
+pub trait Adj: Basic + for<'a> AdjIter<'a> {
+    fn neighbors(&self, v: Self::Vertex) -> <Self as AdjIter>::Type;
 }
 
 
 // Vertex Property
 
-pub trait VertexPropType<'a, T>: Basic<'a> {
+pub trait VertexPropType<'a, T>: Basic {
     type Type: std::ops::IndexMut<Self::Vertex, Output=T>;
 }
 
-pub type VertexProp<'a, G, T> = <G as VertexPropType<'a, T>>::Type;
-
-pub trait WithVertexProp {
+pub trait WithVertexProp:
+        for<'a> VertexPropType<'a, usize> +
+        for<'a> VertexPropType<'a, String> {
     fn vertex_prop<T: Clone>(&self, value: T) -> <Self as VertexPropType<T>>::Type;
 }
 
 
 // Edge Property
 
-pub trait EdgePropType<'a, T>: Basic<'a> {
+pub trait EdgePropType<'a, T>: Basic {
     type Type: std::ops::IndexMut<Self::Edge, Output=T>;
 }
 
-pub type EdgeProp<'a, G, T> = <G as EdgePropType<'a, T>>::Type;
-
-pub trait WithEdgeProp {
+pub trait WithEdgeProp:
+        for<'a> EdgePropType<'a, usize> +
+        for<'a> EdgePropType<'a, String> {
     fn edge_prop<T: Clone>(&self, value: T) -> <Self as EdgePropType<T>>::Type;
 }
 
 
 // GraphAdj
 
-pub trait GraphAdj<'a>: Basic<'a> + Degree<'a> + Adj<'a> {
+pub trait GraphAdj: Basic + Degree + Adj {
 }
 
-impl<'a, G> GraphAdj<'a> for G where G: Basic<'a> + Degree<'a> + Adj<'a> {
+impl<G> GraphAdj for G where G: Basic + Degree + Adj {
 }
 
 
@@ -102,17 +102,17 @@ pub mod tests {
     }
 
 
-    pub fn vertices<'a, G>(g: &'a G) where G: Basic<'a, Vertex=usize>, G::Edge: Debug {
+    pub fn vertices<G>(g: &G) where G: Basic<Vertex=usize>, G::Edge: Debug {
         assert_eq!(5, g.num_vertices());
         assert_set_eq(vec![0, 1, 2, 3, 4], g.vertices());
     }
 
-    pub fn edges<'a, G>(g: &'a G) where G: Basic<'a, Vertex=usize>, G::Edge: Debug {
+    pub fn edges<G>(g: &G) where G: Basic<Vertex=usize>, G::Edge: Debug {
         assert_eq!(4, g.num_edges());
         assert_set_eq(vec![(0, 1), (0, 2), (1, 2), (1, 3)], g.edges_as_vertex_pairs());
     }
 
-    pub fn degree<'a, G>(g: &'a G) where G: Degree<'a, Vertex=usize>, G::Edge: Debug {
+    pub fn degree<G>(g: &G) where G: Degree<Vertex=usize>, G::Edge: Debug {
         assert_eq!(2, g.degree(0));
         assert_eq!(3, g.degree(1));
         assert_eq!(2, g.degree(2));
@@ -120,7 +120,7 @@ pub mod tests {
         assert_eq!(0, g.degree(4));
     }
 
-    pub fn neighbors<'a, G>(g: &'a G) where G: Adj<'a, Vertex=usize>, G::Edge: Debug {
+    pub fn neighbors<G>(g: &G) where G: Adj<Vertex=usize>, G::Edge: Debug {
         assert_set_eq(vec![1, 2], g.neighbors(0));
         assert_set_eq(vec![0, 2, 3], g.neighbors(1));
         assert_set_eq(vec![0, 1], g.neighbors(2));
@@ -128,7 +128,7 @@ pub mod tests {
         assert_set_eq(vec![], g.neighbors(4));
     }
 
-    pub fn vertex_prop<'a, G>(g: &'a G) where G: WithVertexProp + VertexPropType<'a, usize> + VertexPropType<'a, String> {
+    pub fn vertex_prop<G>(g: &G) where G: WithVertexProp {
         let mut x = g.vertex_prop(0);
         let mut y = g.vertex_prop("a".to_string());
         let v = g.vertices().collect::<Vec<_>>();
@@ -147,7 +147,7 @@ pub mod tests {
         assert_eq!("a", y[e]);
     }
 
-    pub fn edge_prop<'a, G>(g: &'a G) where G: WithEdgeProp + EdgePropType<'a, usize> + EdgePropType<'a, String> {
+    pub fn edge_prop<G>(g: &G) where G: WithEdgeProp {
         let mut x = g.edge_prop(0);
         let mut y = g.edge_prop("a".to_string());
         let edges = g.edges().collect::<Vec<_>>();
