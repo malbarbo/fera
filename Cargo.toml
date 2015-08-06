@@ -1,0 +1,7 @@
+[package]
+name = "graphs"
+version = "0.1.0"
+authors = ["Marco A L Barbosa <malbarbo@gmail.com>"]
+
+[dependencies]
+itertools = "0.3"
