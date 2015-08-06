@@ -53,7 +53,21 @@ pub trait VertexPropType<'a, T>: Basic {
 }
 
 pub trait WithVertexProp:
+        for<'a> VertexPropType<'a, bool> +
+        for<'a> VertexPropType<'a, char> +
+        for<'a> VertexPropType<'a, i8> +
+        for<'a> VertexPropType<'a, i16> +
+        for<'a> VertexPropType<'a, i32> +
+        for<'a> VertexPropType<'a, i64> +
+        for<'a> VertexPropType<'a, isize> +
+        for<'a> VertexPropType<'a, u8> +
+        for<'a> VertexPropType<'a, u16> +
+        for<'a> VertexPropType<'a, u32> +
+        for<'a> VertexPropType<'a, u64> +
         for<'a> VertexPropType<'a, usize> +
+        for<'a> VertexPropType<'a, f32> +
+        for<'a> VertexPropType<'a, f64> +
+        for<'a> VertexPropType<'a, &'a str> +
         for<'a> VertexPropType<'a, String> {
     fn vertex_prop<T: Clone>(&self, value: T) -> <Self as VertexPropType<T>>::Type;
 }
@@ -66,7 +80,21 @@ pub trait EdgePropType<'a, T>: Basic {
 }
 
 pub trait WithEdgeProp:
+        for<'a> EdgePropType<'a, bool> +
+        for<'a> EdgePropType<'a, char> +
+        for<'a> EdgePropType<'a, i8> +
+        for<'a> EdgePropType<'a, i16> +
+        for<'a> EdgePropType<'a, i32> +
+        for<'a> EdgePropType<'a, i64> +
+        for<'a> EdgePropType<'a, isize> +
+        for<'a> EdgePropType<'a, u8> +
+        for<'a> EdgePropType<'a, u16> +
+        for<'a> EdgePropType<'a, u32> +
+        for<'a> EdgePropType<'a, u64> +
         for<'a> EdgePropType<'a, usize> +
+        for<'a> EdgePropType<'a, f32> +
+        for<'a> EdgePropType<'a, f64> +
+        for<'a> EdgePropType<'a, &'a str> +
         for<'a> EdgePropType<'a, String> {
     fn edge_prop<T: Clone>(&self, value: T) -> <Self as EdgePropType<T>>::Type;
 }
@@ -129,12 +157,12 @@ pub mod tests {
     }
 
     pub fn vertex_prop<G>(g: &G) where G: WithVertexProp {
-        let mut x = g.vertex_prop(0);
-        let mut y = g.vertex_prop("a".to_string());
+        let mut x = g.vertex_prop(0usize);
+        let mut y = g.vertex_prop("a");
         let v = g.vertices().collect::<Vec<_>>();
         let (a, b, c, d, e) = (v[0], v[1], v[2], v[3], v[4]);
         x[c] = 8;
-        y[d] = "b".to_string();
+        y[d] = "b";
         assert_eq!(0, x[a]);
         assert_eq!(0, x[b]);
         assert_eq!(8, x[c]);
@@ -148,12 +176,12 @@ pub mod tests {
     }
 
     pub fn edge_prop<G>(g: &G) where G: WithEdgeProp {
-        let mut x = g.edge_prop(0);
-        let mut y = g.edge_prop("a".to_string());
+        let mut x = g.edge_prop(0usize);
+        let mut y = g.edge_prop("a");
         let edges = g.edges().collect::<Vec<_>>();
         let (a, b, c, d) = (edges[0], edges[1], edges[2], edges[3]);
         x[c] = 8;
-        y[d] = "b".to_string();
+        y[d] = "b";
         assert_eq!(0, x[a]);
         assert_eq!(0, x[b]);
         assert_eq!(8, x[c]);
