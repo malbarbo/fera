@@ -18,7 +18,7 @@ impl<G, F> Visitor<G> for Box<F> where G: Basic, F: FnMut(G::Vertex, G::Vertex) 
 pub trait Dfs: GraphAdj + WithVertexProp + Sized {
     fn dfs<'a, V>(&'a self, v: Self::Vertex, visitor: &mut V) where V: Visitor<Self> {
         let mut discovered = self.vertex_prop(false);
-        let mut stack : Vec<(Self::Vertex, <Self as AdjIter<'a>>::Type)> = vec![(v, self.neighbors(v))];
+        let mut stack : Vec<(Self::Vertex, AdjIter<'a, Self>)> = vec![(v, self.neighbors(v))];
         discovered[v] = true;
         while let Some((u, mut adj)) = stack.pop() {
             if let Some(v) = adj.find(|v| !discovered[*v]) {

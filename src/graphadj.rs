@@ -69,12 +69,12 @@ impl Degree for StaticGraph {
     }
 }
 
-impl<'a> AdjIter<'a> for StaticGraph {
+impl<'a> AdjIterType<'a> for StaticGraph {
     type Type = std::iter::Cloned<std::slice::Iter<'a, Self::Vertex>>;
 }
 
 impl Adj for StaticGraph {
-    fn neighbors<'a>(&'a self, v: Self::Vertex) -> <Self as AdjIter<'a>>::Type {
+    fn neighbors<'a>(&'a self, v: Self::Vertex) -> AdjIter<'a, Self> {
         self.adj[v].iter().cloned()
     }
 }
@@ -84,7 +84,7 @@ impl<'a, T> VertexPropType<'a, T> for StaticGraph {
 }
 
 impl WithVertexProp for StaticGraph {
-    fn vertex_prop<T: Clone>(&self, value: T) -> <Self as VertexPropType<T>>::Type {
+    fn vertex_prop<T: Clone>(&self, value: T) -> VertexProp<Self, T> {
         vec![value; self.num_vertices()]
     }
 }
@@ -94,7 +94,7 @@ impl<'a, T> EdgePropType<'a, T> for StaticGraph {
 }
 
 impl WithEdgeProp for StaticGraph {
-    fn edge_prop<T: Clone>(&self, value: T) -> <Self as EdgePropType<T>>::Type {
+    fn edge_prop<T: Clone>(&self, value: T) -> EdgeProp<Self, T> {
         vec![value; self.num_edges()]
     }
 }

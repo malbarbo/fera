@@ -1,5 +1,5 @@
 pub mod graphadj;
-pub mod dfs;
+pub mod traverse;
 
 // Basic
 
@@ -38,12 +38,16 @@ pub trait Degree: Basic {
 
 // Adj
 
-pub trait AdjIter<'a>: Basic {
+pub trait AdjIterType<'a>: Basic {
     type Type: Iterator<Item=Self::Vertex>;
 }
 
-pub trait Adj: Basic + for<'a> AdjIter<'a> {
-    fn neighbors(&self, v: Self::Vertex) -> <Self as AdjIter>::Type;
+// FIXME: change definition when [E0122] is resolved
+// pub type AdjIter<'a, G: Adj> = <G as AdjIterType<'a>>::Type;
+pub type AdjIter<'a, G> = <G as AdjIterType<'a>>::Type;
+
+pub trait Adj: Basic + for<'a> AdjIterType<'a> {
+    fn neighbors(&self, v: Self::Vertex) -> AdjIter<Self>;
 }
 
 
@@ -53,7 +57,11 @@ pub trait VertexPropType<'a, T>: Basic {
     type Type: std::ops::IndexMut<Self::Vertex, Output=T>;
 }
 
-pub trait WithVertexProp:
+// FIXME: change definition when [E0122] is resolved
+// pub type VertexProp<'a, G: VertexPropType<'a, T>, T> = <G as VertexPropType<'a, T>>::Type;
+pub type VertexProp<'a, G, T> = <G as VertexPropType<'a, T>>::Type;
+
+pub trait WithVertexProp: Basic +
         for<'a> VertexPropType<'a, bool> +
         for<'a> VertexPropType<'a, char> +
         for<'a> VertexPropType<'a, i8> +
@@ -70,7 +78,7 @@ pub trait WithVertexProp:
         for<'a> VertexPropType<'a, f64> +
         for<'a> VertexPropType<'a, &'a str> +
         for<'a> VertexPropType<'a, String> {
-    fn vertex_prop<T: Clone>(&self, value: T) -> <Self as VertexPropType<T>>::Type;
+    fn vertex_prop<T: Clone>(&self, value: T) -> VertexProp<Self, T>;
 }
 
 
@@ -80,7 +88,11 @@ pub trait EdgePropType<'a, T>: Basic {
     type Type: std::ops::IndexMut<Self::Edge, Output=T>;
 }
 
-pub trait WithEdgeProp:
+// FIXME: change definition when [E0122] is resolved
+// pub type EdgeProp<'a, G: EdgePropType<'a, T>, T> = <G as EdgePropType<'a, T>>::Type;
+pub type EdgeProp<'a, G, T> = <G as EdgePropType<'a, T>>::Type;
+
+pub trait WithEdgeProp: Basic +
         for<'a> EdgePropType<'a, bool> +
         for<'a> EdgePropType<'a, char> +
         for<'a> EdgePropType<'a, i8> +
@@ -97,7 +109,7 @@ pub trait WithEdgeProp:
         for<'a> EdgePropType<'a, f64> +
         for<'a> EdgePropType<'a, &'a str> +
         for<'a> EdgePropType<'a, String> {
-    fn edge_prop<T: Clone>(&self, value: T) -> <Self as EdgePropType<T>>::Type;
+    fn edge_prop<T: Clone>(&self, value: T) -> EdgeProp<Self, T>;
 }
 
 
