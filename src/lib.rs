@@ -1,4 +1,5 @@
 pub mod graphadj;
+pub mod dfs;
 
 // Basic
 
@@ -109,9 +110,10 @@ impl<G> GraphAdj for G where G: Basic + Degree + Adj {
 }
 
 
+// Tests
 
 #[cfg(test)]
-pub mod tests {
+pub mod tests_ {
     use super::*;
     use std::fmt::Debug;
     use std::collections::HashSet;

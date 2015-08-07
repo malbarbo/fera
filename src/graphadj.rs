@@ -1,5 +1,5 @@
-use std;
 use super::*;
+use std;
 
 pub struct StaticGraph {
     num_vertices: usize,
@@ -101,18 +101,18 @@ impl WithEdgeProp for StaticGraph {
 
 
 #[cfg(test)]
-mod tests_ {
+mod tests {
     use super::*;
-    use super::super::tests;
+    use super::super::tests_;
 
     fn new() -> StaticGraph {
         StaticGraph::new_edges(5, &[(0, 1), (0, 2), (1, 2), (1, 3)])
     }
 
-    #[test] fn vertices()    { tests::vertices(&new())  }
-    #[test] fn edges()       { tests::edges(&new())     }
-    #[test] fn degree()      { tests::degree(&new())    }
-    #[test] fn neighbors()   { tests::neighbors(&new()) }
-    #[test] fn vertex_prop() { tests::vertices(&new())  }
-    #[test] fn edge_prop()   { tests::vertices(&new())  }
+    #[test] fn vertices()    { tests_::vertices(&new())  }
+    #[test] fn edges()       { tests_::edges(&new())     }
+    #[test] fn degree()      { tests_::degree(&new())    }
+    #[test] fn neighbors()   { tests_::neighbors(&new()) }
+    #[test] fn vertex_prop() { tests_::vertices(&new())  }
+    #[test] fn edge_prop()   { tests_::vertices(&new())  }
 }
