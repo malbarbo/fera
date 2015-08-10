@@ -1,5 +1,7 @@
 pub mod graphadj;
 pub mod traverse;
+pub mod unionfind;
+pub mod kruskal;
 
 // Basic
 
@@ -61,7 +63,7 @@ pub trait VertexPropType<'a, T>: Basic {
 // pub type VertexProp<'a, G: VertexPropType<'a, T>, T> = <G as VertexPropType<'a, T>>::Type;
 pub type VertexProp<'a, G, T> = <G as VertexPropType<'a, T>>::Type;
 
-pub trait WithVertexProp: Basic +
+pub trait WithVertexProp:
         for<'a> VertexPropType<'a, bool> +
         for<'a> VertexPropType<'a, char> +
         for<'a> VertexPropType<'a, i8> +
@@ -77,7 +79,8 @@ pub trait WithVertexProp: Basic +
         for<'a> VertexPropType<'a, f32> +
         for<'a> VertexPropType<'a, f64> +
         for<'a> VertexPropType<'a, &'a str> +
-        for<'a> VertexPropType<'a, String> {
+        for<'a> VertexPropType<'a, String> +
+        for<'a> VertexPropType<'a, <Self as Basic>::Vertex> {
     fn vertex_prop<T: Clone>(&self, value: T) -> VertexProp<Self, T>;
 }
 
@@ -92,7 +95,7 @@ pub trait EdgePropType<'a, T>: Basic {
 // pub type EdgeProp<'a, G: EdgePropType<'a, T>, T> = <G as EdgePropType<'a, T>>::Type;
 pub type EdgeProp<'a, G, T> = <G as EdgePropType<'a, T>>::Type;
 
-pub trait WithEdgeProp: Basic +
+pub trait WithEdgeProp:
         for<'a> EdgePropType<'a, bool> +
         for<'a> EdgePropType<'a, char> +
         for<'a> EdgePropType<'a, i8> +
@@ -108,7 +111,8 @@ pub trait WithEdgeProp: Basic +
         for<'a> EdgePropType<'a, f32> +
         for<'a> EdgePropType<'a, f64> +
         for<'a> EdgePropType<'a, &'a str> +
-        for<'a> EdgePropType<'a, String> {
+        for<'a> EdgePropType<'a, String> +
+        for<'a> EdgePropType<'a, <Self as Basic>::Edge> {
     fn edge_prop<T: Clone>(&self, value: T) -> EdgeProp<Self, T>;
 }
 
