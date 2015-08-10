@@ -6,7 +6,7 @@ pub trait Visitor<G: Basic> {
     fn discover(&mut self, u: G::Vertex, v: G::Vertex) -> bool;
 }
 
-impl<G, F> Visitor<G> for Box<F> where G: Basic, F: FnMut(G::Vertex, G::Vertex) -> bool {
+impl<G, F> Visitor<G> for F where G: Basic, F: FnMut(G::Vertex, G::Vertex) -> bool {
     fn discover(&mut self, u: G::Vertex, v: G::Vertex) -> bool {
         self(u, v)
     }
@@ -32,8 +32,8 @@ pub trait Dfs: GraphAdj + WithVertexProp + Sized {
         }
     }
 
-    fn dfs_fun<F>(&self, v: Self::Vertex, fun: F) where F: FnMut(Self::Vertex, Self::Vertex) -> bool {
-        self.dfs(v, &mut Box::new(fun))
+    fn dfs_fun<F>(&self, v: Self::Vertex, mut fun: F) where F: FnMut(Self::Vertex, Self::Vertex) -> bool {
+        self.dfs(v, &mut fun)
     }
 }
 
@@ -62,8 +62,8 @@ pub trait Bfs: GraphAdj + WithVertexProp + Sized {
         }
     }
 
-    fn bfs_fun<F>(&self, v: Self::Vertex, fun: F) where F: FnMut(Self::Vertex, Self::Vertex) -> bool {
-        self.dfs(v, &mut Box::new(fun))
+    fn bfs_fun<F>(&self, v: Self::Vertex, mut fun: F) where F: FnMut(Self::Vertex, Self::Vertex) -> bool {
+        self.dfs(v, &mut fun)
     }
 }
 
