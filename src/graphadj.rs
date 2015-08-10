@@ -109,10 +109,10 @@ mod tests {
         StaticGraph::new_edges(5, &[(0, 1), (0, 2), (1, 2), (1, 3)])
     }
 
-    #[test] fn vertices()    { tests_::vertices(&new())  }
-    #[test] fn edges()       { tests_::edges(&new())     }
-    #[test] fn degree()      { tests_::degree(&new())    }
-    #[test] fn neighbors()   { tests_::neighbors(&new()) }
-    #[test] fn vertex_prop() { tests_::vertices(&new())  }
-    #[test] fn edge_prop()   { tests_::vertices(&new())  }
+    #[test] fn vertices()    { tests_::vertices(&new())    }
+    #[test] fn edges()       { tests_::edges(&new())       }
+    #[test] fn degree()      { tests_::degree(&new())      }
+    #[test] fn neighbors()   { tests_::neighbors(&new())   }
+    #[test] fn vertex_prop() { tests_::vertex_prop(&new()) }
+    #[test] fn edge_prop()   { tests_::edge_prop(&new())   }
 }
