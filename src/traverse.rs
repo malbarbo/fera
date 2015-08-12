@@ -76,11 +76,10 @@ impl<G> Bfs for G where G: GraphAdj + WithVertexProp { }
 mod tests {
     use super::*;
     use super::super::*;
-    use super::super::static_::*;
 
     #[test]
     fn dfs() {
-        let g = StaticGraph::new_edges(6, &[(0, 1), (0, 2), (2, 3), (2, 4), (4, 5)]);
+        let g = StaticGraph::new_with_edges(6, &[(0, 1), (0, 2), (2, 3), (2, 4), (4, 5)]);
         let mut d = g.vertex_prop(0usize);
         g.dfs_fun(0, |u, v| {
             d[v] = d[u] + 1;
@@ -91,7 +90,7 @@ mod tests {
 
     #[test]
     fn bfs() {
-        let g = StaticGraph::new_edges(6, &[(0, 1), (0, 2), (2, 3), (2, 4), (4, 5)]);
+        let g = StaticGraph::new_with_edges(6, &[(0, 1), (0, 2), (2, 3), (2, 4), (4, 5)]);
         let mut d = g.vertex_prop(0usize);
         g.bfs_fun(0, |u, v| {
             d[v] = d[u] + 1;

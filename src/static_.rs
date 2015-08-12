@@ -1,4 +1,19 @@
-use super::*;
+// not working
+// use super::*;
+use super::{
+    Basic,
+    Degree,
+    Adj,
+    AdjIter,
+    AdjIterType,
+    EdgeProp,
+    EdgePropType,
+    VertexProp,
+    VertexPropType,
+    WithEdgeProp,
+    WithVertexProp,
+};
+
 use std;
 
 pub struct StaticGraph {
@@ -9,7 +24,7 @@ pub struct StaticGraph {
 }
 
 impl StaticGraph {
-    pub fn new_edges(num_vertices: usize, edges: &[(usize, usize)]) -> StaticGraph {
+    pub fn new_with_edges(num_vertices: usize, edges: &[(usize, usize)]) -> StaticGraph {
         StaticGraph::new(num_vertices,
                          edges.iter().map(|e| e.0).collect(),
                          edges.iter().map(|e| e.1).collect())
@@ -106,7 +121,7 @@ mod tests {
     use super::super::tests_;
 
     fn new() -> StaticGraph {
-        StaticGraph::new_edges(5, &[(0, 1), (0, 2), (1, 2), (1, 3)])
+        StaticGraph::new_with_edges(5, &[(0, 1), (0, 2), (1, 2), (1, 3)])
     }
 
     #[test] fn vertices()    { tests_::vertices(&new())    }

@@ -1,7 +1,11 @@
-pub mod static_;
+pub use static_::StaticGraph;
+
+mod static_;
+
 pub mod traverse;
 pub mod unionfind;
 pub mod kruskal;
+
 
 // Basic
 
