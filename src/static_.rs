@@ -44,6 +44,43 @@ impl StaticGraph {
             adj: adj,
         }
     }
+
+    pub fn new_empty() -> StaticGraph {
+        StaticGraph::new(0, vec![], vec![])
+    }
+
+    pub fn builder(num_vertices: usize, num_edges_hint: usize) -> StaticGraphBuilder {
+        let sources = Vec::with_capacity(num_edges_hint);
+        let targets = Vec::with_capacity(num_edges_hint);
+        StaticGraphBuilder {
+            g: StaticGraph::new(num_vertices, sources, targets)
+        }
+    }
+
+    fn add_edge(&mut self, u: usize, v: usize) {
+        self.sources.push(u);
+        self.targets.push(v);
+        self.adj[u].push(v);
+        self.adj[v].push(u);
+    }
+}
+
+pub struct StaticGraphBuilder {
+    g: StaticGraph,
+}
+
+impl StaticGraphBuilder {
+    pub fn add_edge(&mut self, u: usize, v: usize) {
+        self.g.add_edge(u, v);
+    }
+
+    pub fn num_edges(&self) -> usize {
+        self.g.num_edges()
+    }
+
+    pub fn finalize(self) -> StaticGraph {
+        self.g
+    }
 }
 
 
@@ -130,4 +167,22 @@ mod tests {
     #[test] fn neighbors()   { tests_::neighbors(&new())   }
     #[test] fn vertex_prop() { tests_::vertex_prop(&new()) }
     #[test] fn edge_prop()   { tests_::edge_prop(&new())   }
+
+    #[test]
+    fn builder() {
+        let mut builder = StaticGraph::builder(3, 1);
+        assert_eq!(0, builder.num_edges());
+
+        builder.add_edge(0, 1);
+        assert_eq!(1, builder.num_edges());
+
+        builder.add_edge(1, 2);
+        assert_eq!(2, builder.num_edges());
+
+        let g = builder.finalize();
+        assert_eq!(3, g.num_vertices);
+        assert_eq!(vec![0, 1], g.sources);
+        assert_eq!(vec![1, 2], g.targets);
+        assert_eq!(vec![vec![1], vec![0, 2], vec![1]], g.adj);
+    }
 }

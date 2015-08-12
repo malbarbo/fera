@@ -1,4 +1,5 @@
 pub use static_::StaticGraph;
+pub use static_::StaticGraphBuilder;
 
 mod static_;
 
