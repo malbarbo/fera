@@ -1,4 +1,4 @@
-pub mod graphadj;
+pub mod static_;
 pub mod traverse;
 pub mod unionfind;
 pub mod kruskal;

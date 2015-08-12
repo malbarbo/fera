@@ -56,7 +56,7 @@ impl<'a, G> DisjointSet<'a, G>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use super::super::graphadj::StaticGraph;
+    use super::super::static_::StaticGraph;
 
     fn check_groups(ds: &mut DisjointSet<StaticGraph>, groups: &[&[usize]]) {
         for group in groups.iter() {

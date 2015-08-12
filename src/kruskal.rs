@@ -63,7 +63,7 @@ impl<G> Kruskal for G where G: Basic + WithVertexProp + WithEdgeProp { }
 mod tests {
     use super::*;
     use super::super::*;
-    use super::super::graphadj::StaticGraph;
+    use super::super::static_::StaticGraph;
 
     #[test]
     fn kruskal_mst() {

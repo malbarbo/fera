@@ -80,7 +80,7 @@ impl Adj for StaticGraph {
 }
 
 impl<'a, T> VertexPropType<'a, T> for StaticGraph {
-    type Type = std::vec::Vec<T>;
+    type Type = Vec<T>;
 }
 
 impl WithVertexProp for StaticGraph {
@@ -90,7 +90,7 @@ impl WithVertexProp for StaticGraph {
 }
 
 impl<'a, T> EdgePropType<'a, T> for StaticGraph {
-    type Type = std::vec::Vec<T>;
+    type Type = Vec<T>;
 }
 
 impl WithEdgeProp for StaticGraph {
