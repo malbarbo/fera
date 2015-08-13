@@ -106,7 +106,7 @@ impl Basic for StaticGraph {
         self.targets[e]
     }
 
-    fn num_edges(& self) -> usize {
+    fn num_edges(&self) -> usize {
         self.sources.len()
     }
 
@@ -126,7 +126,7 @@ impl<'a> AdjIterType<'a> for StaticGraph {
 }
 
 impl Adj for StaticGraph {
-    fn neighbors<'a>(&'a self, v: Self::Vertex) -> AdjIter<'a, Self> {
+    fn neighbors(&self, v: Self::Vertex) -> AdjIter<Self> {
         self.adj[v].iter().cloned()
     }
 }
