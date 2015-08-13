@@ -3,6 +3,7 @@ pub use static_::StaticGraphBuilder;
 
 mod static_;
 
+pub mod iter;
 pub mod traverse;
 pub mod unionfind;
 pub mod kruskal;
@@ -25,13 +26,8 @@ pub trait Basic {
     fn source(&self, e: Self::Edge) -> Self::Vertex;
     fn target(&self, e: Self::Edge) -> Self::Vertex;
 
-    fn edge_vertices(&self, e: Self::Edge) -> (Self::Vertex, Self::Vertex) {
+    fn endvertices(&self, e: Self::Edge) -> (Self::Vertex, Self::Vertex) {
         (self.source(e), self.target(e))
-    }
-
-    // FIXME: make a lazy iterator
-    fn edges_as_vertex_pairs(&self) -> Vec<(Self::Vertex, Self::Vertex)> {
-        self.edges().map(|e| self.edge_vertices(e)).collect()
     }
 }
 
@@ -136,31 +132,39 @@ impl<G> GraphAdj for G where G: Basic + Degree + Adj {
 #[cfg(test)]
 pub mod tests_ {
     use super::*;
+    use super::iter::{Map1, IteratorExt};
+    use std;
     use std::fmt::Debug;
-    use std::collections::HashSet;
-    use std::hash::Hash;
 
     // Test graph (0, 1), (0, 2), (1, 2), (1, 3)
 
-    pub fn assert_iter_eq<T, I1, I2>(a: I1, b: I2)
-            where T: Debug + PartialEq, I1: IntoIterator<Item=T>, I2: IntoIterator<Item=T> {
-        assert_eq!(a.into_iter().collect::<Vec<T>>(), b.into_iter().collect::<Vec<T>>());
+    macro_rules! set {
+        () => {
+            std::collections::HashSet::new()
+        };
+        ($($x:expr),+) => {
+            [$($x,)+].iter().map(|&x| x).collect::<std::collections::HashSet<_>>()
+        }
     }
 
-    pub fn assert_set_eq<T, I1, I2>(a: I1, b: I2)
-            where T: Debug + Eq + Hash, I2: IntoIterator<Item=T>, I1: IntoIterator<Item=T> {
-        assert_eq!(a.into_iter().collect::<HashSet<T>>(), b.into_iter().collect::<HashSet<T>>());
+    trait IteratorGraph<G: Basic>: Iterator<Item=G::Edge> + Sized {
+        fn endvertices(self, g: &G) ->
+            Map1<Self, G,
+                 fn(&G, G::Edge) -> (G::Vertex, G::Vertex)> {
+            self.map1(&g, G::endvertices)
+        }
     }
 
+    impl<G: Basic, I: Iterator<Item=G::Edge>> IteratorGraph<G> for I {}
 
     pub fn vertices<G>(g: &G) where G: Basic<Vertex=usize>, G::Edge: Debug {
         assert_eq!(5, g.num_vertices());
-        assert_set_eq(vec![0, 1, 2, 3, 4], g.vertices());
+        assert_eq!(vec![0, 1, 2, 3, 4], g.vertices().as_vec());
     }
 
     pub fn edges<G>(g: &G) where G: Basic<Vertex=usize>, G::Edge: Debug {
         assert_eq!(4, g.num_edges());
-        assert_set_eq(vec![(0, 1), (0, 2), (1, 2), (1, 3)], g.edges_as_vertex_pairs());
+        assert_eq!(set![(0, 1), (0, 2), (1, 2), (1, 3)], g.edges().endvertices(g).as_set());
     }
 
     pub fn degree<G>(g: &G) where G: Degree<Vertex=usize>, G::Edge: Debug {
@@ -172,11 +176,11 @@ pub mod tests_ {
     }
 
     pub fn neighbors<G>(g: &G) where G: Adj<Vertex=usize>, G::Edge: Debug {
-        assert_set_eq(vec![1, 2], g.neighbors(0));
-        assert_set_eq(vec![0, 2, 3], g.neighbors(1));
-        assert_set_eq(vec![0, 1], g.neighbors(2));
-        assert_set_eq(vec![1], g.neighbors(3));
-        assert_set_eq(vec![], g.neighbors(4));
+        assert_eq!(set![1, 2], g.neighbors(0).as_set());
+        assert_eq!(set![0, 2, 3], g.neighbors(1).as_set());
+        assert_eq!(set![0, 1], g.neighbors(2).as_set());
+        assert_eq!(set![1], g.neighbors(3).as_set());
+        assert_eq!(set![], g.neighbors(4).as_set());
     }
 
     pub fn vertex_prop<G>(g: &G) where G: WithVertexProp {

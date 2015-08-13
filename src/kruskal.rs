@@ -20,7 +20,7 @@ pub trait Kruskal: Basic + WithEdgeProp + WithVertexProp + Sized {
               Self::Vertex: PartialEq {
         let mut ds = DisjointSet::new(self);
         for e in edges {
-            let (u, v) = self.edge_vertices(e);
+            let (u, v) = self.endvertices(e);
             let in_same_set = ds.in_same_set(u, v);
             if !visitor.visit(e, in_same_set) {
                 return;
