@@ -8,6 +8,7 @@ pub mod traverse;
 pub mod unionfind;
 pub mod kruskal;
 
+use iter::{IteratorExt, Map1};
 
 // Basic
 
@@ -39,6 +40,21 @@ pub trait Degree: Basic {
 }
 
 
+// Inc
+
+pub trait IncIterType<'a>: Basic {
+    type Type: Iterator<Item=Self::Edge>;
+}
+
+// FIXME: change definition when [E0122] is resolved
+// pub type IncIter<'a, G: Inc> = <G as IncIterType<'a>>::Type;
+pub type IncIter<'a, G> = <G as IncIterType<'a>>::Type;
+
+pub trait Inc: Basic + for<'a> IncIterType<'a> {
+    fn inc_edges(&self, v: Self::Vertex) -> IncIter<Self>;
+}
+
+
 // Adj
 
 pub trait AdjIterType<'a>: Basic {
@@ -51,6 +67,17 @@ pub type AdjIter<'a, G> = <G as AdjIterType<'a>>::Type;
 
 pub trait Adj: Basic + for<'a> AdjIterType<'a> {
     fn neighbors(&self, v: Self::Vertex) -> AdjIter<Self>;
+}
+
+// Implementation of Adj traits for Graphs which implements Inc
+impl<'a, G: Inc> AdjIterType<'a> for G {
+    type Type = Map1<'a, IncIter<'a, G>, G, fn(&G, G::Edge) -> G::Vertex>;
+}
+
+impl<G: Inc> Adj for G {
+    fn neighbors(&self, v: Self::Vertex) -> AdjIter<Self> {
+        self.inc_edges(v).map1(self, Self::target)
+    }
 }
 
 
@@ -118,6 +145,15 @@ pub trait WithEdgeProp:
 }
 
 
+// GraphInc
+
+pub trait GraphInc: Basic + Degree + Inc {
+}
+
+impl<G> GraphInc for G where G: Basic + Degree + Inc {
+}
+
+
 // GraphAdj
 
 pub trait GraphAdj: Basic + Degree + Adj {
@@ -173,6 +209,27 @@ pub mod tests_ {
         assert_eq!(2, g.degree(2));
         assert_eq!(1, g.degree(3));
         assert_eq!(0, g.degree(4));
+    }
+
+    pub fn inc_edges_one_edge<G>(g: &G) where G: Inc<Vertex=usize>, G::Edge: PartialEq + Debug {
+        let e = g.edges().next().unwrap();
+        let ab = g.inc_edges(0).next().unwrap();
+        let ba = g.inc_edges(1).next().unwrap();
+        assert_eq!(e, ab);
+        assert_eq!(e, ba);
+        assert_eq!(ab, ba);
+        assert_eq!(0, g.source(ab));
+        assert_eq!(1, g.target(ab));
+        assert_eq!(1, g.source(ba));
+        assert_eq!(0, g.target(ba));
+    }
+
+    pub fn inc_edges<G>(g: &G) where G: Inc<Vertex=usize>, G::Edge: Debug {
+        assert_eq!(set![(0, 1), (0, 2)], g.inc_edges(0).endvertices(g).as_set());
+        assert_eq!(set![(1, 0), (1, 2), (1, 3)], g.inc_edges(1).endvertices(g).as_set());
+        assert_eq!(set![(2, 0), (2, 1)], g.inc_edges(2).endvertices(g).as_set());
+        assert_eq!(set![(3, 1)], g.inc_edges(3).endvertices(g).as_set());
+        assert_eq!(set![], g.inc_edges(4).endvertices(g).as_set());
     }
 
     pub fn neighbors<G>(g: &G) where G: Adj<Vertex=usize>, G::Edge: Debug {
