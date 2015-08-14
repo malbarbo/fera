@@ -3,9 +3,9 @@
 use super::{
     Basic,
     Degree,
-    Adj,
-    AdjIter,
-    AdjIterType,
+    Inc,
+    IncIter,
+    IncIterType,
     EdgeProp,
     EdgePropType,
     VertexProp,
@@ -14,54 +14,83 @@ use super::{
     WithVertexProp,
 };
 
-use std;
+use std::iter::{Cloned, Map};
+use std::ops::{Index, IndexMut, Range};
+use std::slice::Iter;
+
+#[derive(Copy, Clone, Debug)]
+pub struct Edge(usize);
+
+impl Edge {
+    fn new(e: usize) -> Edge {
+        Edge(2*e + 1)
+    }
+
+    fn new_reverse(e: usize) -> Edge {
+        Edge(2*e)
+    }
+
+    pub fn to_index(self) -> usize {
+        self.0 / 2
+    }
+}
+
+impl PartialEq<Edge> for Edge {
+    fn eq(&self, other: &Edge) -> bool {
+        self.to_index() == other.to_index()
+    }
+}
+
+pub struct EdgePropVec<T>(Vec<T>);
+
+impl<T> Index<Edge> for EdgePropVec<T> {
+    type Output = T;
+    fn index<'a>(&'a self, index: Edge) -> &'a Self::Output {
+        &self.0.index(index.to_index())
+    }
+}
+
+impl<T> IndexMut<Edge> for EdgePropVec<T> {
+    fn index_mut<'a>(&'a mut self, index: Edge) -> &'a mut Self::Output {
+        self.0.index_mut(index.to_index())
+    }
+}
 
 pub struct StaticGraph {
     num_vertices: usize,
-    sources: Vec<usize>,
-    targets: Vec<usize>,
-    adj: Vec<Vec<usize>>,
+    endvertices: Vec<usize>,
+    inc: Vec<Vec<Edge>>,
 }
 
 impl StaticGraph {
     pub fn new_with_edges(num_vertices: usize, edges: &[(usize, usize)]) -> StaticGraph {
-        StaticGraph::new(num_vertices,
-                         edges.iter().map(|e| e.0).collect(),
-                         edges.iter().map(|e| e.1).collect())
-    }
-
-    pub fn new(num_vertices: usize, sources: Vec<usize>, targets: Vec<usize>) -> StaticGraph {
-        let mut adj = vec![vec![]; num_vertices];
-        for (u, v) in sources.iter().zip(targets.iter()) {
-            // TODO: is u and v valid?
-            adj[*u].push(*v);
-            adj[*v].push(*u);
+        let mut builder = StaticGraph::builder(num_vertices, edges.len());
+        for &(u, v) in edges {
+            builder.add_edge(u, v)
         }
-        StaticGraph{
-            num_vertices: num_vertices,
-            sources: sources,
-            targets: targets,
-            adj: adj,
-        }
+        builder.finalize()
     }
 
     pub fn new_empty() -> StaticGraph {
-        StaticGraph::new(0, vec![], vec![])
+        StaticGraph::new_with_edges(0, &[])
     }
 
     pub fn builder(num_vertices: usize, num_edges_hint: usize) -> StaticGraphBuilder {
-        let sources = Vec::with_capacity(num_edges_hint);
-        let targets = Vec::with_capacity(num_edges_hint);
         StaticGraphBuilder {
-            g: StaticGraph::new(num_vertices, sources, targets)
+            g: StaticGraph {
+                num_vertices: num_vertices,
+                endvertices: Vec::with_capacity(num_edges_hint),
+                inc: vec![vec![]; num_vertices],
+            }
         }
     }
 
     fn add_edge(&mut self, u: usize, v: usize) {
-        self.sources.push(u);
-        self.targets.push(v);
-        self.adj[u].push(v);
-        self.adj[v].push(u);
+        self.endvertices.push(u);
+        self.endvertices.push(v);
+        let e = (self.endvertices.len() - 2) / 2;
+        self.inc[u].push(Edge::new(e));
+        self.inc[v].push(Edge::new_reverse(e));
     }
 }
 
@@ -86,9 +115,9 @@ impl StaticGraphBuilder {
 
 impl Basic for StaticGraph {
     type Vertex = usize;
-    type Edge = usize;
-    type VertexIter = std::ops::Range<Self::Vertex>;
-    type EdgeIter = std::ops::Range<Self::Vertex>;
+    type Edge = Edge;
+    type VertexIter = Range<Self::Vertex>;
+    type EdgeIter = Map<Range<usize>, fn(usize) -> Self::Edge>;
 
     fn num_vertices(&self) ->  usize {
         self.num_vertices
@@ -99,35 +128,35 @@ impl Basic for StaticGraph {
     }
 
     fn source(&self, e: Self::Edge) -> Self::Vertex {
-        self.sources[e]
+        self.endvertices[e.0 ^ 1]
     }
 
     fn target(&self, e: Self::Edge) -> Self::Vertex {
-        self.targets[e]
+        self.endvertices[e.0]
     }
 
     fn num_edges(&self) -> usize {
-        self.sources.len()
+        self.endvertices.len() / 2
     }
 
     fn edges(&self) -> Self::EdgeIter {
-        0..self.num_edges()
+        (0..self.num_edges()).map(Edge::new)
     }
 }
 
 impl Degree for StaticGraph {
     fn degree(&self, v: Self::Vertex) -> usize {
-        self.adj[v].len()
+        self.inc[v].len()
     }
 }
 
-impl<'a> AdjIterType<'a> for StaticGraph {
-    type Type = std::iter::Cloned<std::slice::Iter<'a, Self::Vertex>>;
+impl<'a> IncIterType<'a> for StaticGraph {
+    type Type = Cloned<Iter<'a, Self::Edge>>;
 }
 
-impl Adj for StaticGraph {
-    fn neighbors(&self, v: Self::Vertex) -> AdjIter<Self> {
-        self.adj[v].iter().cloned()
+impl Inc for StaticGraph {
+    fn inc_edges(&self, v: Self::Vertex) -> IncIter<Self> {
+        self.inc[v].iter().cloned()
     }
 }
 
@@ -142,20 +171,20 @@ impl WithVertexProp for StaticGraph {
 }
 
 impl<'a, T> EdgePropType<'a, T> for StaticGraph {
-    type Type = Vec<T>;
+    type Type = EdgePropVec<T>;
 }
 
 impl WithEdgeProp for StaticGraph {
     fn edge_prop<T: Clone>(&self, value: T) -> EdgeProp<Self, T> {
-        vec![value; self.num_edges()]
+        EdgePropVec(vec![value; self.num_edges()])
     }
 }
 
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use super::super::tests_;
+    use super::Edge;
+    use super::super::*;
 
     fn new() -> StaticGraph {
         StaticGraph::new_with_edges(5, &[(0, 1), (0, 2), (1, 2), (1, 3)])
@@ -164,6 +193,10 @@ mod tests {
     #[test] fn vertices()    { tests_::vertices(&new())    }
     #[test] fn edges()       { tests_::edges(&new())       }
     #[test] fn degree()      { tests_::degree(&new())      }
+    #[test] fn inc_edges_one_edge() {
+        tests_::inc_edges_one_edge(&StaticGraph::new_with_edges(2, &[(0, 1)]))
+    }
+    #[test] fn inc_edges()   { tests_::inc_edges(&new())   }
     #[test] fn neighbors()   { tests_::neighbors(&new())   }
     #[test] fn vertex_prop() { tests_::vertex_prop(&new()) }
     #[test] fn edge_prop()   { tests_::edge_prop(&new())   }
@@ -181,8 +214,10 @@ mod tests {
 
         let g = builder.finalize();
         assert_eq!(3, g.num_vertices);
-        assert_eq!(vec![0, 1], g.sources);
-        assert_eq!(vec![1, 2], g.targets);
-        assert_eq!(vec![vec![1], vec![0, 2], vec![1]], g.adj);
+        assert_eq!(vec![0, 1, 1, 2], g.endvertices);
+        assert_eq!(vec![vec![Edge::new(0)],
+                        vec![Edge::new_reverse(0), Edge::new(1)],
+                        vec![Edge::new_reverse(1)]],
+                   g.inc);
     }
 }

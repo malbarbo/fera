@@ -68,7 +68,7 @@ mod tests {
 
     #[test]
     fn unionfind() {
-        let g = StaticGraph::new(5, vec![], vec![]);
+        let g = StaticGraph::new_with_edges(5, &[]);
         let mut ds = DisjointSet::new(&g);
         ds.union(0, 2);
         check_groups(&mut ds, &[&[0, 2]]);

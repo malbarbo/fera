@@ -63,6 +63,7 @@ impl<G> Kruskal for G where G: Basic + WithVertexProp + WithEdgeProp { }
 mod tests {
     use super::*;
     use super::super::*;
+    use super::super::iter::*;
 
     #[test]
     fn kruskal_mst() {
@@ -72,6 +73,7 @@ mod tests {
         for (e, w) in g.edges().zip(&[1, 2, 3, 4, 5, 6, 7]) {
             weight[e] = *w;
         }
-        assert_eq!(vec![0, 1, 2, 4], g.kruskal_mst(&weight));
+        let e = g.edges().as_vec();
+        assert_eq!(vec![e[0], e[1], e[2], e[4]], g.kruskal_mst(&weight));
     }
 }
