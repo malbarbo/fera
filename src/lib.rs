@@ -1,12 +1,14 @@
-pub use static_::StaticGraph;
-pub use static_::StaticGraphBuilder;
-
-mod static_;
-
+#[cfg(test)]
+#[macro_use]
+pub mod tests;
+pub mod static_;
 pub mod iter;
 pub mod traverse;
 pub mod unionfind;
 pub mod kruskal;
+
+pub use static_::StaticGraph;
+pub use static_::StaticGraphBuilder;
 
 use iter::{IteratorExt, Map1};
 
@@ -160,119 +162,4 @@ pub trait GraphAdj: Basic + Degree + Adj {
 }
 
 impl<G> GraphAdj for G where G: Basic + Degree + Adj {
-}
-
-
-// Tests
-
-#[cfg(test)]
-pub mod tests_ {
-    use super::*;
-    use super::iter::{Map1, IteratorExt};
-    use std;
-    use std::fmt::Debug;
-
-    // Test graph (0, 1), (0, 2), (1, 2), (1, 3)
-
-    macro_rules! set {
-        () => {
-            std::collections::HashSet::new()
-        };
-        ($($x:expr),+) => {
-            [$($x,)+].iter().map(|&x| x).collect::<std::collections::HashSet<_>>()
-        }
-    }
-
-    trait IteratorGraph<G: Basic>: Iterator<Item=G::Edge> + Sized {
-        fn endvertices(self, g: &G) ->
-            Map1<Self, G,
-                 fn(&G, G::Edge) -> (G::Vertex, G::Vertex)> {
-            self.map1(&g, G::endvertices)
-        }
-    }
-
-    impl<G: Basic, I: Iterator<Item=G::Edge>> IteratorGraph<G> for I {}
-
-    pub fn vertices<G>(g: &G) where G: Basic<Vertex=usize>, G::Edge: Debug {
-        assert_eq!(5, g.num_vertices());
-        assert_eq!(vec![0, 1, 2, 3, 4], g.vertices().as_vec());
-    }
-
-    pub fn edges<G>(g: &G) where G: Basic<Vertex=usize>, G::Edge: Debug {
-        assert_eq!(4, g.num_edges());
-        assert_eq!(set![(0, 1), (0, 2), (1, 2), (1, 3)], g.edges().endvertices(g).as_set());
-    }
-
-    pub fn degree<G>(g: &G) where G: Degree<Vertex=usize>, G::Edge: Debug {
-        assert_eq!(2, g.degree(0));
-        assert_eq!(3, g.degree(1));
-        assert_eq!(2, g.degree(2));
-        assert_eq!(1, g.degree(3));
-        assert_eq!(0, g.degree(4));
-    }
-
-    pub fn inc_edges_one_edge<G>(g: &G) where G: Inc<Vertex=usize>, G::Edge: PartialEq + Debug {
-        let e = g.edges().next().unwrap();
-        let ab = g.inc_edges(0).next().unwrap();
-        let ba = g.inc_edges(1).next().unwrap();
-        assert_eq!(e, ab);
-        assert_eq!(e, ba);
-        assert_eq!(ab, ba);
-        assert_eq!(0, g.source(ab));
-        assert_eq!(1, g.target(ab));
-        assert_eq!(1, g.source(ba));
-        assert_eq!(0, g.target(ba));
-    }
-
-    pub fn inc_edges<G>(g: &G) where G: Inc<Vertex=usize>, G::Edge: Debug {
-        assert_eq!(set![(0, 1), (0, 2)], g.inc_edges(0).endvertices(g).as_set());
-        assert_eq!(set![(1, 0), (1, 2), (1, 3)], g.inc_edges(1).endvertices(g).as_set());
-        assert_eq!(set![(2, 0), (2, 1)], g.inc_edges(2).endvertices(g).as_set());
-        assert_eq!(set![(3, 1)], g.inc_edges(3).endvertices(g).as_set());
-        assert_eq!(set![], g.inc_edges(4).endvertices(g).as_set());
-    }
-
-    pub fn neighbors<G>(g: &G) where G: Adj<Vertex=usize>, G::Edge: Debug {
-        assert_eq!(set![1, 2], g.neighbors(0).as_set());
-        assert_eq!(set![0, 2, 3], g.neighbors(1).as_set());
-        assert_eq!(set![0, 1], g.neighbors(2).as_set());
-        assert_eq!(set![1], g.neighbors(3).as_set());
-        assert_eq!(set![], g.neighbors(4).as_set());
-    }
-
-    pub fn vertex_prop<G>(g: &G) where G: WithVertexProp {
-        let mut x = g.vertex_prop(0usize);
-        let mut y = g.vertex_prop("a");
-        let v = g.vertices().collect::<Vec<_>>();
-        let (a, b, c, d, e) = (v[0], v[1], v[2], v[3], v[4]);
-        x[c] = 8;
-        y[d] = "b";
-        assert_eq!(0, x[a]);
-        assert_eq!(0, x[b]);
-        assert_eq!(8, x[c]);
-        assert_eq!(0, x[d]);
-        assert_eq!(0, x[e]);
-        assert_eq!("a", y[a]);
-        assert_eq!("a", y[b]);
-        assert_eq!("a", y[c]);
-        assert_eq!("b", y[d]);
-        assert_eq!("a", y[e]);
-    }
-
-    pub fn edge_prop<G>(g: &G) where G: WithEdgeProp {
-        let mut x = g.edge_prop(0usize);
-        let mut y = g.edge_prop("a");
-        let edges = g.edges().collect::<Vec<_>>();
-        let (a, b, c, d) = (edges[0], edges[1], edges[2], edges[3]);
-        x[c] = 8;
-        y[d] = "b";
-        assert_eq!(0, x[a]);
-        assert_eq!(0, x[b]);
-        assert_eq!(8, x[c]);
-        assert_eq!(0, x[d]);
-        assert_eq!("a", y[a]);
-        assert_eq!("a", y[b]);
-        assert_eq!("a", y[c]);
-        assert_eq!("b", y[d]);
-    }
 }

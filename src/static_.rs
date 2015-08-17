@@ -17,6 +17,9 @@ use super::{
 use std::iter::{Cloned, Map};
 use std::ops::{Index, IndexMut, Range};
 use std::slice::Iter;
+use std::hash::{Hash, Hasher};
+
+// Edge
 
 #[derive(Copy, Clone, Debug)]
 pub struct Edge(usize);
@@ -41,12 +44,20 @@ impl PartialEq<Edge> for Edge {
     }
 }
 
+impl Eq for Edge { }
+
+impl Hash for Edge {
+    fn hash<H>(&self, state: &mut H) where H: Hasher {
+        self.to_index().hash(state)
+    }
+}
+
 pub struct EdgePropVec<T>(Vec<T>);
 
 impl<T> Index<Edge> for EdgePropVec<T> {
     type Output = T;
     fn index<'a>(&'a self, index: Edge) -> &'a Self::Output {
-        &self.0.index(index.to_index())
+        self.0.index(index.to_index())
     }
 }
 
@@ -55,6 +66,9 @@ impl<T> IndexMut<Edge> for EdgePropVec<T> {
         self.0.index_mut(index.to_index())
     }
 }
+
+
+// Graph
 
 pub struct StaticGraph {
     num_vertices: usize,
@@ -181,25 +195,13 @@ impl WithEdgeProp for StaticGraph {
 }
 
 
+// Tests
+
 #[cfg(test)]
 mod tests {
     use super::Edge;
     use super::super::*;
-
-    fn new() -> StaticGraph {
-        StaticGraph::new_with_edges(5, &[(0, 1), (0, 2), (1, 2), (1, 3)])
-    }
-
-    #[test] fn vertices()    { tests_::vertices(&new())    }
-    #[test] fn edges()       { tests_::edges(&new())       }
-    #[test] fn degree()      { tests_::degree(&new())      }
-    #[test] fn inc_edges_one_edge() {
-        tests_::inc_edges_one_edge(&StaticGraph::new_with_edges(2, &[(0, 1)]))
-    }
-    #[test] fn inc_edges()   { tests_::inc_edges(&new())   }
-    #[test] fn neighbors()   { tests_::neighbors(&new())   }
-    #[test] fn vertex_prop() { tests_::vertex_prop(&new()) }
-    #[test] fn edge_prop()   { tests_::edge_prop(&new())   }
+    use super::super::tests::*;
 
     #[test]
     fn builder() {
@@ -220,4 +222,25 @@ mod tests {
                         vec![Edge::new_reverse(1)]],
                    g.inc);
     }
+
+    struct StaticBuilder;
+
+    impl Builder for StaticBuilder {
+        type G = StaticGraph;
+
+        fn new(num_vertices: usize, edges: &[(usize, usize)])
+            -> (G<Self>, Vec<V<Self>>, Vec<E<Self>>) {
+            let g = StaticGraph::new_with_edges(num_vertices, edges);
+            let vertices = g.vertices().as_vec();
+            let edges = g.edges().as_vec();
+            (g, vertices, edges)
+        }
+    }
+
+    test_basic!{ StaticBuilder }
+    test_degree!{ StaticBuilder }
+    test_inc!{ StaticBuilder }
+    test_adj!{ StaticBuilder }
+    test_vertex_prop!{ StaticBuilder }
+    test_edge_prop!{ StaticBuilder }
 }

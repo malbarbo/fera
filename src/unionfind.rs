@@ -1,4 +1,8 @@
-use super::*;
+use super::{
+    Basic,
+    VertexProp,
+    WithVertexProp,
+};
 
 pub struct DisjointSet<'a, G: Basic + WithVertexProp> {
     parent: VertexProp<'a, G, G::Vertex>,

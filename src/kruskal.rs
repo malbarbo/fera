@@ -1,4 +1,10 @@
-use super::*;
+use super::{
+    Basic,
+    EdgeProp,
+    EdgePropType,
+    WithEdgeProp,
+    WithVertexProp,
+};
 use super::unionfind::DisjointSet;
 
 pub trait Visitor<G: Basic> {
@@ -63,7 +69,7 @@ impl<G> Kruskal for G where G: Basic + WithVertexProp + WithEdgeProp { }
 mod tests {
     use super::*;
     use super::super::*;
-    use super::super::iter::*;
+    use super::super::iter::IteratorExt;
 
     #[test]
     fn kruskal_mst() {
