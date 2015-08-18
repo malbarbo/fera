@@ -22,8 +22,7 @@ impl<F, G> Visitor< G> for F
 pub trait Kruskal: Basic + WithEdgeProp + WithVertexProp + Sized {
     fn kruskal_edges<I, V>(&self, edges: I, mut visitor: V)
         where I: Iterator<Item=Self::Edge>,
-              V: Visitor<Self>,
-              Self::Vertex: PartialEq {
+              V: Visitor<Self> {
         let mut ds = DisjointSet::new(self);
         for e in edges {
             let (u, v) = self.endvertices(e);
@@ -40,8 +39,7 @@ pub trait Kruskal: Basic + WithEdgeProp + WithVertexProp + Sized {
     fn kruskal<T, V>(&self, weight: &EdgeProp<Self, T>, visitor: V)
         where T: Ord,
               V: Visitor<Self>,
-              Self: for<'a> EdgePropType<'a, T>,
-              Self::Vertex: PartialEq {
+              Self: for<'a> EdgePropType<'a, T> {
         let mut edges = self.edges().collect::<Vec<_>>();
         edges.sort_by(|a, b| weight[*a].cmp(&weight[*b]));
         self.kruskal_edges(edges.iter().cloned(), visitor);
@@ -49,8 +47,7 @@ pub trait Kruskal: Basic + WithEdgeProp + WithVertexProp + Sized {
 
     fn kruskal_mst<T>(&self, weight: &EdgeProp<Self, T>) -> Vec<Self::Edge>
         where T: Ord,
-              Self: for<'a> EdgePropType<'a, T>,
-              Self::Vertex: PartialEq {
+              Self: for<'a> EdgePropType<'a, T> {
         let mut tree = vec![];
         self.kruskal::<T, _>(weight, |e: Self::Edge, in_same_set: bool| {
             if !in_same_set {

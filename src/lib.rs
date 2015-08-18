@@ -15,8 +15,8 @@ use iter::{IteratorExt, Map1};
 // Basic
 
 pub trait Basic {
-    type Vertex: Copy;
-    type Edge: Copy;
+    type Vertex: Copy + Eq;
+    type Edge: Copy + Eq;
     type VertexIter: Iterator<Item=Self::Vertex>;
     type EdgeIter: Iterator<Item=Self::Edge>;
 

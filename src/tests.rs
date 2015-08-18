@@ -102,7 +102,7 @@ macro_rules! test_edge_prop (
 );
 
 
-pub fn test_vertices<B: Builder>() where V<B>: Debug + PartialEq {
+pub fn test_vertices<B: Builder>() where V<B>: Debug {
     let (g, vertices, _) = new::<B>();
     assert_eq!(5, vertices.len());
     assert_eq!(5, g.num_vertices());
@@ -110,8 +110,8 @@ pub fn test_vertices<B: Builder>() where V<B>: Debug + PartialEq {
 }
 
 pub fn test_edges<B: Builder>()
-    where V<B>: Debug + PartialEq,
-          E<B>: Debug + PartialEq {
+    where V<B>: Debug,
+          E<B>: Debug {
     let (g, v, edges) = new::<B>();
     assert_eq!(4, edges.len());
     assert_eq!(4, g.num_edges());
@@ -131,8 +131,8 @@ pub fn test_degree<B: Builder>() where G<B>: Degree {
 
 pub fn test_inc_edges_one_edge<B: Builder>()
     where G<B>: Inc,
-          V<B>: Debug + PartialEq,
-          E<B>: Debug + PartialEq {
+          V<B>: Debug,
+          E<B>: Debug {
     let (g, v, _) = B::new(2, &[(0, 1)]);
     let e = g.edges().next().unwrap();
     let ab = g.inc_edges(v[0]).next().unwrap();
@@ -149,7 +149,7 @@ pub fn test_inc_edges_one_edge<B: Builder>()
 pub fn test_inc_edges<B: Builder>()
     where G<B>: Inc,
           V<B>: Debug,
-          E<B>: Debug + Eq + Hash {
+          E<B>: Debug + Hash {
     let (g, v, e) = new::<B>();
     assert_eq!(set![e[0], e[1]],
                g.inc_edges(v[0]).as_set());
@@ -165,7 +165,7 @@ pub fn test_inc_edges<B: Builder>()
 
 pub fn test_neighbors<B: Builder>()
     where G<B>: Adj,
-          V<B>: Debug + Eq + Hash {
+          V<B>: Debug + Hash {
     let (g, v, _) = new::<B>();
     assert_eq!(set![v[1], v[2]],
                g.neighbors(v[0]).as_set());

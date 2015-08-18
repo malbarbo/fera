@@ -10,8 +10,7 @@ pub struct DisjointSet<'a, G: Basic + WithVertexProp> {
 }
 
 impl<'a, G> DisjointSet<'a, G>
-    where G: Basic + WithVertexProp,
-          G::Vertex: PartialEq {
+    where G: Basic + WithVertexProp {
     pub fn new(g: &G) -> DisjointSet<G> {
         let mut ds = DisjointSet::<G> {
             parent: g.vertex_prop(g.vertices().next().unwrap()),

@@ -1,4 +1,5 @@
-use std;
+use std::collections::HashSet;
+use std::hash::Hash;
 
 pub struct Map1<'a, I, D: 'a, F> {
     iter: I,
@@ -35,8 +36,8 @@ pub trait IteratorExt: Iterator + Sized {
       self.collect()
    }
 
-   fn as_set(self) -> std::collections::HashSet<Self::Item>
-      where Self::Item: std::hash::Hash + Eq {
+   fn as_set(self) -> HashSet<Self::Item>
+      where Self::Item: Hash + Eq {
       self.collect()
    }
 }
