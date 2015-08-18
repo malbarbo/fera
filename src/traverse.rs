@@ -5,7 +5,6 @@ use super::{
     WithVertexProp,
     WithEdgeProp,
 };
-use std::fmt::Debug;
 
 
 // Visitor
@@ -15,8 +14,8 @@ pub trait Visitor<G: Basic> {
     fn visit_back_edge(&mut self, _e: G::Edge) -> bool { true }
 }
 
-pub struct TreeEdgeVisitor<F>(F);
-pub struct BackEdgeVisitor<F>(F);
+pub struct TreeEdgeVisitor<F>(pub F);
+pub struct BackEdgeVisitor<F>(pub F);
 
 impl<G, F> Visitor<G> for TreeEdgeVisitor<F>
     where G: Basic,
@@ -62,7 +61,7 @@ pub trait Dfs: GraphInc + WithVertexProp + WithEdgeProp + Sized {
     }
 }
 
-impl<G> Dfs for G where G: GraphInc + WithVertexProp + WithEdgeProp, G::Vertex: Debug { }
+impl<G> Dfs for G where G: GraphInc + WithVertexProp + WithEdgeProp { }
 
 
 // Bfs
