@@ -1,11 +1,13 @@
 #[cfg(test)]
 #[macro_use]
 pub mod tests;
-pub mod static_;
+
 pub mod iter;
+pub mod kruskal;
+pub mod path;
+pub mod static_;
 pub mod traverse;
 pub mod unionfind;
-pub mod kruskal;
 
 pub use static_::StaticGraph;
 pub use static_::StaticGraphBuilder;
@@ -110,7 +112,8 @@ pub trait WithVertexProp:
         for<'a> VertexPropType<'a, f64> +
         for<'a> VertexPropType<'a, &'a str> +
         for<'a> VertexPropType<'a, String> +
-        for<'a> VertexPropType<'a, <Self as Basic>::Vertex> {
+        for<'a> VertexPropType<'a, <Self as Basic>::Vertex> +
+        for<'a> VertexPropType<'a, Option<<Self as Basic>::Edge>> {
     fn vertex_prop<T: Clone>(&self, value: T) -> VertexProp<Self, T>;
 }
 
