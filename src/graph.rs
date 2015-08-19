@@ -1,6 +1,7 @@
 use iter::{IteratorExt, Map1};
 use std::ops::IndexMut;
 
+
 // Basic
 
 pub trait Basic {
@@ -82,29 +83,6 @@ pub trait VertexPropType<'a, T>: Basic {
 // pub type VertexProp<'a, G: VertexPropType<'a, T>, T> = <G as VertexPropType<'a, T>>::Type;
 pub type VertexProp<'a, G, T> = <G as VertexPropType<'a, T>>::Type;
 
-pub trait WithVertexProp:
-        for<'a> VertexPropType<'a, bool> +
-        for<'a> VertexPropType<'a, char> +
-        for<'a> VertexPropType<'a, i8> +
-        for<'a> VertexPropType<'a, i16> +
-        for<'a> VertexPropType<'a, i32> +
-        for<'a> VertexPropType<'a, i64> +
-        for<'a> VertexPropType<'a, isize> +
-        for<'a> VertexPropType<'a, u8> +
-        for<'a> VertexPropType<'a, u16> +
-        for<'a> VertexPropType<'a, u32> +
-        for<'a> VertexPropType<'a, u64> +
-        for<'a> VertexPropType<'a, usize> +
-        for<'a> VertexPropType<'a, f32> +
-        for<'a> VertexPropType<'a, f64> +
-        for<'a> VertexPropType<'a, &'a str> +
-        for<'a> VertexPropType<'a, String> +
-        for<'a> VertexPropType<'a, <Self as Basic>::Vertex> +
-        for<'a> VertexPropType<'a, Option<<Self as Basic>::Vertex>> +
-        for<'a> VertexPropType<'a, Option<<Self as Basic>::Edge>> {
-    fn vertex_prop<T: Clone>(&self, value: T) -> VertexProp<Self, T>;
-}
-
 
 // Edge Property
 
@@ -116,26 +94,41 @@ pub trait EdgePropType<'a, T>: Basic {
 // pub type EdgeProp<'a, G: EdgePropType<'a, T>, T> = <G as EdgePropType<'a, T>>::Type;
 pub type EdgeProp<'a, G, T> = <G as EdgePropType<'a, T>>::Type;
 
-pub trait WithEdgeProp:
-        for<'a> EdgePropType<'a, bool> +
-        for<'a> EdgePropType<'a, char> +
-        for<'a> EdgePropType<'a, i8> +
-        for<'a> EdgePropType<'a, i16> +
-        for<'a> EdgePropType<'a, i32> +
-        for<'a> EdgePropType<'a, i64> +
-        for<'a> EdgePropType<'a, isize> +
-        for<'a> EdgePropType<'a, u8> +
-        for<'a> EdgePropType<'a, u16> +
-        for<'a> EdgePropType<'a, u32> +
-        for<'a> EdgePropType<'a, u64> +
-        for<'a> EdgePropType<'a, usize> +
-        for<'a> EdgePropType<'a, f32> +
-        for<'a> EdgePropType<'a, f64> +
-        for<'a> EdgePropType<'a, &'a str> +
-        for<'a> EdgePropType<'a, String> +
-        for<'a> EdgePropType<'a, <Self as Basic>::Edge> {
-    fn edge_prop<T: Clone>(&self, value: T) -> EdgeProp<Self, T>;
+
+// WithVertexProp and WithEdgeProp
+
+macro_rules! with_prop {
+    ($t:ty, $($ty:ty),*) => (
+        pub trait WithVertexProp: for<'a> VertexPropType<'a, $t> +
+                     for<'a> VertexPropType<'a, Option<$t>>
+                     $(+ for<'a> VertexPropType<'a, $ty>)*
+                     $(+ for<'a> VertexPropType<'a, Option<$ty>>)*
+        {
+            fn vertex_prop<T: Clone>(&self, value: T) -> VertexProp<Self, T>;
+        }
+
+        pub trait WithEdgeProp: for<'a> EdgePropType<'a, $t> +
+                     for<'a> EdgePropType<'a, Option<$t>>
+                     $(+ for<'a> EdgePropType<'a, $ty>)*
+                     $(+ for<'a> EdgePropType<'a, Option<$ty>>)*
+        {
+            fn edge_prop<T: Clone>(&self, value: T) -> EdgeProp<Self, T>;
+        }
+    )
 }
+
+with_prop! {
+    bool,
+    char,
+    i8, i16, i32, i64, isize,
+    u8, u16, u32, u64, usize,
+    &'a str, String,
+    <Self as Basic>::Vertex,
+    <Self as Basic>::Edge
+}
+
+
+// Graph alias
 
 trait_alias!(GraphInc: Basic + Degree + Inc);
 trait_alias!(GraphIncWithProps: GraphInc + WithVertexProp + WithEdgeProp);
