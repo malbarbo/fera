@@ -38,5 +38,6 @@ pub use static_::*;
 pub mod iter;
 pub mod kruskal;
 pub mod path;
+pub mod props;
 pub mod traverse;
 pub mod unionfind;
