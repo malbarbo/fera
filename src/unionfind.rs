@@ -1,12 +1,8 @@
-use super::{
-    Basic,
-    VertexProp,
-    WithVertexProp,
-};
+use super::{Basic, VertexProp, WithVertexProp};
 
 pub struct DisjointSet<'a, G: Basic + WithVertexProp> {
     parent: VertexProp<'a, G, G::Vertex>,
-    rank: VertexProp<'a, G, usize>
+    rank: VertexProp<'a, G, usize>,
 }
 
 impl<'a, G> DisjointSet<'a, G>
@@ -14,7 +10,7 @@ impl<'a, G> DisjointSet<'a, G>
     pub fn new(g: &G) -> DisjointSet<G> {
         let mut ds = DisjointSet::<G> {
             parent: g.vertex_prop(g.vertices().next().unwrap()),
-            rank: g.vertex_prop(0usize)
+            rank: g.vertex_prop(0usize),
         };
 
         for v in g.vertices() {

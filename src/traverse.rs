@@ -1,20 +1,17 @@
-use super::{
-    Basic,
-    IncIter,
-    GraphInc,
-    VertexProp,
-    WithVertexProp,
-    EdgeProp,
-    WithEdgeProp,
-};
+use super::{Basic, IncIter, GraphInc, VertexProp, WithVertexProp, EdgeProp, WithEdgeProp};
 use std::collections::VecDeque;
 
 
 // Visitor
 
 pub trait Visitor<G: Basic> {
-    fn visit_tree_edge(&mut self, _e: G::Edge) -> bool { true }
-    fn visit_back_edge(&mut self, _e: G::Edge) -> bool { true }
+    fn visit_tree_edge(&mut self, _e: G::Edge) -> bool {
+        true
+    }
+
+    fn visit_back_edge(&mut self, _e: G::Edge) -> bool {
+        true
+    }
 }
 
 pub struct TreeEdgeVisitor<F>(pub F);
@@ -36,11 +33,13 @@ impl<G, F> Visitor<G> for BackEdgeVisitor<F>
     }
 }
 
-// FIXME: To initialize State is necessary O(V + E). Some uses of dfs and bfs stop traversing
-// before visiting all vertices and edges. Ideally the running time and space should be
-// proportional to the number of visited vertices and edges.
+// FIXME: To initialize State is necessary O(V + E). Some uses of dfs and bfs stop
+// traversing before visiting all vertices and edges. Ideally the running time and space
+// should be proportional to the number of visited vertices and edges.
 
-pub struct State<'a, G> where G: Basic + WithVertexProp + WithEdgeProp {
+pub struct State<'a, G>
+    where G: Basic + WithVertexProp + WithEdgeProp
+{
     discovered: VertexProp<'a, G, bool>,
     examined: EdgeProp<'a, G, bool>,
 }
@@ -58,16 +57,22 @@ impl<'a, G> State<'a, G> where G: Basic + WithVertexProp + WithEdgeProp {
 // Dfs
 
 pub trait Dfs: GraphInc + WithVertexProp + WithEdgeProp + Sized {
-    fn dfs<'a, V>(&'a self, visitor: &mut V) where V: Visitor<Self> {
+    fn dfs<'a, V>(&'a self, visitor: &mut V)
+        where V: Visitor<Self>
+    {
         let mut state = State::new(self);
         for v in self.vertices() {
             if !state.discovered[v] {
-                if !self.dfs_visit_state(&mut state, v, visitor) { return }
+                if !self.dfs_visit_state(&mut state, v, visitor) {
+                    return;
+                }
             }
         }
     }
 
-    fn dfs_visit<V>(&self, v: Self::Vertex, visitor: &mut V) where V: Visitor<Self> {
+    fn dfs_visit<V>(&self, v: Self::Vertex, visitor: &mut V)
+        where V: Visitor<Self>
+    {
         self.dfs_visit_state(&mut State::new(self), v, visitor);
     }
 
@@ -75,14 +80,18 @@ pub trait Dfs: GraphInc + WithVertexProp + WithEdgeProp + Sized {
                               state: &mut State<Self>,
                               v: Self::Vertex,
                               visitor: &mut V)
-        -> bool where V: Visitor<Self> {
+                              -> bool
+        where V: Visitor<Self>
+    {
         let mut stack: Vec<(Self::Vertex, IncIter<'a, Self>)> = vec![(v, self.inc_edges(v))];
         state.discovered[v] = true;
         while let Some((u, mut inc)) = stack.pop() {
             while let Some(e) = inc.next() {
                 let v = self.target(e);
                 if !state.discovered[v] {
-                    if !visitor.visit_tree_edge(e) { return false }
+                    if !visitor.visit_tree_edge(e) {
+                        return false;
+                    }
                     state.discovered[v] = true;
                     state.examined[e] = true;
                     stack.push((u, inc));
@@ -90,7 +99,9 @@ pub trait Dfs: GraphInc + WithVertexProp + WithEdgeProp + Sized {
                     break;
                 } else if !state.examined[e] {
                     state.examined[e] = true;
-                    if !visitor.visit_back_edge(e) { return false }
+                    if !visitor.visit_back_edge(e) {
+                        return false;
+                    }
                 }
             }
         }
@@ -104,21 +115,32 @@ impl<G> Dfs for G where G: GraphInc + WithVertexProp + WithEdgeProp { }
 // Bfs
 
 pub trait Bfs: GraphInc + WithVertexProp + WithEdgeProp + Sized {
-    fn bfs<V>(&self, visitor: &mut V) where V: Visitor<Self> {
+    fn bfs<V>(&self, visitor: &mut V)
+        where V: Visitor<Self>
+    {
         let mut state = State::new(self);
         for v in self.vertices() {
             if !state.discovered[v] {
-                if !self.bfs_visit_state(&mut state, v, visitor) { return }
+                if !self.bfs_visit_state(&mut state, v, visitor) {
+                    return;
+                }
             }
         }
     }
 
-    fn bfs_visit<V>(&self, v: Self::Vertex, visitor: &mut V) where V: Visitor<Self> {
+    fn bfs_visit<V>(&self, v: Self::Vertex, visitor: &mut V)
+        where V: Visitor<Self>
+    {
         self.bfs_visit_state(&mut State::new(self), v, visitor);
     }
 
-    fn bfs_visit_state<V>(&self, state: &mut State<Self>, v: Self::Vertex, visitor: &mut V) -> bool
-        where V: Visitor<Self> {
+    fn bfs_visit_state<V>(&self,
+                          state: &mut State<Self>,
+                          v: Self::Vertex,
+                          visitor: &mut V)
+                          -> bool
+        where V: Visitor<Self>
+    {
         let mut queue = VecDeque::new();
         queue.push_back(v);
         state.discovered[v] = true;
@@ -126,13 +148,17 @@ pub trait Bfs: GraphInc + WithVertexProp + WithEdgeProp + Sized {
             for e in self.inc_edges(u) {
                 let v = self.target(e);
                 if !state.discovered[v] {
-                    if !visitor.visit_tree_edge(e) { return false }
+                    if !visitor.visit_tree_edge(e) {
+                        return false;
+                    }
                     state.examined[e] = true;
                     state.discovered[v] = true;
                     queue.push_back(v);
                 } else if !state.examined[e] {
                     state.examined[e] = true;
-                    if !visitor.visit_back_edge(e) { return false }
+                    if !visitor.visit_back_edge(e) {
+                        return false;
+                    }
                 }
             }
         }

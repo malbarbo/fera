@@ -1,18 +1,7 @@
 // not working
 // use super::*;
-use super::{
-    Basic,
-    Degree,
-    Inc,
-    IncIter,
-    IncIterType,
-    EdgeProp,
-    EdgePropType,
-    VertexProp,
-    VertexPropType,
-    WithEdgeProp,
-    WithVertexProp,
-};
+use super::{Basic, Degree, Inc, IncIter, IncIterType, EdgeProp, EdgePropType, VertexProp,
+            VertexPropType, WithEdgeProp, WithVertexProp};
 
 use std::iter::{Cloned, Map};
 use std::ops::{Index, IndexMut, Range};
@@ -26,11 +15,11 @@ pub struct Edge(usize);
 
 impl Edge {
     fn new(e: usize) -> Edge {
-        Edge(2*e + 1)
+        Edge(2 * e + 1)
     }
 
     fn new_reverse(e: usize) -> Edge {
-        Edge(2*e)
+        Edge(2 * e)
     }
 
     pub fn to_index(self) -> usize {
@@ -47,7 +36,9 @@ impl PartialEq<Edge> for Edge {
 impl Eq for Edge { }
 
 impl Hash for Edge {
-    fn hash<H>(&self, state: &mut H) where H: Hasher {
+    fn hash<H>(&self, state: &mut H)
+        where H: Hasher
+    {
         self.to_index().hash(state)
     }
 }
@@ -95,7 +86,7 @@ impl StaticGraph {
                 num_vertices: num_vertices,
                 endvertices: Vec::with_capacity(num_edges_hint),
                 inc: vec![vec![]; num_vertices],
-            }
+            },
         }
     }
 
@@ -133,7 +124,7 @@ impl Basic for StaticGraph {
     type VertexIter = Range<Self::Vertex>;
     type EdgeIter = Map<Range<usize>, fn(usize) -> Self::Edge>;
 
-    fn num_vertices(&self) ->  usize {
+    fn num_vertices(&self) -> usize {
         self.num_vertices
     }
 
@@ -228,8 +219,9 @@ mod tests {
     impl Builder for StaticBuilder {
         type G = StaticGraph;
 
-        fn new(num_vertices: usize, edges: &[(usize, usize)])
-            -> (G<Self>, Vec<V<Self>>, Vec<E<Self>>) {
+        fn new(num_vertices: usize,
+               edges: &[(usize, usize)])
+               -> (G<Self>, Vec<V<Self>>, Vec<E<Self>>) {
             let g = StaticGraph::new_with_edges(num_vertices, edges);
             let vertices = g.vertices().as_vec();
             let edges = g.edges().as_vec();

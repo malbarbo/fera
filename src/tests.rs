@@ -15,9 +15,9 @@ macro_rules! set {
 }
 
 pub trait IteratorGraph<G: Basic>: Iterator<Item=G::Edge> + Sized {
-    fn endvertices(self, g: &G) ->
-        Map1<Self, G,
-             fn(&G, G::Edge) -> (G::Vertex, G::Vertex)> {
+    fn endvertices(self,
+                   g: &G)
+                   -> Map1<Self, G, fn(&G, G::Edge) -> (G::Vertex, G::Vertex)> {
         self.map1(&g, G::endvertices)
     }
 }
@@ -27,8 +27,9 @@ impl<G: Basic, I: Iterator<Item=G::Edge>> IteratorGraph<G> for I {}
 pub trait Builder {
     type G: Basic;
 
-    fn new(num_vertices: usize, edges: &[(usize, usize)])
-        -> (G<Self>, Vec<V<Self>>, Vec<E<Self>>);
+    fn new(num_vertices: usize,
+           edges: &[(usize, usize)])
+           -> (G<Self>, Vec<V<Self>>, Vec<E<Self>>);
 }
 
 pub type G<B> = <B as Builder>::G;
@@ -102,7 +103,9 @@ macro_rules! test_edge_prop (
 );
 
 
-pub fn test_vertices<B: Builder>() where V<B>: Debug {
+pub fn test_vertices<B: Builder>()
+    where V<B>: Debug
+{
     let (g, vertices, _) = new::<B>();
     assert_eq!(5, vertices.len());
     assert_eq!(5, g.num_vertices());
@@ -111,7 +114,8 @@ pub fn test_vertices<B: Builder>() where V<B>: Debug {
 
 pub fn test_edges<B: Builder>()
     where V<B>: Debug,
-          E<B>: Debug {
+          E<B>: Debug
+{
     let (g, v, edges) = new::<B>();
     assert_eq!(4, edges.len());
     assert_eq!(4, g.num_edges());
@@ -120,7 +124,9 @@ pub fn test_edges<B: Builder>()
                g.edges().endvertices(&g).as_vec());
 }
 
-pub fn test_degree<B: Builder>() where G<B>: Degree {
+pub fn test_degree<B: Builder>()
+    where G<B>: Degree
+{
     let (g, v, _) = new::<B>();
     assert_eq!(2, g.degree(v[0]));
     assert_eq!(3, g.degree(v[1]));
@@ -132,7 +138,8 @@ pub fn test_degree<B: Builder>() where G<B>: Degree {
 pub fn test_inc_edges_one_edge<B: Builder>()
     where G<B>: Inc,
           V<B>: Debug,
-          E<B>: Debug {
+          E<B>: Debug
+{
     let (g, v, _) = B::new(2, &[(0, 1)]);
     let e = g.edges().next().unwrap();
     let ab = g.inc_edges(v[0]).next().unwrap();
@@ -149,7 +156,8 @@ pub fn test_inc_edges_one_edge<B: Builder>()
 pub fn test_inc_edges<B: Builder>()
     where G<B>: Inc,
           V<B>: Debug,
-          E<B>: Debug + Hash {
+          E<B>: Debug + Hash
+{
     let (g, v, e) = new::<B>();
     assert_eq!(set![e[0], e[1]],
                g.inc_edges(v[0]).as_set());
@@ -165,7 +173,8 @@ pub fn test_inc_edges<B: Builder>()
 
 pub fn test_neighbors<B: Builder>()
     where G<B>: Adj,
-          V<B>: Debug + Hash {
+          V<B>: Debug + Hash
+{
     let (g, v, _) = new::<B>();
     assert_eq!(set![v[1], v[2]],
                g.neighbors(v[0]).as_set());
@@ -179,7 +188,9 @@ pub fn test_neighbors<B: Builder>()
                g.neighbors(v[4]).as_set());
 }
 
-pub fn test_vertex_prop<B: Builder>() where G<B>: WithVertexProp {
+pub fn test_vertex_prop<B: Builder>()
+    where G<B>: WithVertexProp
+{
     let (g, v, _) = new::<B>();
     let mut x = g.vertex_prop(0usize);
     let mut y = g.vertex_prop("a");
@@ -198,7 +209,9 @@ pub fn test_vertex_prop<B: Builder>() where G<B>: WithVertexProp {
     assert_eq!("a", y[e]);
 }
 
-pub fn test_edge_prop<B: Builder>() where G<B>: WithEdgeProp {
+pub fn test_edge_prop<B: Builder>()
+    where G<B>: WithEdgeProp
+{
     let (g, _, e) = new::<B>();
     let mut x = g.edge_prop(0usize);
     let mut y = g.edge_prop("a");

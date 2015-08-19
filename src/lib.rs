@@ -153,17 +153,13 @@ pub trait WithEdgeProp:
 
 // GraphInc
 
-pub trait GraphInc: Basic + Degree + Inc {
-}
+pub trait GraphInc: Basic + Degree + Inc { }
 
-impl<G> GraphInc for G where G: Basic + Degree + Inc {
-}
+impl<G> GraphInc for G where G: Basic + Degree + Inc { }
 
 
 // GraphAdj
 
-pub trait GraphAdj: Basic + Degree + Adj {
-}
+pub trait GraphAdj: Basic + Degree + Adj { }
 
-impl<G> GraphAdj for G where G: Basic + Degree + Adj {
-}
+impl<G> GraphAdj for G where G: Basic + Degree + Adj { }

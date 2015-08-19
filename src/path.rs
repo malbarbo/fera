@@ -1,10 +1,4 @@
-use super::{
-    Basic,
-    VertexProp,
-    GraphInc,
-    WithVertexProp,
-    WithEdgeProp,
-};
+use super::{Basic, VertexProp, GraphInc, WithVertexProp, WithEdgeProp};
 
 use super::traverse::*;
 
@@ -13,10 +7,16 @@ pub type Path<G> = Vec<<G as Basic>::Edge>;
 pub type ParentTree<'a, G> = VertexProp<'a, G, Option<<G as Basic>::Edge>>;
 
 pub trait FindPath: GraphInc + Sized {
-    fn find_path_on_parent_tree(&self, tree: &ParentTree<Self>, u: Self::Vertex, v: Self::Vertex)
-        -> Option<Path<Self>>
-        where Self: WithVertexProp {
-        if u == v { return None; }
+    fn find_path_on_parent_tree(&self,
+                                tree: &ParentTree<Self>,
+                                u: Self::Vertex,
+                                v: Self::Vertex)
+                                -> Option<Path<Self>>
+        where Self: WithVertexProp
+    {
+        if u == v {
+            return None;
+        }
         let mut v = v;
         let mut path = vec![];
         // TODO: detect loop
@@ -32,8 +32,11 @@ pub trait FindPath: GraphInc + Sized {
     }
 
     fn find_path(&self, u: Self::Vertex, v: Self::Vertex) -> Option<Path<Self>>
-        where Self: WithVertexProp + WithEdgeProp {
-        if u == v { return None; }
+        where Self: WithVertexProp + WithEdgeProp
+    {
+        if u == v {
+            return None;
+        }
         let mut found = false;
         let mut tree = self.vertex_prop::<Option<Self::Edge>>(None);
         self.dfs_visit(u, &mut TreeEdgeVisitor(|e| {
@@ -60,10 +63,7 @@ mod tests {
 
     #[test]
     fn find_path() {
-        let g = StaticGraph::new_with_edges(
-            6,
-            &[(0, 1), (0, 2), (1, 4), (2, 3), (2, 4)]
-        );
+        let g = StaticGraph::new_with_edges(6, &[(0, 1), (0, 2), (1, 4), (2, 3), (2, 4)]);
         let e = g.edges().as_vec();
 
         assert_eq!(None, g.find_path(0, 0));

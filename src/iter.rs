@@ -20,26 +20,23 @@ impl<'a, A, I, D, F> Iterator for Map1<'a, I, D, F>
     #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.iter.size_hint()
-   }
+    }
 }
 
 pub trait IteratorExt: Iterator + Sized {
-   fn map1<D, F>(self, data: &D, f: F) -> Map1<Self, D, F> {
-      Map1 {
-         iter: self,
-         data: data,
-         f: f
-      }
-   }
+    fn map1<D, F>(self, data: &D, f: F) -> Map1<Self, D, F> {
+        Map1 { iter: self, data: data, f: f }
+    }
 
-   fn as_vec(self) -> Vec<Self::Item> {
-      self.collect()
-   }
+    fn as_vec(self) -> Vec<Self::Item> {
+        self.collect()
+    }
 
-   fn as_set(self) -> HashSet<Self::Item>
-      where Self::Item: Hash + Eq {
-      self.collect()
-   }
+    fn as_set(self) -> HashSet<Self::Item>
+        where Self::Item: Hash + Eq
+    {
+        self.collect()
+    }
 }
 
 impl<I: Iterator> IteratorExt for I {}
