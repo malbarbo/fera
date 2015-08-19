@@ -1,5 +1,5 @@
-use super::{Basic, EdgeProp, EdgePropType, WithEdgeProp, WithVertexProp};
-use super::unionfind::DisjointSet;
+use graph::*;
+use unionfind::DisjointSet;
 
 pub trait Visitor<G: Basic> {
     fn visit(&mut self, e: G::Edge, in_same_set: bool) -> bool;
@@ -61,9 +61,10 @@ impl<G> Kruskal for G where G: Basic + WithVertexProp + WithEdgeProp { }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use super::super::*;
-    use super::super::iter::IteratorExt;
+    use graph::*;
+    use static_::*;
+    use iter::*;
+    use kruskal::*;
 
     #[test]
     fn kruskal_mst() {

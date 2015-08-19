@@ -1,18 +1,8 @@
-use super::*;
+use graph::*;
 use std::collections::HashSet;
 use std::hash::Hash;
 use std::fmt::Debug;
-pub use super::iter::{Map1, IteratorExt};
-
-#[macro_export]
-macro_rules! set {
-    () => {
-        HashSet::new()
-    };
-    ($($x:expr),+) => {
-        [$($x,)+].iter().map(|&x| x).collect::<HashSet<_>>()
-    }
-}
+use iter::{Map1, IteratorExt};
 
 pub trait IteratorGraph<G: Basic>: Iterator<Item=G::Edge> + Sized {
     fn endvertices(self,

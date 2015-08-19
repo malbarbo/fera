@@ -1,4 +1,4 @@
-use super::{Basic, IncIter, GraphInc, VertexProp, WithVertexProp, EdgeProp, WithEdgeProp};
+use graph::*;
 use std::collections::VecDeque;
 
 
@@ -173,9 +173,10 @@ impl<G> Bfs for G where G: GraphInc + WithVertexProp + WithEdgeProp { }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use super::super::*;
-    use super::super::iter::IteratorExt;
+    use graph::*;
+    use static_::*;
+    use iter::*;
+    use traverse::*;
 
     fn new() -> StaticGraph {
         StaticGraph::new_with_edges(

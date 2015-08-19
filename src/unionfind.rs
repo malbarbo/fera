@@ -1,4 +1,4 @@
-use super::{Basic, VertexProp, WithVertexProp};
+use graph::*;
 
 pub struct DisjointSet<'a, G: Basic + WithVertexProp> {
     parent: VertexProp<'a, G, G::Vertex>,
@@ -54,8 +54,8 @@ impl<'a, G> DisjointSet<'a, G>
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use super::super::*;
+    use static_::*;
+    use unionfind::*;
 
     fn check_groups(ds: &mut DisjointSet<StaticGraph>, groups: &[&[usize]]) {
         for group in groups.iter() {

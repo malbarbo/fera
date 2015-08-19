@@ -1,6 +1,5 @@
-use super::{Basic, VertexProp, GraphInc, WithVertexProp, WithEdgeProp};
-
-use super::traverse::*;
+use graph::*;
+use traverse::*;
 
 pub type Path<G> = Vec<<G as Basic>::Edge>;
 
@@ -57,9 +56,10 @@ impl<G: GraphInc> FindPath for G { }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use super::super::*;
-    use super::super::iter::IteratorExt;
+    use graph::*;
+    use static_::*;
+    use iter::*;
+    use path::*;
 
     #[test]
     fn find_path() {

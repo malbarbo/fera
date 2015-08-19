@@ -1,8 +1,4 @@
-// not working
-// use super::*;
-use super::{Basic, Degree, Inc, IncIter, IncIterType, EdgeProp, EdgePropType, VertexProp,
-            VertexPropType, WithEdgeProp, WithVertexProp};
-
+use graph::*;
 use std::iter::{Cloned, Map};
 use std::ops::{Index, IndexMut, Range};
 use std::slice::Iter;
@@ -190,9 +186,10 @@ impl WithEdgeProp for StaticGraph {
 
 #[cfg(test)]
 mod tests {
-    use super::Edge;
-    use super::super::*;
-    use super::super::tests::*;
+    use graph::*;
+    use static_::*;
+    use iter::*;
+    use tests::*;
 
     #[test]
     fn builder() {
