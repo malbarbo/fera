@@ -13,7 +13,7 @@ impl<F, G> Visitor< G> for F
     }
 }
 
-pub trait Kruskal: Basic + WithEdgeProp + WithVertexProp + Sized {
+pub trait Kruskal: Basic + WithVertexProp + Sized {
     fn kruskal_edges<I, V>(&self, edges: I, mut visitor: V)
         where I: Iterator<Item = Self::Edge>,
               V: Visitor<Self>
@@ -56,7 +56,7 @@ pub trait Kruskal: Basic + WithEdgeProp + WithVertexProp + Sized {
     }
 }
 
-impl<G> Kruskal for G where G: Basic + WithVertexProp + WithEdgeProp { }
+impl<G> Kruskal for G where G: Basic + WithVertexProp { }
 
 
 #[cfg(test)]

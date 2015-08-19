@@ -37,14 +37,13 @@ impl<G, F> Visitor<G> for BackEdgeVisitor<F>
 // traversing before visiting all vertices and edges. Ideally the running time and space
 // should be proportional to the number of visited vertices and edges.
 
-pub struct State<'a, G>
-    where G: Basic + WithVertexProp + WithEdgeProp
+pub struct State<'a, G: GraphIncWithProps>
 {
     discovered: VertexProp<'a, G, bool>,
     examined: EdgeProp<'a, G, bool>,
 }
 
-impl<'a, G> State<'a, G> where G: Basic + WithVertexProp + WithEdgeProp {
+impl<'a, G: GraphIncWithProps> State<'a, G> {
     pub fn new(g: &G) -> State<G> {
         State {
             discovered: g.vertex_prop(false),
@@ -56,7 +55,7 @@ impl<'a, G> State<'a, G> where G: Basic + WithVertexProp + WithEdgeProp {
 
 // Dfs
 
-pub trait Dfs: GraphInc + WithVertexProp + WithEdgeProp + Sized {
+pub trait Dfs: GraphIncWithProps + Sized {
     fn dfs<'a, V>(&'a self, visitor: &mut V)
         where V: Visitor<Self>
     {
@@ -109,12 +108,12 @@ pub trait Dfs: GraphInc + WithVertexProp + WithEdgeProp + Sized {
     }
 }
 
-impl<G> Dfs for G where G: GraphInc + WithVertexProp + WithEdgeProp { }
+impl<G: GraphIncWithProps> Dfs for G { }
 
 
 // Bfs
 
-pub trait Bfs: GraphInc + WithVertexProp + WithEdgeProp + Sized {
+pub trait Bfs: GraphIncWithProps + Sized {
     fn bfs<V>(&self, visitor: &mut V)
         where V: Visitor<Self>
     {
@@ -166,7 +165,7 @@ pub trait Bfs: GraphInc + WithVertexProp + WithEdgeProp + Sized {
     }
 }
 
-impl<G> Bfs for G where G: GraphInc + WithVertexProp + WithEdgeProp { }
+impl<G: GraphIncWithProps> Bfs for G { }
 
 
 // Tests
@@ -196,7 +195,7 @@ mod tests {
     const TREE: usize = 1;
     const BACK: usize = 2;
 
-    struct TestVisitor<'a, G: 'a + Basic + WithVertexProp + WithEdgeProp> {
+    struct TestVisitor<'a, G: 'a + GraphAdjWithProps> {
         g: &'a G,
         parent: VertexProp<'a, G, Option<G::Vertex>>,
         d: VertexProp<'a, G, usize>,
@@ -212,7 +211,7 @@ mod tests {
         }
     }
 
-    impl<'a, G> Visitor<G> for TestVisitor<'a, G> where G: Basic + WithVertexProp + WithEdgeProp {
+    impl<'a, G: GraphAdjWithProps> Visitor<G> for TestVisitor<'a, G> {
         fn visit_tree_edge(&mut self, e: G::Edge) -> bool {
             assert_eq!(0, self.edge_type[e]);
             self.parent[self.g.target(e)] = Some(self.g.source(e));

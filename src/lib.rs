@@ -8,6 +8,23 @@ macro_rules! set {
     }
 }
 
+// https://stackoverflow.com/questions/30291584/macro-for-defining-trait-aliases
+
+#[macro_export]
+macro_rules! items {
+    ($($item:item)*) => ($($item)*);
+}
+
+#[macro_export]
+macro_rules! trait_alias {
+    ($name:ident : $($base:tt)+) => {
+        items! {
+            pub trait $name: $($base)+ { }
+            impl<T: $($base)+> $name for T { }
+        }
+    };
+}
+
 #[cfg(test)]
 #[macro_use]
 pub mod tests;

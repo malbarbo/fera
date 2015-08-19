@@ -5,7 +5,7 @@ pub type Path<G> = Vec<<G as Basic>::Edge>;
 
 pub type ParentTree<'a, G> = VertexProp<'a, G, Option<<G as Basic>::Edge>>;
 
-pub trait FindPath: GraphInc + Sized {
+pub trait FindPath: Basic + Sized {
     fn find_path_on_parent_tree(&self,
                                 tree: &ParentTree<Self>,
                                 u: Self::Vertex,
@@ -31,7 +31,7 @@ pub trait FindPath: GraphInc + Sized {
     }
 
     fn find_path(&self, u: Self::Vertex, v: Self::Vertex) -> Option<Path<Self>>
-        where Self: WithVertexProp + WithEdgeProp
+        where Self: GraphIncWithProps
     {
         if u == v {
             return None;
@@ -52,7 +52,7 @@ pub trait FindPath: GraphInc + Sized {
     }
 }
 
-impl<G: GraphInc> FindPath for G { }
+impl<G: Basic> FindPath for G { }
 
 #[cfg(test)]
 mod tests {
