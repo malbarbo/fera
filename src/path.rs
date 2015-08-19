@@ -31,13 +31,12 @@ pub trait FindPath: GraphInc + Sized {
         None
     }
 
-    // TODO: u == v
     fn find_path(&self, u: Self::Vertex, v: Self::Vertex) -> Option<Path<Self>>
         where Self: WithVertexProp + WithEdgeProp {
         if u == v { return None; }
         let mut found = false;
-        let mut tree = self.vertex_prop(None);
-        self.dfs(u, TreeEdgeVisitor(|e| {
+        let mut tree = self.vertex_prop::<Option<Self::Edge>>(None);
+        self.dfs_visit(u, &mut TreeEdgeVisitor(|e| {
             let t = self.target(e);
             tree[t] = Some(e);
             found = t == v;

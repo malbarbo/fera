@@ -52,7 +52,7 @@ impl Hash for Edge {
     }
 }
 
-pub struct EdgePropVec<T>(Vec<T>);
+pub struct EdgePropVec<T>(pub Vec<T>);
 
 impl<T> Index<Edge> for EdgePropVec<T> {
     type Output = T;

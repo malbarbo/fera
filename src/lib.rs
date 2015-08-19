@@ -113,6 +113,7 @@ pub trait WithVertexProp:
         for<'a> VertexPropType<'a, &'a str> +
         for<'a> VertexPropType<'a, String> +
         for<'a> VertexPropType<'a, <Self as Basic>::Vertex> +
+        for<'a> VertexPropType<'a, Option<<Self as Basic>::Vertex>> +
         for<'a> VertexPropType<'a, Option<<Self as Basic>::Edge>> {
     fn vertex_prop<T: Clone>(&self, value: T) -> VertexProp<Self, T>;
 }
