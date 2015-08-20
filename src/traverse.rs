@@ -5,6 +5,10 @@ use std::collections::VecDeque;
 // Visitor
 
 pub trait Visitor<G: Basic> {
+    fn visit_start_vertex(&mut self, _v: G::Vertex) -> bool {
+        true
+    }
+
     fn visit_tree_edge(&mut self, _e: G::Edge) -> bool {
         true
     }
@@ -14,8 +18,17 @@ pub trait Visitor<G: Basic> {
     }
 }
 
+pub struct StartVertexVisitor<F>(pub F);
 pub struct TreeEdgeVisitor<F>(pub F);
 pub struct BackEdgeVisitor<F>(pub F);
+
+impl<G, F> Visitor<G> for StartVertexVisitor<F>
+    where G: Basic,
+          F: FnMut(G::Vertex) -> bool {
+    fn visit_start_vertex(&mut self, v: G::Vertex) -> bool {
+        self.0(v)
+    }
+}
 
 impl<G, F> Visitor<G> for TreeEdgeVisitor<F>
     where G: Basic,
@@ -33,139 +46,144 @@ impl<G, F> Visitor<G> for BackEdgeVisitor<F>
     }
 }
 
-// FIXME: To initialize State is necessary O(V + E). Some uses of dfs and bfs stop
-// traversing before visiting all vertices and edges. Ideally the running time and space
-// should be proportional to the number of visited vertices and edges.
-
-pub struct State<'a, G: GraphIncWithProps>
-{
-    discovered: VertexProp<'a, G, bool>,
-    examined: EdgeProp<'a, G, bool>,
+macro_rules! return_if_false {
+    ($e:expr) => (
+        if !$e {
+            return false;
+        }
+    )
 }
 
-impl<'a, G: GraphIncWithProps> State<'a, G> {
-    pub fn new(g: &G) -> State<G> {
-        State {
-            discovered: g.vertex_prop(false),
-            examined: g.edge_prop(false),
+macro_rules! break_if_false {
+    ($e:expr) => (
+        if !$e {
+            break;
+        }
+    )
+}
+
+
+// Traversers
+
+pub trait Traverser<'a, G: Basic> {
+    fn new(g: &'a G) -> Self;
+
+    fn is_discovered(&mut self, v: G::Vertex) -> bool;
+
+    fn traverse<V: Visitor<G>>(&mut self, v: G::Vertex, vis: &mut V) -> bool;
+
+    fn run<V: Visitor<G>>(g: &'a G, vis: &mut V)
+        where Self: Sized
+    {
+        let mut t = Self::new(g);
+        for v in g.vertices() {
+            if !t.is_discovered(v) {
+                break_if_false!(vis.visit_start_vertex(v));
+                break_if_false!(t.traverse(v, vis));
+            }
         }
     }
+
+    fn run_start<V: Visitor<G>>(g: &'a G, v: G::Vertex, vis: &mut V)
+        where Self: Sized
+    {
+        Self::new(g).traverse(v, vis);
+    }
 }
+
+
+// FIXME: To initialize Dfs and Bfs is necessary O(V + E). Some uses of dfs and bfs stop
+// traversing before visiting all vertices and edges. Ideally the running time and space
+// should be proportional to the number of visited vertices and edges.
 
 
 // Dfs
 
-pub trait Dfs: GraphIncWithProps + Sized {
-    fn dfs<'a, V>(&'a self, visitor: &mut V)
-        where V: Visitor<Self>
-    {
-        let mut state = State::new(self);
-        for v in self.vertices() {
-            if !state.discovered[v] {
-                if !self.dfs_visit_state(&mut state, v, visitor) {
-                    return;
-                }
-            }
+pub struct Dfs<'a, G: 'a + GraphIncWithProps> {
+    g: &'a G,
+    discovered: VertexProp<'a, G, bool>,
+    examined: EdgeProp<'a, G, bool>,
+}
+
+impl<'a, G: GraphIncWithProps> Traverser<'a, G> for Dfs<'a, G> {
+    fn new(g: &'a G) -> Self {
+        Dfs {
+            g: g,
+            discovered: g.vertex_prop(false),
+            examined: g.edge_prop(false),
         }
     }
 
-    fn dfs_visit<V>(&self, v: Self::Vertex, visitor: &mut V)
-        where V: Visitor<Self>
-    {
-        self.dfs_visit_state(&mut State::new(self), v, visitor);
+    fn is_discovered(&mut self, v: G::Vertex) -> bool {
+        self.discovered[v]
     }
 
-    fn dfs_visit_state<'a, V>(&'a self,
-                              state: &mut State<Self>,
-                              v: Self::Vertex,
-                              visitor: &mut V)
-                              -> bool
-        where V: Visitor<Self>
-    {
-        let mut stack: Vec<(Self::Vertex, IncIter<'a, Self>)> = vec![(v, self.inc_edges(v))];
-        state.discovered[v] = true;
+    fn traverse<V: Visitor<G>>(&mut self, v: G::Vertex, vis: &mut V) -> bool {
+        let mut stack: Vec<(_, IncIter<'a, _>)> = vec![(v, self.g.inc_edges(v))];
+        self.discovered[v] = true;
         while let Some((u, mut inc)) = stack.pop() {
             while let Some(e) = inc.next() {
-                let v = self.target(e);
-                if !state.discovered[v] {
-                    if !visitor.visit_tree_edge(e) {
-                        return false;
-                    }
-                    state.discovered[v] = true;
-                    state.examined[e] = true;
+                let v = self.g.target(e);
+                if !self.discovered[v] {
+                    return_if_false!(vis.visit_tree_edge(e));
+                    self.discovered[v] = true;
+                    self.examined[e] = true;
                     stack.push((u, inc));
-                    stack.push((v, self.inc_edges(v)));
+                    stack.push((v, self.g.inc_edges(v)));
                     break;
-                } else if !state.examined[e] {
-                    state.examined[e] = true;
-                    if !visitor.visit_back_edge(e) {
-                        return false;
-                    }
+                } else if !self.examined[e] {
+                    self.examined[e] = true;
+                    return_if_false!(vis.visit_back_edge(e));
                 }
             }
         }
         true
     }
 }
-
-impl<G: GraphIncWithProps> Dfs for G { }
 
 
 // Bfs
 
-pub trait Bfs: GraphIncWithProps + Sized {
-    fn bfs<V>(&self, visitor: &mut V)
-        where V: Visitor<Self>
-    {
-        let mut state = State::new(self);
-        for v in self.vertices() {
-            if !state.discovered[v] {
-                if !self.bfs_visit_state(&mut state, v, visitor) {
-                    return;
-                }
-            }
+pub struct Bfs<'a, G: 'a + GraphIncWithProps> {
+    g: &'a G,
+    discovered: VertexProp<'a, G, bool>,
+    examined: EdgeProp<'a, G, bool>,
+}
+
+impl<'a, G: GraphIncWithProps> Traverser<'a, G> for Bfs<'a, G> {
+    fn new(g: &'a G) -> Self {
+        Bfs {
+            g: g,
+            discovered: g.vertex_prop(false),
+            examined: g.edge_prop(false),
         }
     }
 
-    fn bfs_visit<V>(&self, v: Self::Vertex, visitor: &mut V)
-        where V: Visitor<Self>
-    {
-        self.bfs_visit_state(&mut State::new(self), v, visitor);
+    fn is_discovered(&mut self, v: G::Vertex) -> bool {
+        self.discovered[v]
     }
 
-    fn bfs_visit_state<V>(&self,
-                          state: &mut State<Self>,
-                          v: Self::Vertex,
-                          visitor: &mut V)
-                          -> bool
-        where V: Visitor<Self>
-    {
+    fn traverse<V: Visitor<G>>(&mut self, v: G::Vertex, vis: &mut V) -> bool {
         let mut queue = VecDeque::new();
         queue.push_back(v);
-        state.discovered[v] = true;
+        self.discovered[v] = true;
         while let Some(u) = queue.pop_front() {
-            for e in self.inc_edges(u) {
-                let v = self.target(e);
-                if !state.discovered[v] {
-                    if !visitor.visit_tree_edge(e) {
-                        return false;
-                    }
-                    state.examined[e] = true;
-                    state.discovered[v] = true;
+            for e in self.g.inc_edges(u) {
+                let v = self.g.target(e);
+                if !self.discovered[v] {
+                    return_if_false!(vis.visit_tree_edge(e));
+                    self.examined[e] = true;
+                    self.discovered[v] = true;
                     queue.push_back(v);
-                } else if !state.examined[e] {
-                    state.examined[e] = true;
-                    if !visitor.visit_back_edge(e) {
-                        return false;
-                    }
+                } else if !self.examined[e] {
+                    self.examined[e] = true;
+                    return_if_false!(vis.visit_back_edge(e));
                 }
             }
         }
         true
     }
 }
-
-impl<G: GraphIncWithProps> Bfs for G { }
 
 
 // Tests
@@ -231,7 +249,7 @@ mod tests {
     fn dfs() {
         let g = new();
         let mut vis = new_test_visitor(&g);
-        g.dfs(&mut vis);
+        Dfs::run(&g, &mut vis);
 
         assert_eq!(vec![None, Some(0), Some(1), Some(2), None, Some(4), Some(5)],
                    vis.parent);
@@ -247,7 +265,7 @@ mod tests {
     fn dfs_tree_visitor() {
         let g = new();
         let mut edges = vec![];
-        g.dfs(&mut TreeEdgeVisitor(|e| {
+        Dfs::run(&g, &mut TreeEdgeVisitor(|e| {
             edges.push(e);
             edges.len() != 2
         }));
@@ -259,7 +277,7 @@ mod tests {
     fn dfs_back_visitor() {
         let g = new();
         let mut edges = vec![];
-        g.dfs(&mut BackEdgeVisitor(|e| {
+        Dfs::run(&g, &mut BackEdgeVisitor(|e| {
             edges.push(e);
             edges.len() != 2
         }));
@@ -271,7 +289,7 @@ mod tests {
     fn bfs() {
         let g = new();
         let mut vis = new_test_visitor(&g);
-        g.bfs(&mut vis);
+        Bfs::run(&g, &mut vis);
 
         assert_eq!(vec![None, Some(0), Some(0), Some(1), None, Some(4), Some(4)],
                    vis.parent);
@@ -287,7 +305,7 @@ mod tests {
     fn bfs_tree_visitor() {
         let g = new();
         let mut edges = vec![];
-        g.bfs(&mut TreeEdgeVisitor(|e| {
+        Bfs::run(&g, &mut TreeEdgeVisitor(|e| {
             edges.push(e);
             edges.len() != 2
         }));
@@ -299,7 +317,7 @@ mod tests {
     fn bfs_back_visitor() {
         let g = new();
         let mut edges = vec![];
-        g.bfs(&mut BackEdgeVisitor(|e| {
+        Bfs::run(&g, &mut BackEdgeVisitor(|e| {
             edges.push(e);
             edges.len() != 2
         }));

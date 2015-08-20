@@ -2,39 +2,36 @@ use graph::*;
 use traverse::*;
 
 pub trait Props: Basic + Sized {
-    fn is_connected(&self) -> bool
-        where Self: GraphIncWithProps
-    {
-        if self.num_vertices() != 0 {
-            let mut count = 1;
-            self.dfs(&mut TreeEdgeVisitor(|_| {
-                count += 1;
-                true
-            }));
-            count == self.num_vertices()
-        } else {
-            true
-        }
-    }
-
     fn is_acyclic(&self) -> bool
         where Self: GraphIncWithProps
     {
-        let mut back = false;
-        self.dfs(&mut BackEdgeVisitor(|_| {
-            back = true;
+        let mut acyclic = true;
+        Dfs::run(self, &mut BackEdgeVisitor(|_| {
+            acyclic = false;
             false
         }));
-        !back
+        acyclic
+    }
+
+    fn is_connected(&self) -> bool
+        where Self: GraphIncWithProps
+    {
+        self.num_vertices() == 0 || {
+            let mut count = 0;
+            Dfs::run(self, &mut StartVertexVisitor(|_| {
+                count += 1;
+                count == 1
+            }));
+            count == 1
+        }
     }
 
     fn is_tree(&self) -> bool
         where Self: GraphIncWithProps
     {
-        if self.num_vertices() == 0 {
-            return true;
+        self.num_vertices() == 0 || {
+            self.num_edges() == self.num_vertices() - 1 && self.is_acyclic()
         }
-        self.num_edges() == self.num_vertices() - 1 && self.is_connected()
     }
 }
 
