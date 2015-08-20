@@ -262,6 +262,18 @@ mod tests {
     }
 
     #[test]
+    fn dfs_start_visitor() {
+        let g = new();
+        let mut start = vec![];
+        Dfs::run(&g, &mut StartVertexVisitor(|v| {
+            start.push(v);
+            true
+        }));
+        let v = g.vertices().as_vec();
+        assert_eq!(vec![v[0], v[4]], start);
+    }
+
+    #[test]
     fn dfs_tree_visitor() {
         let g = new();
         let mut edges = vec![];
@@ -299,6 +311,18 @@ mod tests {
 
         assert_eq!(vec![TREE, TREE, BACK, TREE, BACK, TREE, TREE, BACK],
                    vis.edge_type.0);
+    }
+
+    #[test]
+    fn bfs_start_visitor() {
+        let g = new();
+        let mut start = vec![];
+        Bfs::run(&g, &mut StartVertexVisitor(|v| {
+            start.push(v);
+            true
+        }));
+        let v = g.vertices().as_vec();
+        assert_eq!(vec![v[0], v[4]], start);
     }
 
     #[test]
