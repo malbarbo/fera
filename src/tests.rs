@@ -4,7 +4,7 @@ use std::hash::Hash;
 use std::fmt::Debug;
 use iter::{Map1, IteratorExt};
 
-pub trait IteratorGraph<G: Basic>: Iterator<Item=G::Edge> + Sized {
+pub trait IteratorGraph<'a, G: Basic<'a>>: Iterator<Item=G::Edge> + Sized {
     fn endvertices(self,
                    g: &G)
                    -> Map1<Self, G, fn(&G, G::Edge) -> (G::Vertex, G::Vertex)> {
@@ -12,10 +12,10 @@ pub trait IteratorGraph<G: Basic>: Iterator<Item=G::Edge> + Sized {
     }
 }
 
-impl<G: Basic, I: Iterator<Item=G::Edge>> IteratorGraph<G> for I {}
+impl<'a, G: Basic<'a>, I: Iterator<Item=G::Edge>> IteratorGraph<'a, G> for I {}
 
 pub trait Builder {
-    type G: Basic;
+    type G: for<'a> Basic<'a>;
 
     fn new(num_vertices: usize,
            edges: &[(usize, usize)])
@@ -23,8 +23,8 @@ pub trait Builder {
 }
 
 pub type G<B> = <B as Builder>::G;
-pub type V<B> = <<B as Builder>::G as Basic>::Vertex;
-pub type E<B> = <<B as Builder>::G as Basic>::Edge;
+pub type V<B> = <<B as Builder>::G as Types>::Vertex;
+pub type E<B> = <<B as Builder>::G as Types>::Edge;
 
 fn new<B: Builder>() -> (B::G, Vec<V<B>>, Vec<E<B>>) {
     B::new(5, &[(0, 1), (0, 2), (1, 2), (1, 3)])
@@ -115,7 +115,7 @@ pub fn test_edges<B: Builder>()
 }
 
 pub fn test_degree<B: Builder>()
-    where G<B>: Degree
+    where G<B>: for<'a> Degree<'a>
 {
     let (g, v, _) = new::<B>();
     assert_eq!(2, g.degree(v[0]));
@@ -126,7 +126,7 @@ pub fn test_degree<B: Builder>()
 }
 
 pub fn test_inc_edges_one_edge<B: Builder>()
-    where G<B>: Inc,
+    where G<B>: for<'a> Inc<'a>,
           V<B>: Debug,
           E<B>: Debug
 {
@@ -144,7 +144,7 @@ pub fn test_inc_edges_one_edge<B: Builder>()
 }
 
 pub fn test_inc_edges<B: Builder>()
-    where G<B>: Inc,
+    where G<B>: for<'a> Inc<'a>,
           V<B>: Debug,
           E<B>: Debug + Hash
 {
@@ -162,7 +162,7 @@ pub fn test_inc_edges<B: Builder>()
 }
 
 pub fn test_neighbors<B: Builder>()
-    where G<B>: Adj,
+    where G<B>: for<'a> Adj<'a>,
           V<B>: Debug + Hash
 {
     let (g, v, _) = new::<B>();
@@ -179,7 +179,7 @@ pub fn test_neighbors<B: Builder>()
 }
 
 pub fn test_vertex_prop<B: Builder>()
-    where G<B>: WithVertexProp
+    where G<B>: for<'a> WithVertexProp<'a>
 {
     let (g, v, _) = new::<B>();
     let mut x = g.vertex_prop(0usize);
@@ -200,7 +200,7 @@ pub fn test_vertex_prop<B: Builder>()
 }
 
 pub fn test_edge_prop<B: Builder>()
-    where G<B>: WithEdgeProp
+    where G<B>: for<'a> WithEdgeProp<'a>
 {
     let (g, _, e) = new::<B>();
     let mut x = g.edge_prop(0usize);

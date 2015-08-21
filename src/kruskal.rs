@@ -1,22 +1,22 @@
 use graph::*;
 use unionfind::DisjointSet;
 
-pub trait Visitor<G: Basic> {
+pub trait Visitor<'a, G: Basic<'a>> {
     fn visit(&mut self, e: G::Edge, in_same_set: bool) -> bool;
 }
 
-impl<F, G> Visitor< G> for F
-    where G: Basic,
+impl<'a, F, G> Visitor<'a, G> for F
+    where G: Basic<'a>,
           F: FnMut(G::Edge, bool) -> bool {
     fn visit(&mut self, e: G::Edge, in_same_set: bool) -> bool {
         self(e, in_same_set)
     }
 }
 
-pub trait Kruskal: Basic + WithVertexProp + Sized {
-    fn kruskal_edges<I, V>(&self, edges: I, mut visitor: V)
+pub trait Kruskal<'a>: Basic<'a> + WithVertexProp<'a> + Sized {
+    fn kruskal_edges<I, V>(&'a self, edges: I, mut visitor: V)
         where I: Iterator<Item = Self::Edge>,
-              V: Visitor<Self>
+              V: Visitor<'a, Self>
     {
         let mut ds = DisjointSet::new(self);
         for e in edges {
@@ -31,19 +31,19 @@ pub trait Kruskal: Basic + WithVertexProp + Sized {
         }
     }
 
-    fn kruskal<T, V>(&self, weight: &EdgeProp<Self, T>, visitor: V)
+    fn kruskal<T, V>(&'a self, weight: &'a EdgeProp<'a, Self, T>, visitor: V)
         where T: Ord,
-              V: Visitor<Self>,
-              Self: for<'a> EdgePropType<'a, T>
+              V: Visitor<'a, Self>,
+              Self: EdgePropType<'a, T>
     {
         let mut edges = self.edges().collect::<Vec<_>>();
         edges.sort_by(|a, b| weight[*a].cmp(&weight[*b]));
         self.kruskal_edges(edges.iter().cloned(), visitor);
     }
 
-    fn kruskal_mst<T>(&self, weight: &EdgeProp<Self, T>) -> Vec<Self::Edge>
+    fn kruskal_mst<T>(&'a self, weight: &'a EdgeProp<'a, Self, T>) -> Vec<Self::Edge>
         where T: Ord,
-              Self: for<'a> EdgePropType<'a, T>
+              Self: EdgePropType<'a, T>
     {
         let mut tree = vec![];
         self.kruskal::<T, _>(weight, |e: Self::Edge, in_same_set: bool| {
@@ -56,7 +56,8 @@ pub trait Kruskal: Basic + WithVertexProp + Sized {
     }
 }
 
-impl<G> Kruskal for G where G: Basic + WithVertexProp { }
+impl<'a, G> Kruskal<'a> for G
+    where G: Basic<'a> + WithVertexProp<'a> { }
 
 
 #[cfg(test)]

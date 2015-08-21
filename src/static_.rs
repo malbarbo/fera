@@ -114,9 +114,12 @@ impl StaticGraphBuilder {
 }
 
 
-impl Basic for StaticGraph {
+impl Types for StaticGraph {
     type Vertex = usize;
     type Edge = Edge;
+}
+
+impl<'a> Basic<'a> for StaticGraph {
     type VertexIter = Range<Self::Vertex>;
     type EdgeIter = Map<Range<usize>, fn(usize) -> Self::Edge>;
 
@@ -124,7 +127,7 @@ impl Basic for StaticGraph {
         self.num_vertices
     }
 
-    fn vertices(&self) -> Self::VertexIter {
+    fn vertices(&'a self) -> Self::VertexIter {
         0..self.num_vertices
     }
 
@@ -140,22 +143,19 @@ impl Basic for StaticGraph {
         self.endvertices.len() / 2
     }
 
-    fn edges(&self) -> Self::EdgeIter {
+    fn edges(&'a self) -> Self::EdgeIter {
         (0..self.num_edges()).map(Edge::new)
     }
 }
 
-impl Degree for StaticGraph {
+impl<'a> Degree<'a> for StaticGraph {
     fn degree(&self, v: Self::Vertex) -> usize {
         self.inc[v].len()
     }
 }
 
-impl<'a> IncIterType<'a> for StaticGraph {
+impl<'a> Inc<'a> for StaticGraph {
     type Type = Cloned<Iter<'a, Self::Edge>>;
-}
-
-impl Inc for StaticGraph {
     fn inc_edges(&self, v: Self::Vertex) -> IncIter<Self> {
         self.inc[v].iter().cloned()
     }
@@ -165,8 +165,8 @@ impl<'a, T> VertexPropType<'a, T> for StaticGraph {
     type Type = Vec<T>;
 }
 
-impl WithVertexProp for StaticGraph {
-    fn vertex_prop<T: Clone>(&self, value: T) -> VertexProp<Self, T> {
+impl<'a> WithVertexProp<'a> for StaticGraph {
+    fn vertex_prop<T: Clone>(&'a self, value: T) -> VertexProp<Self, T> {
         vec![value; self.num_vertices()]
     }
 }
@@ -175,8 +175,8 @@ impl<'a, T> EdgePropType<'a, T> for StaticGraph {
     type Type = EdgePropVec<T>;
 }
 
-impl WithEdgeProp for StaticGraph {
-    fn edge_prop<T: Clone>(&self, value: T) -> EdgeProp<Self, T> {
+impl<'a> WithEdgeProp<'a> for StaticGraph {
+    fn edge_prop<T: Clone>(&'a self, value: T) -> EdgeProp<Self, T> {
         EdgePropVec(vec![value; self.num_edges()])
     }
 }

@@ -1,13 +1,14 @@
 use graph::*;
 
-pub struct DisjointSet<'a, G: Basic + WithVertexProp> {
+pub struct DisjointSet<'a, G: Basic<'a> + WithVertexProp<'a>> {
     parent: VertexProp<'a, G, G::Vertex>,
     rank: VertexProp<'a, G, usize>,
 }
 
 impl<'a, G> DisjointSet<'a, G>
-    where G: Basic + WithVertexProp {
-    pub fn new(g: &G) -> DisjointSet<G> {
+    where G: Basic<'a> + WithVertexProp<'a>
+{
+    pub fn new(g: &'a G) -> DisjointSet<G> {
         let mut ds = DisjointSet::<G> {
             parent: g.vertex_prop(g.vertices().next().unwrap()),
             rank: g.vertex_prop(0usize),

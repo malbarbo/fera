@@ -4,17 +4,20 @@ use std::ops::IndexMut;
 
 // Basic
 
-pub trait Basic {
+pub trait Types {
     type Vertex: Copy + Eq;
     type Edge: Copy + Eq;
+}
+
+pub trait Basic<'a>: Types {
     type VertexIter: Iterator<Item=Self::Vertex>;
     type EdgeIter: Iterator<Item=Self::Edge>;
 
     fn num_vertices(&self) -> usize;
-    fn vertices(&self) -> Self::VertexIter;
+    fn vertices(&'a self) -> Self::VertexIter;
 
     fn num_edges(&self) -> usize;
-    fn edges(&self) -> Self::EdgeIter;
+    fn edges(&'a self) -> Self::EdgeIter;
 
     fn source(&self, e: Self::Edge) -> Self::Vertex;
     fn target(&self, e: Self::Edge) -> Self::Vertex;
@@ -27,47 +30,35 @@ pub trait Basic {
 
 // Degree
 
-pub trait Degree: Basic {
+pub trait Degree<'a>: Basic<'a> {
     fn degree(&self, v: Self::Vertex) -> usize;
 }
 
 
 // Inc
 
-pub trait IncIterType<'a>: Basic {
+pub type IncIter<'a, G> = <G as Inc<'a>>::Type;
+
+pub trait Inc<'a>: Basic<'a> {
     type Type: Iterator<Item=Self::Edge>;
-}
-
-// FIXME: change definition when [E0122] is resolved
-// pub type IncIter<'a, G: Inc> = <G as IncIterType<'a>>::Type;
-pub type IncIter<'a, G> = <G as IncIterType<'a>>::Type;
-
-pub trait Inc: Basic + for<'a> IncIterType<'a> {
-    fn inc_edges(&self, v: Self::Vertex) -> IncIter<Self>;
+    fn inc_edges(&'a self, v: Self::Vertex) -> IncIter<Self>;
 }
 
 
 // Adj
 
-pub trait AdjIterType<'a>: Basic {
+pub type AdjIter<'a, G> = <G as Adj<'a>>::Type;
+
+pub trait Adj<'a>: Basic<'a> {
     type Type: Iterator<Item=Self::Vertex>;
+    fn neighbors(&'a self, v: Self::Vertex) -> AdjIter<Self>;
 }
 
-// FIXME: change definition when [E0122] is resolved
-// pub type AdjIter<'a, G: Adj> = <G as AdjIterType<'a>>::Type;
-pub type AdjIter<'a, G> = <G as AdjIterType<'a>>::Type;
-
-pub trait Adj: Basic + for<'a> AdjIterType<'a> {
-    fn neighbors(&self, v: Self::Vertex) -> AdjIter<Self>;
-}
-
-// Implementation of Adj traits for Graphs which implements Inc
-impl<'a, G: Inc> AdjIterType<'a> for G {
+impl<'a, G> Adj<'a> for G
+    where G: Inc<'a>
+{
     type Type = Map1<'a, IncIter<'a, G>, G, fn(&G, G::Edge) -> G::Vertex>;
-}
-
-impl<G: Inc> Adj for G {
-    fn neighbors(&self, v: Self::Vertex) -> AdjIter<Self> {
+    fn neighbors(&'a self, v: Self::Vertex) -> AdjIter<Self> {
         self.inc_edges(v).map1(self, Self::target)
     }
 }
@@ -75,7 +66,7 @@ impl<G: Inc> Adj for G {
 
 // Vertex Property
 
-pub trait VertexPropType<'a, T>: Basic {
+pub trait VertexPropType<'a, T>: Basic<'a> {
     type Type: IndexMut<Self::Vertex, Output=T>;
 }
 
@@ -86,7 +77,7 @@ pub type VertexProp<'a, G, T> = <G as VertexPropType<'a, T>>::Type;
 
 // Edge Property
 
-pub trait EdgePropType<'a, T>: Basic {
+pub trait EdgePropType<'a, T>: Basic<'a> {
     type Type: IndexMut<Self::Edge, Output=T>;
 }
 
@@ -99,20 +90,22 @@ pub type EdgeProp<'a, G, T> = <G as EdgePropType<'a, T>>::Type;
 
 macro_rules! with_prop {
     ($t:ty, $($ty:ty),*) => (
-        pub trait WithVertexProp: for<'a> VertexPropType<'a, $t> +
-                     for<'a> VertexPropType<'a, Option<$t>>
-                     $(+ for<'a> VertexPropType<'a, $ty>)*
-                     $(+ for<'a> VertexPropType<'a, Option<$ty>>)*
+        pub trait WithVertexProp<'a>: VertexPropType<'a, $t> +
+                     VertexPropType<'a, Option<$t>>
+                     $(+ VertexPropType<'a, $ty>)*
+                     $(+ VertexPropType<'a, Vec<$ty>>)*
+                     $(+ VertexPropType<'a, Option<$ty>>)*
         {
-            fn vertex_prop<T: Clone>(&self, value: T) -> VertexProp<Self, T>;
+            fn vertex_prop<T: Clone>(&'a self, value: T) -> VertexProp<Self, T>;
         }
 
-        pub trait WithEdgeProp: for<'a> EdgePropType<'a, $t> +
-                     for<'a> EdgePropType<'a, Option<$t>>
-                     $(+ for<'a> EdgePropType<'a, $ty>)*
-                     $(+ for<'a> EdgePropType<'a, Option<$ty>>)*
+        pub trait WithEdgeProp<'a>: EdgePropType<'a, $t> +
+                     EdgePropType<'a, Option<$t>>
+                     $(+ EdgePropType<'a, $ty>)*
+                     $(+ EdgePropType<'a, Vec<$ty>>)*
+                     $(+ EdgePropType<'a, Option<$ty>>)*
         {
-            fn edge_prop<T: Clone>(&self, value: T) -> EdgeProp<Self, T>;
+            fn edge_prop<T: Clone>(&'a self, value: T) -> EdgeProp<Self, T>;
         }
     )
 }
@@ -123,15 +116,15 @@ with_prop! {
     i8, i16, i32, i64, isize,
     u8, u16, u32, u64, usize,
     &'a str, String,
-    <Self as Basic>::Vertex,
-    <Self as Basic>::Edge
+    <Self as Types>::Vertex,
+    <Self as Types>::Edge
 }
 
 
 // Graph alias
 
-trait_alias!(GraphInc: Basic + Degree + Inc);
-trait_alias!(GraphIncWithProps: GraphInc + WithVertexProp + WithEdgeProp);
+trait_alias!(GraphInc: Basic<'a> + Degree<'a> + Inc<'a>);
+trait_alias!(GraphIncWithProps: GraphInc<'a> + WithVertexProp<'a> + WithEdgeProp<'a>);
 
-trait_alias!(GraphAdj: Basic + Degree + Adj);
-trait_alias!(GraphAdjWithProps: GraphAdj + WithVertexProp + WithEdgeProp);
+trait_alias!(GraphAdj: Basic<'a> + Degree<'a> + Adj<'a>);
+trait_alias!(GraphAdjWithProps: GraphAdj<'a> + WithVertexProp<'a> + WithEdgeProp<'a>);

@@ -19,8 +19,8 @@ macro_rules! items {
 macro_rules! trait_alias {
     ($name:ident : $($base:tt)+) => {
         items! {
-            pub trait $name: $($base)+ { }
-            impl<T: $($base)+> $name for T { }
+            pub trait $name<'a>: $($base)+ { }
+            impl<'a, T> $name<'a> for T where T: $($base)+ { }
         }
     };
 }
