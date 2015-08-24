@@ -4,18 +4,18 @@ use std::ops::{Index, IndexMut, Range};
 use std::slice::Iter;
 use std::hash::{Hash, Hasher};
 
-// Edge
+// StaticEdge
 
 #[derive(Copy, Clone, Debug)]
-pub struct Edge(usize);
+pub struct StaticEdge(usize);
 
-impl Edge {
-    fn new(e: usize) -> Edge {
-        Edge(2 * e + 1)
+impl StaticEdge {
+    fn new(e: usize) -> StaticEdge {
+        StaticEdge(2 * e + 1)
     }
 
-    fn new_reverse(e: usize) -> Edge {
-        Edge(2 * e)
+    fn new_reverse(e: usize) -> StaticEdge {
+        StaticEdge(2 * e)
     }
 
     pub fn to_index(self) -> usize {
@@ -23,15 +23,15 @@ impl Edge {
     }
 }
 
-impl PartialEq<Edge> for Edge {
-    fn eq(&self, other: &Edge) -> bool {
+impl PartialEq<StaticEdge> for StaticEdge {
+    fn eq(&self, other: &StaticEdge) -> bool {
         self.to_index() == other.to_index()
     }
 }
 
-impl Eq for Edge { }
+impl Eq for StaticEdge { }
 
-impl Hash for Edge {
+impl Hash for StaticEdge {
     fn hash<H>(&self, state: &mut H)
         where H: Hasher
     {
@@ -39,17 +39,17 @@ impl Hash for Edge {
     }
 }
 
-pub struct EdgePropVec<T>(pub Vec<T>);
+pub struct StaticEdgePropVec<T>(pub Vec<T>);
 
-impl<T> Index<Edge> for EdgePropVec<T> {
+impl<T> Index<StaticEdge> for StaticEdgePropVec<T> {
     type Output = T;
-    fn index<'a>(&'a self, index: Edge) -> &'a Self::Output {
+    fn index<'a>(&'a self, index: StaticEdge) -> &'a Self::Output {
         self.0.index(index.to_index())
     }
 }
 
-impl<T> IndexMut<Edge> for EdgePropVec<T> {
-    fn index_mut<'a>(&'a mut self, index: Edge) -> &'a mut Self::Output {
+impl<T> IndexMut<StaticEdge> for StaticEdgePropVec<T> {
+    fn index_mut<'a>(&'a mut self, index: StaticEdge) -> &'a mut Self::Output {
         self.0.index_mut(index.to_index())
     }
 }
@@ -60,7 +60,7 @@ impl<T> IndexMut<Edge> for EdgePropVec<T> {
 pub struct StaticGraph {
     num_vertices: usize,
     endvertices: Vec<usize>,
-    inc: Vec<Vec<Edge>>,
+    inc: Vec<Vec<StaticEdge>>,
 }
 
 impl StaticGraph {
@@ -90,8 +90,8 @@ impl StaticGraph {
         self.endvertices.push(u);
         self.endvertices.push(v);
         let e = (self.endvertices.len() - 2) / 2;
-        self.inc[u].push(Edge::new(e));
-        self.inc[v].push(Edge::new_reverse(e));
+        self.inc[u].push(StaticEdge::new(e));
+        self.inc[v].push(StaticEdge::new_reverse(e));
     }
 }
 
@@ -116,7 +116,7 @@ impl StaticGraphBuilder {
 
 impl Types for StaticGraph {
     type Vertex = usize;
-    type Edge = Edge;
+    type Edge = StaticEdge;
 }
 
 impl<'a> Basic<'a> for StaticGraph {
@@ -144,7 +144,7 @@ impl<'a> Basic<'a> for StaticGraph {
     }
 
     fn edges(&'a self) -> Self::EdgeIter {
-        (0..self.num_edges()).map(Edge::new)
+        (0..self.num_edges()).map(StaticEdge::new)
     }
 }
 
@@ -171,9 +171,9 @@ impl<'a, T: Clone> VertexProperty<'a, T> for StaticGraph {
 impl<'a> WithVertexProp<'a> for StaticGraph { }
 
 impl<'a, T: Clone> EdgeProperty<'a, T> for StaticGraph {
-    type Type = EdgePropVec<T>;
+    type Type = StaticEdgePropVec<T>;
     fn edge_prop(&'a self, value: T) -> EdgeProp<Self, T> {
-        EdgePropVec(vec![value; self.num_edges()])
+        StaticEdgePropVec(vec![value; self.num_edges()])
     }
 }
 
@@ -203,9 +203,9 @@ mod tests {
         let g = builder.finalize();
         assert_eq!(3, g.num_vertices);
         assert_eq!(vec![0, 1, 1, 2], g.endvertices);
-        assert_eq!(vec![vec![Edge::new(0)],
-                        vec![Edge::new_reverse(0), Edge::new(1)],
-                        vec![Edge::new_reverse(1)]],
+        assert_eq!(vec![vec![StaticEdge::new(0)],
+                        vec![StaticEdge::new_reverse(0), StaticEdge::new(1)],
+                        vec![StaticEdge::new_reverse(1)]],
                    g.inc);
     }
 
