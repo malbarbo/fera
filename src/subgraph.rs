@@ -3,7 +3,7 @@ use std::iter::Cloned;
 use std::slice::Iter;
 
 pub struct Subgraph<'a, G>
-    where G: 'a + Basic<'a> + WithVertexProp<'a>
+    where G: 'a + Basic<'a> + WithVertexProp<'a>,
 {
     g: &'a G,
     vertices: Vec<G::Vertex>,
@@ -12,16 +12,14 @@ pub struct Subgraph<'a, G>
 }
 
 impl<'a, G> Types for Subgraph<'a, G>
-    where G: Basic<'a> + WithVertexProp<'a>,
-          G::Vertex: 'a,
-          G::Edge: 'a,
+    where G: 'a + Basic<'a> + WithVertexProp<'a>,
 {
     type Vertex = G::Vertex;
     type Edge = G::Edge;
 }
 
 impl<'a, G> Basic<'a> for Subgraph<'a, G>
-    where G: Basic<'a> + WithVertexProp<'a>,
+    where G: 'a + Basic<'a> + WithVertexProp<'a>,
           G::Vertex: 'a,
           G::Edge: 'a,
 {
@@ -54,7 +52,7 @@ impl<'a, G> Basic<'a> for Subgraph<'a, G>
 }
 
 impl<'a, G> Degree<'a> for Subgraph<'a, G>
-    where G: Basic<'a> + WithVertexProp<'a>,
+    where G: 'a + Basic<'a> + WithVertexProp<'a>,
           G::Vertex: 'a,
           G::Edge: 'a,
 {
@@ -64,7 +62,7 @@ impl<'a, G> Degree<'a> for Subgraph<'a, G>
 }
 
 impl<'a, G> Inc<'a> for Subgraph<'a, G>
-    where G: Inc<'a> + WithVertexProp<'a>,
+    where G: 'a + Inc<'a> + WithVertexProp<'a>,
           G::Vertex: 'a,
           G::Edge: 'a,
 {
@@ -75,7 +73,7 @@ impl<'a, G> Inc<'a> for Subgraph<'a, G>
 }
 
 impl<'a, G, T: Clone> VertexProperty<'a, T> for Subgraph<'a, G>
-    where G: Inc<'a> + WithVertexProp<'a> + VertexProperty<'a, T>,
+    where G: 'a + Inc<'a> + WithVertexProp<'a> + VertexProperty<'a, T>,
           G::Vertex: 'a,
           G::Edge: 'a,
 {
@@ -86,13 +84,13 @@ impl<'a, G, T: Clone> VertexProperty<'a, T> for Subgraph<'a, G>
 }
 
 impl<'a, G> WithVertexProp<'a> for Subgraph<'a, G>
-    where G: Inc<'a> + WithVertexProp<'a>,
+    where G: 'a + Inc<'a> + WithVertexProp<'a>,
           G::Vertex: 'a,
           G::Edge: 'a,
 { }
 
 impl<'a, G, T: Clone> EdgeProperty<'a, T> for Subgraph<'a, G>
-    where G: Inc<'a> + WithVertexProp<'a> + EdgeProperty<'a, T>,
+    where G: 'a + Inc<'a> + WithVertexProp<'a> + EdgeProperty<'a, T>,
           G::Vertex: 'a,
           G::Edge: 'a,
 {
@@ -103,7 +101,7 @@ impl<'a, G, T: Clone> EdgeProperty<'a, T> for Subgraph<'a, G>
 }
 
 impl<'a, G> WithEdgeProp<'a> for Subgraph<'a, G>
-    where G: Inc<'a> + WithVertexProp<'a> + WithEdgeProp<'a>,
+    where G: 'a + Inc<'a> + WithVertexProp<'a> + WithEdgeProp<'a>,
           G::Vertex: 'a,
           G::Edge: 'a,
 { }
