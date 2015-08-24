@@ -37,7 +37,8 @@ pub trait FindPath<'a>: Basic<'a> + Sized {
             return None;
         }
         let mut found = false;
-        let mut tree = self.vertex_prop::<Option<Self::Edge>>(None);
+        let none: Option<Self::Edge> = None;
+        let mut tree = self.vertex_prop(none);
         Dfs::run_start(self, u, &mut TreeEdgeVisitor(|e| {
             let t = self.target(e);
             tree[t] = Some(e);

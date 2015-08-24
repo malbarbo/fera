@@ -39,5 +39,6 @@ pub mod iter;
 pub mod kruskal;
 pub mod path;
 pub mod props;
+pub mod subgraph;
 pub mod traverse;
 pub mod unionfind;

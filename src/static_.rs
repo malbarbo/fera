@@ -161,25 +161,23 @@ impl<'a> Inc<'a> for StaticGraph {
     }
 }
 
-impl<'a, T> VertexPropType<'a, T> for StaticGraph {
+impl<'a, T: Clone> VertexProperty<'a, T> for StaticGraph {
     type Type = Vec<T>;
-}
-
-impl<'a> WithVertexProp<'a> for StaticGraph {
-    fn vertex_prop<T: Clone>(&'a self, value: T) -> VertexProp<Self, T> {
+    fn vertex_prop(&'a self, value: T) -> VertexProp<Self, T> {
         vec![value; self.num_vertices()]
     }
 }
 
-impl<'a, T> EdgePropType<'a, T> for StaticGraph {
-    type Type = EdgePropVec<T>;
-}
+impl<'a> WithVertexProp<'a> for StaticGraph { }
 
-impl<'a> WithEdgeProp<'a> for StaticGraph {
-    fn edge_prop<T: Clone>(&'a self, value: T) -> EdgeProp<Self, T> {
+impl<'a, T: Clone> EdgeProperty<'a, T> for StaticGraph {
+    type Type = EdgePropVec<T>;
+    fn edge_prop(&'a self, value: T) -> EdgeProp<Self, T> {
         EdgePropVec(vec![value; self.num_edges()])
     }
 }
+
+impl<'a> WithEdgeProp<'a> for StaticGraph { }
 
 
 // Tests

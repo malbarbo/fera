@@ -34,7 +34,7 @@ pub trait Kruskal<'a>: Basic<'a> + WithVertexProp<'a> + Sized {
     fn kruskal<T, V>(&'a self, weight: &'a EdgeProp<'a, Self, T>, visitor: V)
         where T: Ord,
               V: Visitor<'a, Self>,
-              Self: EdgePropType<'a, T>
+              Self: EdgeProperty<'a, T>
     {
         let mut edges = self.edges().collect::<Vec<_>>();
         edges.sort_by(|a, b| weight[*a].cmp(&weight[*b]));
@@ -43,7 +43,7 @@ pub trait Kruskal<'a>: Basic<'a> + WithVertexProp<'a> + Sized {
 
     fn kruskal_mst<T>(&'a self, weight: &'a EdgeProp<'a, Self, T>) -> Vec<Self::Edge>
         where T: Ord,
-              Self: EdgePropType<'a, T>
+              Self: EdgeProperty<'a, T>
     {
         let mut tree = vec![];
         self.kruskal::<T, _>(weight, |e: Self::Edge, in_same_set: bool| {

@@ -41,6 +41,7 @@ pub type IncIter<'a, G> = <G as Inc<'a>>::Type;
 
 pub trait Inc<'a>: Basic<'a> {
     type Type: Iterator<Item=Self::Edge>;
+
     fn inc_edges(&'a self, v: Self::Vertex) -> IncIter<Self>;
 }
 
@@ -51,6 +52,7 @@ pub type AdjIter<'a, G> = <G as Adj<'a>>::Type;
 
 pub trait Adj<'a>: Basic<'a> {
     type Type: Iterator<Item=Self::Vertex>;
+
     fn neighbors(&'a self, v: Self::Vertex) -> AdjIter<Self>;
 }
 
@@ -58,6 +60,7 @@ impl<'a, G> Adj<'a> for G
     where G: Inc<'a>
 {
     type Type = Map1<'a, IncIter<'a, G>, G, fn(&G, G::Edge) -> G::Vertex>;
+
     fn neighbors(&'a self, v: Self::Vertex) -> AdjIter<Self> {
         self.inc_edges(v).map1(self, Self::target)
     }
@@ -66,47 +69,47 @@ impl<'a, G> Adj<'a> for G
 
 // Vertex Property
 
-pub trait VertexPropType<'a, T>: Basic<'a> {
-    type Type: IndexMut<Self::Vertex, Output=T>;
-}
+pub type VertexProp<'a, G, T> = <G as VertexProperty<'a, T>>::Type;
 
-// FIXME: change definition when [E0122] is resolved
-// pub type VertexProp<'a, G: VertexPropType<'a, T>, T> = <G as VertexPropType<'a, T>>::Type;
-pub type VertexProp<'a, G, T> = <G as VertexPropType<'a, T>>::Type;
+pub trait VertexProperty<'a, T: Clone>: Basic<'a> {
+    type Type: IndexMut<Self::Vertex, Output=T>;
+
+    fn vertex_prop(&'a self, value: T) -> VertexProp<Self, T>;
+}
 
 
 // Edge Property
 
-pub trait EdgePropType<'a, T>: Basic<'a> {
-    type Type: IndexMut<Self::Edge, Output=T>;
-}
+pub type EdgeProp<'a, G, T> = <G as EdgeProperty<'a, T>>::Type;
 
-// FIXME: change definition when [E0122] is resolved
-// pub type EdgeProp<'a, G: EdgePropType<'a, T>, T> = <G as EdgePropType<'a, T>>::Type;
-pub type EdgeProp<'a, G, T> = <G as EdgePropType<'a, T>>::Type;
+pub trait EdgeProperty<'a, T: Clone>: Basic<'a> {
+    type Type: IndexMut<Self::Edge, Output=T>;
+
+    fn edge_prop(&'a self, value: T) -> EdgeProp<Self, T>;
+}
 
 
 // WithVertexProp and WithEdgeProp
 
 macro_rules! with_prop {
     ($t:ty, $($ty:ty),*) => (
-        pub trait WithVertexProp<'a>: VertexPropType<'a, $t> +
-                     VertexPropType<'a, Option<$t>>
-                     $(+ VertexPropType<'a, $ty>)*
-                     $(+ VertexPropType<'a, Vec<$ty>>)*
-                     $(+ VertexPropType<'a, Option<$ty>>)*
-        {
-            fn vertex_prop<T: Clone>(&'a self, value: T) -> VertexProp<Self, T>;
-        }
+        pub trait WithVertexProp<'a>:
+            VertexProperty<'a, $t> +
+            VertexProperty<'a, Vec<$t>> +
+            VertexProperty<'a, Option<$t>>
+            $(+ VertexProperty<'a, $ty>)*
+            $(+ VertexProperty<'a, Vec<$ty>>)*
+            $(+ VertexProperty<'a, Option<$ty>>)*
+        { }
 
-        pub trait WithEdgeProp<'a>: EdgePropType<'a, $t> +
-                     EdgePropType<'a, Option<$t>>
-                     $(+ EdgePropType<'a, $ty>)*
-                     $(+ EdgePropType<'a, Vec<$ty>>)*
-                     $(+ EdgePropType<'a, Option<$ty>>)*
-        {
-            fn edge_prop<T: Clone>(&'a self, value: T) -> EdgeProp<Self, T>;
-        }
+        pub trait WithEdgeProp<'a>:
+            EdgeProperty<'a, $t> +
+            EdgeProperty<'a, Vec<$t>> +
+            EdgeProperty<'a, Option<$t>>
+            $(+ EdgeProperty<'a, $ty>)*
+            $(+ EdgeProperty<'a, Vec<$ty>>)*
+            $(+ EdgeProperty<'a, Option<$ty>>)*
+        { }
     )
 }
 
