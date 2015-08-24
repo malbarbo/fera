@@ -41,7 +41,7 @@ pub trait Kruskal<'a>: Basic<'a> + WithVertexProp<'a> + Sized {
         self.kruskal_edges(edges.iter().cloned(), visitor);
     }
 
-    fn kruskal_mst<T>(&'a self, weight: &'a EdgeProp<'a, Self, T>) -> Vec<Self::Edge>
+    fn kruskal_mst<T>(&'a self, weight: &'a EdgeProp<'a, Self, T>) -> VecEdge<Self>
         where T: Ord + Clone,
               Self: EdgeProperty<'a, T>
     {

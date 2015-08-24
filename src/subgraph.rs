@@ -6,9 +6,9 @@ pub struct Subgraph<'a, G>
     where G: 'a + Basic<'a> + WithVertexProp<'a>,
 {
     g: &'a G,
-    vertices: Vec<G::Vertex>,
-    edges: Vec<G::Edge>,
-    inc: VertexProp<'a, G, Vec<G::Edge>>,
+    vertices: VecVertex<G>,
+    edges: VecEdge<G>,
+    inc: VertexProp<'a, G, VecEdge<G>>,
 }
 
 impl<'a, G> Types for Subgraph<'a, G>

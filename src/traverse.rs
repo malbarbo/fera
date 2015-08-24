@@ -219,7 +219,7 @@ mod tests {
 
     struct TestVisitor<'a, G: 'a + GraphAdjWithProps<'a>> {
         g: &'a G,
-        parent: VertexProp<'a, G, Option<G::Vertex>>,
+        parent: VertexProp<'a, G, OptionVertex<G>>,
         d: VertexProp<'a, G, usize>,
         edge_type: EdgeProp<'a, G, usize>,
     }

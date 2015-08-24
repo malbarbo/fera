@@ -9,6 +9,12 @@ pub trait Types {
     type Edge: Copy + Eq;
 }
 
+pub type VecVertex<G> = Vec<<G as Types>::Vertex>;
+pub type VecEdge<G> = Vec<<G as Types>::Edge>;
+
+pub type OptionVertex<G> = Option<<G as Types>::Vertex>;
+pub type OptionEdge<G> = Option<<G as Types>::Edge>;
+
 pub trait Basic<'a>: Types {
     type VertexIter: Iterator<Item=Self::Vertex>;
     type EdgeIter: Iterator<Item=Self::Edge>;

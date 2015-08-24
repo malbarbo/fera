@@ -213,7 +213,7 @@ mod tests {
     impl StaticGraph {
         fn new(num_vertices: usize,
                edges: &[(usize, usize)])
-               -> (Self, Vec<<StaticGraph as Types>::Vertex>, Vec<<StaticGraph as Types>::Edge>) {
+               -> (Self, VecVertex<Self>, VecEdge<Self>) {
             let g = StaticGraph::new_with_edges(num_vertices, edges);
             let vertices = g.vertices().as_vec();
             let edges = g.edges().as_vec();
