@@ -57,7 +57,7 @@ pub trait Adj<'a>: Basic<'a> {
 }
 
 impl<'a, G> Adj<'a> for G
-    where G: Inc<'a>
+    where G: 'a + Inc<'a>
 {
     type Type = Map1<'a, IncIter<'a, G>, G, fn(&G, G::Edge) -> G::Vertex>;
 
@@ -92,24 +92,20 @@ pub trait EdgeProperty<'a, T: Clone>: Basic<'a> {
 // WithVertexProp and WithEdgeProp
 
 macro_rules! with_prop {
-    ($t:ty, $($ty:ty),*) => (
-        pub trait WithVertexProp<'a>:
-            VertexProperty<'a, $t> +
-            VertexProperty<'a, Vec<$t>> +
-            VertexProperty<'a, Option<$t>>
-            $(+ VertexProperty<'a, $ty>)*
-            $(+ VertexProperty<'a, Vec<$ty>>)*
-            $(+ VertexProperty<'a, Option<$ty>>)*
-        { }
+    ($($ty:ty),*) => (
+        items! {
+            pub trait WithVertexProp<'a>:
+                $(VertexProperty<'a, $ty> +)*
+                $(VertexProperty<'a, Vec<$ty>> +)*
+                $(VertexProperty<'a, Option<$ty>> +)*
+            { }
 
-        pub trait WithEdgeProp<'a>:
-            EdgeProperty<'a, $t> +
-            EdgeProperty<'a, Vec<$t>> +
-            EdgeProperty<'a, Option<$t>>
-            $(+ EdgeProperty<'a, $ty>)*
-            $(+ EdgeProperty<'a, Vec<$ty>>)*
-            $(+ EdgeProperty<'a, Option<$ty>>)*
-        { }
+            pub trait WithEdgeProp<'a>:
+                $(EdgeProperty<'a, $ty> +)*
+                $(EdgeProperty<'a, Vec<$ty>> +)*
+                $(EdgeProperty<'a, Option<$ty>> +)*
+            { }
+        }
     )
 }
 
