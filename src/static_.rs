@@ -209,14 +209,11 @@ mod tests {
                    g.inc);
     }
 
-    struct StaticBuilder;
 
-    impl Builder for StaticBuilder {
-        type G = StaticGraph;
-
+    impl StaticGraph {
         fn new(num_vertices: usize,
                edges: &[(usize, usize)])
-               -> (G<Self>, Vec<V<Self>>, Vec<E<Self>>) {
+               -> (Self, Vec<<StaticGraph as Types>::Vertex>, Vec<<StaticGraph as Types>::Edge>) {
             let g = StaticGraph::new_with_edges(num_vertices, edges);
             let vertices = g.vertices().as_vec();
             let edges = g.edges().as_vec();
@@ -224,10 +221,10 @@ mod tests {
         }
     }
 
-    test_basic!{ StaticBuilder }
-    test_degree!{ StaticBuilder }
-    test_inc!{ StaticBuilder }
-    test_adj!{ StaticBuilder }
-    test_vertex_prop!{ StaticBuilder }
-    test_edge_prop!{ StaticBuilder }
+    test_basic!{ StaticGraph }
+    test_degree!{ StaticGraph }
+    test_inc!{ StaticGraph }
+    test_adj!{ StaticGraph }
+    test_vertex_prop!{ StaticGraph }
+    test_edge_prop!{ StaticGraph }
 }

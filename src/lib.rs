@@ -1,11 +1,13 @@
 #[macro_export]
 macro_rules! set {
-    () => {
+    () => {{
+        use std::collections::HashSet;
         HashSet::new()
-    };
-    ($($x:expr),+) => {
+    }};
+    ($($x:expr),+) => {{
+        use std::collections::HashSet;
         [$($x,)+].iter().map(|&x| x).collect::<HashSet<_>>()
-    }
+    }}
 }
 
 // https://stackoverflow.com/questions/30291584/macro-for-defining-trait-aliases
