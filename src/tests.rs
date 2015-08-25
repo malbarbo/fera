@@ -37,7 +37,25 @@ macro_rules! test_basic {
             assert_eq!(4, g.num_edges());
             assert_eq!(edges, g.edges().as_vec());
             assert_eq!(vec![(v[0], v[1]), (v[0], v[2]), (v[1], v[2]), (v[1], v[3])],
-            g.edges().endvertices(&g).as_vec());
+                       g.edges().endvertices(&g).as_vec());
+        }
+
+        #[test] fn reverse() {
+            let (g, _, edges) = create_case!{$B};
+            for e in edges {
+                let (u, v) = g.endvertices(e);
+                assert_eq!(e, g.reverse(e));
+                assert_eq!((v, u), g.endvertices(g.reverse(e)))
+            }
+        }
+
+        #[test] fn opposite() {
+            let (g, _, edges) = create_case!{$B};
+            for e in edges {
+                let (u, v) = g.endvertices(e);
+                assert_eq!(u, g.opposite(v, e));
+                assert_eq!(v, g.opposite(u, e));
+            }
         }
     }
 }

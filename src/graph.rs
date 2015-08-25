@@ -28,6 +28,19 @@ pub trait Basic<'a>: Types {
     fn source(&self, e: Self::Edge) -> Self::Vertex;
     fn target(&self, e: Self::Edge) -> Self::Vertex;
 
+    fn reverse(&self, e: Self::Edge) -> Self::Edge;
+
+    fn opposite(&self, u: Self::Vertex, e: Self::Edge) -> Self::Vertex {
+        let (s, t) = self.endvertices(e);
+        if u == s {
+            t
+        } else if u == t {
+            s
+        } else {
+            panic!()
+        }
+    }
+
     fn endvertices(&self, e: Self::Edge) -> (Self::Vertex, Self::Vertex) {
         (self.source(e), self.target(e))
     }

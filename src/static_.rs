@@ -18,8 +18,12 @@ impl StaticEdge {
         StaticEdge(2 * e)
     }
 
-    pub fn to_index(self) -> usize {
+    fn to_index(self) -> usize {
         self.0 / 2
+    }
+
+    fn reverse(self) -> StaticEdge {
+        StaticEdge(self.0 ^ 1)
     }
 }
 
@@ -145,6 +149,10 @@ impl<'a> Basic<'a> for StaticGraph {
 
     fn edges(&'a self) -> Self::EdgeIter {
         (0..self.num_edges()).map(StaticEdge::new)
+    }
+
+    fn reverse(&self, e: Self::Edge) -> Self::Edge {
+        e.reverse()
     }
 }
 

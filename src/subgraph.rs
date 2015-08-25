@@ -49,6 +49,10 @@ impl<'a, G> Basic<'a> for Subgraph<'a, G>
     fn edges(&'a self) -> Self::EdgeIter {
         self.edges.iter().cloned()
     }
+
+    fn reverse(&self, e: Self::Edge) -> Self::Edge {
+        self.g.reverse(e)
+    }
 }
 
 impl<'a, G> Degree<'a> for Subgraph<'a, G>
