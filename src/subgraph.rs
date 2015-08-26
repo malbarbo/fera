@@ -1,6 +1,7 @@
 use graph::*;
 use std::iter::Cloned;
 use std::slice::Iter;
+use rand::Rng;
 
 pub struct Subgraph<'a, G>
     where G: 'a + Basic<'a> + WithVertexProp<'a>,
@@ -34,6 +35,10 @@ impl<'a, G> Basic<'a> for Subgraph<'a, G>
         self.vertices.iter().cloned()
     }
 
+    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Self::Vertex {
+        self.vertices[rng.gen_range(0, self.num_vertices())]
+    }
+
     fn source(&self, e: Self::Edge) -> Self::Vertex {
         self.g.source(e)
     }
@@ -48,6 +53,10 @@ impl<'a, G> Basic<'a> for Subgraph<'a, G>
 
     fn edges(&'a self) -> Self::EdgeIter {
         self.edges.iter().cloned()
+    }
+
+    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Self::Edge {
+        self.edges[rng.gen_range(0, self.num_edges())]
     }
 
     fn reverse(&self, e: Self::Edge) -> Self::Edge {
@@ -71,8 +80,13 @@ impl<'a, G> Inc<'a> for Subgraph<'a, G>
           G::Edge: 'a,
 {
     type Type = Cloned<Iter<'a, Self::Edge>>;
+
     fn inc_edges(&'a self, v: Self::Vertex) -> IncIter<Self> {
         self.inc[v].iter().cloned()
+    }
+
+    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Self::Vertex) -> Self::Edge {
+        self.inc[v][rng.gen_range(0, self.inc[v].len())]
     }
 }
 
@@ -82,6 +96,7 @@ impl<'a, G, T: Clone> VertexProperty<'a, T> for Subgraph<'a, G>
           G::Edge: 'a,
 {
     type Type = VertexProp<'a, G, T>;
+
     fn vertex_prop(&'a self, value: T) -> VertexProp<Self, T> {
         self.g.vertex_prop(value)
     }
@@ -99,6 +114,7 @@ impl<'a, G, T: Clone> EdgeProperty<'a, T> for Subgraph<'a, G>
           G::Edge: 'a,
 {
     type Type = EdgeProp<'a, G, T>;
+
     fn edge_prop(&'a self, value: T) -> EdgeProp<Self, T> {
         self.g.edge_prop(value)
     }

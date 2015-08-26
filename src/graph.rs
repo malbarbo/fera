@@ -1,6 +1,7 @@
 use iter::{IteratorExt, Map1};
 use std::ops::IndexMut;
 
+use rand::Rng;
 
 // Basic
 
@@ -21,12 +22,19 @@ pub trait Basic<'a>: Types {
 
     fn num_vertices(&self) -> usize;
     fn vertices(&'a self) -> Self::VertexIter;
+    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Self::Vertex;
 
     fn num_edges(&self) -> usize;
     fn edges(&'a self) -> Self::EdgeIter;
 
     fn source(&self, e: Self::Edge) -> Self::Vertex;
     fn target(&self, e: Self::Edge) -> Self::Vertex;
+
+    fn endvertices(&self, e: Self::Edge) -> (Self::Vertex, Self::Vertex) {
+        (self.source(e), self.target(e))
+    }
+
+    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Self::Edge;
 
     fn reverse(&self, e: Self::Edge) -> Self::Edge;
 
@@ -37,12 +45,9 @@ pub trait Basic<'a>: Types {
         } else if u == t {
             s
         } else {
+            // TODO: message
             panic!()
         }
-    }
-
-    fn endvertices(&self, e: Self::Edge) -> (Self::Vertex, Self::Vertex) {
-        (self.source(e), self.target(e))
     }
 }
 
@@ -62,6 +67,8 @@ pub trait Inc<'a>: Basic<'a> {
     type Type: Iterator<Item=Self::Edge>;
 
     fn inc_edges(&'a self, v: Self::Vertex) -> IncIter<Self>;
+
+    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Self::Vertex) -> Self::Edge;
 }
 
 

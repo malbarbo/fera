@@ -3,6 +3,7 @@ use std::iter::{Cloned, Map};
 use std::ops::{Index, IndexMut, Range};
 use std::slice::Iter;
 use std::hash::{Hash, Hasher};
+use rand::Rng;
 
 // StaticEdge
 
@@ -135,6 +136,10 @@ impl<'a> Basic<'a> for StaticGraph {
         0..self.num_vertices
     }
 
+    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Self::Vertex {
+        rng.gen_range(0, self.num_vertices())
+    }
+
     fn source(&self, e: Self::Edge) -> Self::Vertex {
         self.endvertices[e.0 ^ 1]
     }
@@ -151,6 +156,10 @@ impl<'a> Basic<'a> for StaticGraph {
         (0..self.num_edges()).map(StaticEdge::new)
     }
 
+    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Self::Edge {
+        StaticEdge::new(rng.gen_range(0, self.num_edges()))
+    }
+
     fn reverse(&self, e: Self::Edge) -> Self::Edge {
         e.reverse()
     }
@@ -164,13 +173,19 @@ impl<'a> Degree<'a> for StaticGraph {
 
 impl<'a> Inc<'a> for StaticGraph {
     type Type = Cloned<Iter<'a, Self::Edge>>;
+
     fn inc_edges(&self, v: Self::Vertex) -> IncIter<Self> {
         self.inc[v].iter().cloned()
+    }
+
+    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Self::Vertex) -> Self::Edge {
+        self.inc[v][rng.gen_range(0, self.degree(v))]
     }
 }
 
 impl<'a, T: Clone> VertexProperty<'a, T> for StaticGraph {
     type Type = Vec<T>;
+
     fn vertex_prop(&'a self, value: T) -> VertexProp<Self, T> {
         vec![value; self.num_vertices()]
     }
@@ -180,6 +195,7 @@ impl<'a> WithVertexProp<'a> for StaticGraph { }
 
 impl<'a, T: Clone> EdgeProperty<'a, T> for StaticGraph {
     type Type = StaticEdgePropVec<T>;
+
     fn edge_prop(&'a self, value: T) -> EdgeProp<Self, T> {
         StaticEdgePropVec(vec![value; self.num_edges()])
     }

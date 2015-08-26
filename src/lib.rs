@@ -27,6 +27,8 @@ macro_rules! trait_alias {
     };
 }
 
+extern crate rand;
+
 #[cfg(test)]
 #[macro_use]
 pub mod tests;
