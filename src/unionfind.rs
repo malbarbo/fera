@@ -60,8 +60,8 @@ mod tests {
 
     fn check_groups(ds: &mut DisjointSet<StaticGraph>, groups: &[&[usize]]) {
         for group in groups.iter() {
-            for a in group.iter() {
-                assert!(ds.in_same_set(group[0], *a));
+            for &a in group.iter() {
+                assert!(ds.in_same_set(group[0], a));
             }
         }
     }

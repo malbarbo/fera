@@ -6,7 +6,7 @@ pub type Path<G> = VecEdge<G>;
 pub type ParentTree<'a, G> = VertexProp<'a, G, OptionEdge<G>>;
 
 pub trait FindPath<'a>: Basic<'a> + Sized {
-    fn find_path_on_parent_tree(&'a self,
+    fn find_path_on_parent_tree(&self,
                                 tree: &ParentTree<'a, Self>,
                                 u: Self::Vertex,
                                 v: Self::Vertex)
