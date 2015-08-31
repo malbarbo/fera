@@ -1,17 +1,19 @@
 use graph::*;
 use iter::{Map1, IteratorExt};
 
-pub trait IteratorGraph<'a, G: Basic<'a>>: Iterator<Item=G::Edge> + Sized {
+pub trait IteratorGraph<G: Basic>: Iterator<Item=Edge<G>> + Sized {
     fn endvertices(self,
                    g: &G)
-                   -> Map1<Self, G, fn(&G, G::Edge) -> (G::Vertex, G::Vertex)> {
+                   -> Map1<Self,
+                           G,
+                           fn(&G, Edge<G>) -> (Vertex<G>, Vertex<G>)> {
         self.map1(&g, G::endvertices)
     }
 }
 
-impl<'a, G, I>IteratorGraph<'a, G> for I
-    where G: Basic<'a>,
-          I: Iterator<Item=G::Edge>
+impl<G, I>IteratorGraph<G> for I
+    where G: Basic,
+          I: Iterator<Item=Edge<G>>
 { }
 
 

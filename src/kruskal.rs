@@ -8,22 +8,26 @@ pub enum Accept {
     No,
 }
 
-pub trait Visitor<'a, G: Basic<'a>> {
-    fn visit(&mut self, e: G::Edge) -> Accept;
+pub trait Visitor<G>
+    where G: Graph
+{
+    fn visit(&mut self, e: Edge<G>) -> Accept;
 }
 
-impl<'a, F, G> Visitor<'a, G> for F
-    where G: Basic<'a>,
-          F: FnMut(G::Edge) -> Accept {
-    fn visit(&mut self, e: G::Edge) -> Accept {
+impl<F, G> Visitor<G> for F
+    where G: Graph,
+          F: FnMut(Edge<G>) -> Accept
+{
+    fn visit(&mut self, e: Edge<G>) -> Accept {
         self(e)
     }
 }
 
-pub trait Kruskal<'a>: Basic<'a> + WithVertexProp<'a> + Sized {
-    fn kruskal_edges<I, V>(&'a self, edges: I, visitor: &mut V)
-        where I: Iterator<Item = Self::Edge>,
-              V: Visitor<'a, Self>
+pub trait Kruskal: Graph {
+    fn kruskal_edges<'a, I, V>(&'a self, edges: I, visitor: &mut V)
+        where &'a Self: Types<Self>,
+              I: Iterator<Item=Edge<Self>>,
+              V: Visitor<Self>
     {
         let mut ds = DisjointSet::new(self);
         let mut num_sets = self.num_vertices();
@@ -39,22 +43,22 @@ pub trait Kruskal<'a>: Basic<'a> + WithVertexProp<'a> + Sized {
         }
     }
 
-    fn kruskal<T, V>(&'a self, weight: &'a EdgeProp<'a, Self, T>, visitor: &mut V)
-        where T: Ord + Clone,
-              V: Visitor<'a, Self>,
-              Self: EdgeProperty<'a, T>
+    fn kruskal<'a, T, V>(&'a self, weight: &'a PropEdge<'a, Self, T>, visitor: &mut V)
+        where &'a Self: Types<Self> + PropTypes<T, Self>,
+              T: 'a + Ord + Clone,
+              V: Visitor<Self>,
     {
         let mut edges = self.edges().as_vec();
         edges.sort_by(|&a, &b| weight[a].cmp(&weight[b]));
         self.kruskal_edges(edges.iter().cloned(), visitor);
     }
 
-    fn kruskal_mst<T>(&'a self, weight: &'a EdgeProp<'a, Self, T>) -> VecEdge<Self>
-        where T: Ord + Clone,
-              Self: EdgeProperty<'a, T>
+    fn kruskal_mst<'a, T>(&'a self, weight: &'a PropEdge<'a, Self, T>) -> VecEdge<Self>
+        where &'a Self: Types<Self> + PropTypes<T, Self>,
+              T: 'a + Ord + Clone,
     {
         let mut edges = vec![];
-        self.kruskal(weight, &mut |e| {
+        self.kruskal::<T, _>(weight, &mut |e| {
             edges.push(e);
             Accept::Yes
         });
@@ -62,8 +66,8 @@ pub trait Kruskal<'a>: Basic<'a> + WithVertexProp<'a> + Sized {
     }
 }
 
-impl<'a, G> Kruskal<'a> for G
-    where G: Basic<'a> + WithVertexProp<'a> { }
+impl<G> Kruskal for G
+    where G: Graph { }
 
 
 #[cfg(test)]

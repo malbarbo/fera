@@ -3,15 +3,15 @@ use traverse::*;
 
 pub type Path<G> = VecEdge<G>;
 
-pub type ParentTree<'a, G> = VertexProp<'a, G, OptionEdge<G>>;
+pub type ParentTree<'a, G> = PropVertex<'a, G, OptionEdge<G>>;
 
-pub trait FindPath<'a>: Basic<'a> + Sized {
-    fn find_path_on_parent_tree(&self,
-                                tree: &ParentTree<'a, Self>,
-                                u: Self::Vertex,
-                                v: Self::Vertex)
-                                -> Option<Path<Self>>
-        where Self: WithVertexProp<'a>
+pub trait FindPath: Graph {
+    fn find_path_on_parent_tree<'a>(&'a self,
+                                    tree: &ParentTree<'a, Self>,
+                                    u: Vertex<Self>,
+                                    v: Vertex<Self>)
+                                    -> Option<Path<Self>>
+        where &'a Self: Types<Self>
     {
         if u == v {
             return None;
@@ -30,8 +30,8 @@ pub trait FindPath<'a>: Basic<'a> + Sized {
         None
     }
 
-    fn find_path(&'a self, u: Self::Vertex, v: Self::Vertex) -> Option<Path<Self>>
-        where Self: GraphIncWithProps<'a>
+    fn find_path<'a>(&'a self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Path<Self>>
+        where &'a Self: Types<Self>
     {
         if u == v {
             return None;
@@ -53,8 +53,8 @@ pub trait FindPath<'a>: Basic<'a> + Sized {
     }
 }
 
-impl<'a, G> FindPath<'a> for G
-    where G: Basic<'a> { }
+impl<G> FindPath for G
+    where G: Graph { }
 
 #[cfg(test)]
 mod tests {

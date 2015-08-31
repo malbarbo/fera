@@ -1,155 +1,185 @@
 use iter::{IteratorExt, Map1};
+
+use std::fmt::Debug;
+use std::hash::Hash;
 use std::ops::IndexMut;
 
 use rand::Rng;
 
+
+pub trait Graph: Basic + BasicProps { }
+
+impl<G> Graph for G
+    where G: Basic + BasicProps { }
+
+
+pub trait Types<G: Graph>: IterTypes<G> + BasicPropTypes<G> { }
+
+impl<G, T> Types<G> for T
+    where G: Graph,
+          T: IterTypes<G> + BasicPropTypes<G> { }
+
+
+// Aliases
+
+pub type Vertex<G> = <G as Basic>::Vertex;
+pub type Edge<G> = <G as Basic>::Edge;
+
+pub type IterVertex<'a, G> = <&'a G as IterTypes<G>>::Vertex;
+pub type IterEdge<'a, G> = <&'a G as IterTypes<G>>::Edge;
+pub type IterInc<'a, G> = <&'a G as IterTypes<G>>::Inc;
+
+pub type PropVertex<'a, G, T> = <&'a G as PropTypes<T, G>>::Vertex;
+pub type PropEdge<'a, G, T> = <&'a G as PropTypes<T, G>>::Edge;
+
+pub type VecVertex<G> = Vec<Vertex<G>>;
+pub type VecEdge<G> = Vec<Edge<G>>;
+
+pub type OptionVertex<G> = Option<Vertex<G>>;
+pub type OptionEdge<G> = Option<Edge<G>>;
+
+
 // Basic
 
-pub trait Types {
-    type Vertex: Copy + Eq;
-    type Edge: Copy + Eq;
+// To be implemented on &'a G
+pub trait IterTypes<G: Basic> {
+    type Vertex: Iterator<Item=Vertex<G>>;
+    type Edge: Iterator<Item=Edge<G>>;
+    type Inc: Iterator<Item=Edge<G>>;
 }
 
-pub type VecVertex<G> = Vec<<G as Types>::Vertex>;
-pub type VecEdge<G> = Vec<<G as Types>::Edge>;
+pub trait Basic: Sized {
+    type Vertex: Copy + Eq + Hash + Debug;
+    type Edge: Copy + Eq + Hash + Debug;
 
-pub type OptionVertex<G> = Option<<G as Types>::Vertex>;
-pub type OptionEdge<G> = Option<<G as Types>::Edge>;
-
-pub trait Basic<'a>: Types {
-    type VertexIter: Iterator<Item=Self::Vertex>;
-    type EdgeIter: Iterator<Item=Self::Edge>;
+    // Vertices
 
     fn num_vertices(&self) -> usize;
-    fn vertices(&'a self) -> Self::VertexIter;
-    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Self::Vertex;
+
+    fn vertices<'a>(&'a self) -> IterVertex<Self>
+        where &'a Self: IterTypes<Self>;
+
+    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self>;
+
+
+    // Edges
 
     fn num_edges(&self) -> usize;
-    fn edges(&'a self) -> Self::EdgeIter;
 
-    fn source(&self, e: Self::Edge) -> Self::Vertex;
-    fn target(&self, e: Self::Edge) -> Self::Vertex;
+    fn edges<'a>(&'a self) -> IterEdge<Self>
+        where &'a Self: IterTypes<Self>;
 
-    fn endvertices(&self, e: Self::Edge) -> (Self::Vertex, Self::Vertex) {
+    fn source(&self, e: Edge<Self>) -> Vertex<Self>;
+
+    fn target(&self, e: Edge<Self>) -> Vertex<Self>;
+
+    fn endvertices(&self, e: Edge<Self>) -> (Vertex<Self>, Vertex<Self>) {
         (self.source(e), self.target(e))
     }
 
-    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Self::Edge;
+    fn reverse(&self, e: Edge<Self>) -> Edge<Self>;
 
-    fn reverse(&self, e: Self::Edge) -> Self::Edge;
-
-    fn opposite(&self, u: Self::Vertex, e: Self::Edge) -> Self::Vertex {
+    fn opposite(&self, u: Vertex<Self>, e: Edge<Self>) -> Vertex<Self> {
         let (s, t) = self.endvertices(e);
         if u == s {
             t
         } else if u == t {
             s
         } else {
-            // TODO: message
-            panic!()
+            panic!("u is not an endvertex of e");
         }
     }
+
+    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Edge<Self>;
+
+
+    // Incidence
+
+    fn degree(&self, v: Vertex<Self>) -> usize;
+
+    fn inc_edges<'a>(&'a self, v: Vertex<Self>) -> IterInc<Self>
+        where &'a Self: IterTypes<Self>;
+
+    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self>;
 }
 
 
-// Degree
+// Properties
 
-pub trait Degree<'a>: Basic<'a> {
-    fn degree(&self, v: Self::Vertex) -> usize;
+// To be implemented on &'a G
+pub trait PropTypes<T, G: Basic> {
+    type Vertex: IndexMut<Vertex<G>, Output=T>;
+    type Edge: IndexMut<Edge<G>, Output=T>;
 }
 
 
-// Inc
+pub trait WithProps<T: Clone>: Basic {
+    fn vertex_prop<'a>(&'a self, value: T) -> PropVertex<Self, T>
+        where &'a Self: PropTypes<T, Self>;
 
-pub type IncIter<'a, G> = <G as Inc<'a>>::Type;
-
-pub trait Inc<'a>: Basic<'a> {
-    type Type: Iterator<Item=Self::Edge>;
-
-    fn inc_edges(&'a self, v: Self::Vertex) -> IncIter<Self>;
-
-    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Self::Vertex) -> Self::Edge;
+    fn edge_prop<'a>(&'a self, value: T) -> PropEdge<Self, T>
+        where &'a Self: PropTypes<T, Self>;
 }
 
-
-// Adj
-
-pub type AdjIter<'a, G> = <G as Adj<'a>>::Type;
-
-pub trait Adj<'a>: Basic<'a> {
-    type Type: Iterator<Item=Self::Vertex>;
-
-    fn neighbors(&'a self, v: Self::Vertex) -> AdjIter<Self>;
-}
-
-impl<'a, G> Adj<'a> for G
-    where G: 'a + Inc<'a>
-{
-    type Type = Map1<'a, IncIter<'a, G>, G, fn(&G, G::Edge) -> G::Vertex>;
-
-    fn neighbors(&'a self, v: Self::Vertex) -> AdjIter<Self> {
-        self.inc_edges(v).map1(self, Self::target)
-    }
-}
-
-
-// Vertex Property
-
-pub type VertexProp<'a, G, T> = <G as VertexProperty<'a, T>>::Type;
-
-pub trait VertexProperty<'a, T: Clone>: Basic<'a> {
-    type Type: IndexMut<Self::Vertex, Output=T>;
-
-    fn vertex_prop(&'a self, value: T) -> VertexProp<Self, T>;
-}
-
-
-// Edge Property
-
-pub type EdgeProp<'a, G, T> = <G as EdgeProperty<'a, T>>::Type;
-
-pub trait EdgeProperty<'a, T: Clone>: Basic<'a> {
-    type Type: IndexMut<Self::Edge, Output=T>;
-
-    fn edge_prop(&'a self, value: T) -> EdgeProp<Self, T>;
-}
-
-
-// WithVertexProp and WithEdgeProp
-
-macro_rules! with_prop {
-    ($($ty:ty),*) => (
+macro_rules! basic_props1 {
+    ($($t1:ty),* ; $($t2:ty),* ) => (
         items! {
-            pub trait WithVertexProp<'a>:
-                $(VertexProperty<'a, $ty> +)*
-                $(VertexProperty<'a, Vec<$ty>> +)*
-                $(VertexProperty<'a, Option<$ty>> +)*
-            { }
+            pub trait BasicProps:
+                $(WithProps<$t1> +)* { }
 
-            pub trait WithEdgeProp<'a>:
-                $(EdgeProperty<'a, $ty> +)*
-                $(EdgeProperty<'a, Vec<$ty>> +)*
-                $(EdgeProperty<'a, Option<$ty>> +)*
-            { }
+            impl<G> BasicProps for G where G:
+                $(WithProps<$t2> +)* { }
+
+            pub trait BasicPropTypes<G: Basic>:
+                $(PropTypes<$t2, G> +)* { }
+
+            impl<G: Basic, T> BasicPropTypes<G> for T where T:
+                $(PropTypes<$t2, G> +)* { }
         }
     )
 }
 
-with_prop! {
+macro_rules! basic_props2 {
+    ($($t1:ty),* ; $($t2:ty),* ) => (
+        basic_props1!{
+            $($t1),+ , $(Vec<$t1>),+ , $(Option<$t1>),+ ;
+            $($t2),+ , $(Vec<$t2>),+ , $(Option<$t2>),+
+        }
+    )
+}
+
+macro_rules! basic_props {
+    ($($ty:ty),*) => (
+        basic_props2!{
+            Vertex<Self>, Edge<Self>, $($ty),+ ;
+            Vertex<G>, Edge<G>, $($ty),+
+        }
+    )
+}
+
+basic_props! {
     bool,
     char,
     i8, i16, i32, i64, isize,
     u8, u16, u32, u64, usize,
-    &'a str, String,
-    <Self as Types>::Vertex,
-    <Self as Types>::Edge
+    String
 }
 
 
-// Graph alias
+// Adjacency
 
-trait_alias!(GraphInc: Basic<'a> + Degree<'a> + Inc<'a>);
-trait_alias!(GraphIncWithProps: GraphInc<'a> + WithVertexProp<'a> + WithEdgeProp<'a>);
+pub trait Adj: Basic {
+    fn neighbors<'a>(&'a self,
+                     v: Vertex<Self>)
+                     -> Map1<'a,
+                             IterInc<'a, Self>,
+                             Self,
+                             fn(&'a Self, Edge<Self>) -> Vertex<Self>>
+        where &'a Self: IterTypes<Self>
+    {
+        self.inc_edges(v).map1(self, Self::target)
+    }
+}
 
-trait_alias!(GraphAdj: Basic<'a> + Degree<'a> + Adj<'a>);
-trait_alias!(GraphAdjWithProps: GraphAdj<'a> + WithVertexProp<'a> + WithEdgeProp<'a>);
+impl<G> Adj for G
+    where G: Basic { }

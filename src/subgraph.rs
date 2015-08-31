@@ -4,46 +4,68 @@ use std::slice::Iter;
 use rand::Rng;
 
 pub struct Subgraph<'a, G>
-    where G: 'a + Basic<'a> + WithVertexProp<'a>,
+    where G: 'a + Graph,
+          &'a G: Types<G>,
+          Vertex<G>: 'a,
+          Edge<G>: 'a,
 {
     g: &'a G,
     vertices: VecVertex<G>,
     edges: VecEdge<G>,
-    inc: VertexProp<'a, G, VecEdge<G>>,
+    inc: PropVertex<'a, G, VecEdge<G>>,
 }
 
-impl<'a, G> Types for Subgraph<'a, G>
-    where G: 'a + Basic<'a> + WithVertexProp<'a>,
+impl<'a: 'b, 'b, G> IterTypes<Subgraph<'a, G>> for &'b Subgraph<'a, G>
+    where G: 'a + Graph,
+          &'a G: Types<G>,
+          Vertex<G>: 'a,
+          Edge<G>: 'a,
 {
-    type Vertex = G::Vertex;
-    type Edge = G::Edge;
+    type Vertex = Cloned<Iter<'b, Vertex<G>>>;
+    type Edge = Cloned<Iter<'b, Edge<G>>>;
+    type Inc = Cloned<Iter<'b, Edge<G>>>;
 }
 
-impl<'a, G> Basic<'a> for Subgraph<'a, G>
-    where G: 'a + Basic<'a> + WithVertexProp<'a>,
-          G::Vertex: 'a,
-          G::Edge: 'a,
+impl<'a: 'b, 'b, T, G> PropTypes<T, Subgraph<'a, G>> for &'b Subgraph<'a, G>
+    where G: 'a + Graph,
+          &'a G: Types<G> + PropTypes<T, G>,
+          Vertex<G>: 'a,
+          Edge<G>: 'a,
 {
-    type VertexIter = Cloned<Iter<'a, Self::Vertex>>;
-    type EdgeIter = Cloned<Iter<'a, Self::Edge>>;
+    type Vertex = PropVertex<'a, G, T>;
+    type Edge = PropEdge<'a, G, T>;
+}
+
+
+impl<'a, G> Basic for Subgraph<'a, G>
+    where G: 'a + Graph,
+          &'a G: Types<G>,
+          Vertex<G>: 'a,
+          Edge<G>: 'a,
+{
+
+    type Vertex = Vertex<G>;
+    type Edge = Edge<G>;
 
     fn num_vertices(&self) -> usize {
         self.vertices.len()
     }
 
-    fn vertices(&'a self) -> Self::VertexIter {
+    fn vertices<'b>(&'b self) -> IterVertex<Self>
+        where &'b (): Sized
+    {
         self.vertices.iter().cloned()
     }
 
-    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Self::Vertex {
+    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {
         self.vertices[rng.gen_range(0, self.num_vertices())]
     }
 
-    fn source(&self, e: Self::Edge) -> Self::Vertex {
+    fn source(&self, e: Edge<Self>) -> Vertex<Self> {
         self.g.source(e)
     }
 
-    fn target(&self, e: Self::Edge) -> Self::Vertex {
+    fn target(&self, e: Edge<Self>) -> Vertex<Self> {
         self.g.target(e)
     }
 
@@ -51,77 +73,52 @@ impl<'a, G> Basic<'a> for Subgraph<'a, G>
         self.edges.len()
     }
 
-    fn edges(&'a self) -> Self::EdgeIter {
+    fn edges<'b>(&'b self) -> IterEdge<Self>
+        where &'b (): Sized
+    {
         self.edges.iter().cloned()
     }
 
-    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Self::Edge {
+    fn reverse(&self, e: Edge<Self>) -> Edge<Self> {
+        self.g.reverse(e)
+    }
+
+    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Edge<Self> {
         self.edges[rng.gen_range(0, self.num_edges())]
     }
 
-    fn reverse(&self, e: Self::Edge) -> Self::Edge {
-        self.g.reverse(e)
-    }
-}
+    // Inc
 
-impl<'a, G> Degree<'a> for Subgraph<'a, G>
-    where G: 'a + Basic<'a> + WithVertexProp<'a>,
-          G::Vertex: 'a,
-          G::Edge: 'a,
-{
-    fn degree(&self, v: Self::Vertex) -> usize {
+    fn degree(&self, v: Vertex<Self>) -> usize {
         self.inc[v].len()
     }
-}
 
-impl<'a, G> Inc<'a> for Subgraph<'a, G>
-    where G: 'a + Inc<'a> + WithVertexProp<'a>,
-          G::Vertex: 'a,
-          G::Edge: 'a,
-{
-    type Type = Cloned<Iter<'a, Self::Edge>>;
-
-    fn inc_edges(&'a self, v: Self::Vertex) -> IncIter<Self> {
+    fn inc_edges<'b>(&'b self, v: Vertex<Self>) -> IterInc<Self>
+        where &'b (): Sized
+    {
         self.inc[v].iter().cloned()
     }
 
-    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Self::Vertex) -> Self::Edge {
-        self.inc[v][rng.gen_range(0, self.inc[v].len())]
+    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self> {
+        self.inc[v][rng.gen_range(0, self.degree(v))]
     }
 }
 
-impl<'a, G, T: Clone> VertexProperty<'a, T> for Subgraph<'a, G>
-    where G: 'a + Inc<'a> + WithVertexProp<'a> + VertexProperty<'a, T>,
-          G::Vertex: 'a,
-          G::Edge: 'a,
+impl<'a, T: Clone, G> WithProps<T> for Subgraph<'a, G>
+    where G: 'a + Graph + WithProps<T>,
+          &'a G: PropTypes<T, G> + Types<G>,
+          Vertex<G>: 'a,
+          Edge<G>: 'a,
 {
-    type Type = VertexProp<'a, G, T>;
-
-    fn vertex_prop(&'a self, value: T) -> VertexProp<Self, T> {
+    fn vertex_prop<'c>(&'c self, value: T) -> PropVertex<'c, Self, T>
+        where &'c (): Sized
+    {
         self.g.vertex_prop(value)
     }
-}
 
-impl<'a, G> WithVertexProp<'a> for Subgraph<'a, G>
-    where G: 'a + Inc<'a> + WithVertexProp<'a>,
-          G::Vertex: 'a,
-          G::Edge: 'a,
-{ }
-
-impl<'a, G, T: Clone> EdgeProperty<'a, T> for Subgraph<'a, G>
-    where G: 'a + Inc<'a> + WithVertexProp<'a> + EdgeProperty<'a, T>,
-          G::Vertex: 'a,
-          G::Edge: 'a,
-{
-    type Type = EdgeProp<'a, G, T>;
-
-    fn edge_prop(&'a self, value: T) -> EdgeProp<Self, T> {
+    fn edge_prop<'c>(&'c self, value: T) -> PropEdge<'c, Self, T>
+        where &'c (): Sized
+    {
         self.g.edge_prop(value)
     }
 }
-
-impl<'a, G> WithEdgeProp<'a> for Subgraph<'a, G>
-    where G: 'a + Inc<'a> + WithVertexProp<'a> + WithEdgeProp<'a>,
-          G::Vertex: 'a,
-          G::Edge: 'a,
-{ }

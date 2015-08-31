@@ -44,16 +44,16 @@ impl Hash for StaticEdge {
     }
 }
 
-pub struct StaticEdgePropVec<T>(pub Vec<T>);
+pub struct StaticPropEdge<T>(pub Vec<T>);
 
-impl<T> Index<StaticEdge> for StaticEdgePropVec<T> {
+impl<T> Index<StaticEdge> for StaticPropEdge<T> {
     type Output = T;
     fn index<'a>(&'a self, index: StaticEdge) -> &'a Self::Output {
         self.0.index(index.to_index())
     }
 }
 
-impl<T> IndexMut<StaticEdge> for StaticEdgePropVec<T> {
+impl<T> IndexMut<StaticEdge> for StaticPropEdge<T> {
     fn index_mut<'a>(&'a mut self, index: StaticEdge) -> &'a mut Self::Output {
         self.0.index_mut(index.to_index())
     }
@@ -119,32 +119,40 @@ impl StaticGraphBuilder {
 }
 
 
-impl Types for StaticGraph {
-    type Vertex = usize;
-    type Edge = StaticEdge;
+impl<'a> IterTypes<StaticGraph> for &'a StaticGraph {
+    type Vertex = Range<usize>;
+    type Edge = Map<Range<usize>, fn(usize) -> StaticEdge>;
+    type Inc = Cloned<Iter<'a, StaticEdge>>;
 }
 
-impl<'a> Basic<'a> for StaticGraph {
-    type VertexIter = Range<Self::Vertex>;
-    type EdgeIter = Map<Range<usize>, fn(usize) -> Self::Edge>;
+impl<'a, T> PropTypes<T, StaticGraph> for &'a StaticGraph {
+    type Vertex = Vec<T>;
+    type Edge = StaticPropEdge<T>;
+}
+
+impl Basic for StaticGraph {
+    type Vertex = usize;
+    type Edge = StaticEdge;
 
     fn num_vertices(&self) -> usize {
         self.num_vertices
     }
 
-    fn vertices(&'a self) -> Self::VertexIter {
+    fn vertices<'a>(&'a self) -> IterVertex<Self>
+        where &'a (): Sized
+    {
         0..self.num_vertices
     }
 
-    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Self::Vertex {
+    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {
         rng.gen_range(0, self.num_vertices())
     }
 
-    fn source(&self, e: Self::Edge) -> Self::Vertex {
+    fn source(&self, e: Edge<Self>) -> Vertex<Self> {
         self.endvertices[e.0 ^ 1]
     }
 
-    fn target(&self, e: Self::Edge) -> Self::Vertex {
+    fn target(&self, e: Edge<Self>) -> Vertex<Self> {
         self.endvertices[e.0]
     }
 
@@ -152,56 +160,50 @@ impl<'a> Basic<'a> for StaticGraph {
         self.endvertices.len() / 2
     }
 
-    fn edges(&'a self) -> Self::EdgeIter {
+    fn edges<'a>(&'a self) -> IterEdge<Self>
+        where &'a (): Sized
+    {
         (0..self.num_edges()).map(StaticEdge::new)
     }
 
-    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Self::Edge {
+    fn reverse(&self, e: Edge<Self>) -> Edge<Self> {
+        e.reverse()
+    }
+
+    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Edge<Self> {
         StaticEdge::new(rng.gen_range(0, self.num_edges()))
     }
 
-    fn reverse(&self, e: Self::Edge) -> Self::Edge {
-        e.reverse()
-    }
-}
+    // Inc
 
-impl<'a> Degree<'a> for StaticGraph {
-    fn degree(&self, v: Self::Vertex) -> usize {
+    fn degree(&self, v: Vertex<Self>) -> usize {
         self.inc[v].len()
     }
-}
 
-impl<'a> Inc<'a> for StaticGraph {
-    type Type = Cloned<Iter<'a, Self::Edge>>;
-
-    fn inc_edges(&self, v: Self::Vertex) -> IncIter<Self> {
+    fn inc_edges<'a>(&'a self, v: Vertex<Self>) -> IterInc<Self>
+        where &'a (): Sized
+    {
         self.inc[v].iter().cloned()
     }
 
-    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Self::Vertex) -> Self::Edge {
+    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self> {
         self.inc[v][rng.gen_range(0, self.degree(v))]
     }
 }
 
-impl<'a, T: Clone> VertexProperty<'a, T> for StaticGraph {
-    type Type = Vec<T>;
-
-    fn vertex_prop(&'a self, value: T) -> VertexProp<Self, T> {
+impl<T: Clone> WithProps<T> for StaticGraph {
+    fn vertex_prop<'a>(&'a self, value: T) -> PropVertex<Self, T>
+        where &'a (): Sized
+    {
         vec![value; self.num_vertices()]
     }
-}
 
-impl<'a> WithVertexProp<'a> for StaticGraph { }
-
-impl<'a, T: Clone> EdgeProperty<'a, T> for StaticGraph {
-    type Type = StaticEdgePropVec<T>;
-
-    fn edge_prop(&'a self, value: T) -> EdgeProp<Self, T> {
-        StaticEdgePropVec(vec![value; self.num_edges()])
+    fn edge_prop<'a>(&'a self, value: T) -> PropEdge<Self, T>
+        where &'a (): Sized
+    {
+        StaticPropEdge(vec![value; self.num_edges()])
     }
 }
-
-impl<'a> WithEdgeProp<'a> for StaticGraph { }
 
 
 // Tests
