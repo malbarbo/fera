@@ -41,6 +41,39 @@ pub type OptionEdge<G> = Option<Edge<G>>;
 
 // Basic
 
+// We are implementing lifetime polymorphism using the idea described in
+// https://github.com/rust-lang/rfcs/blob/master/text/0195-associated-items.md#encoding-higher-kinded-types
+//
+// To understand the problem, see
+// https://github.com/rust-lang/rfcs/blob/master/text/0195-associated-items.md#limitations
+//
+// When declaring and implementing methods that return types with lifetime polymorphism some care
+// must be taken.
+//
+// 1 - On declaration, put bounds on methods, not on traits
+//
+//     // This generates an ICE (see https://github.com/rust-lang/rust/issues/23958)
+//     trait Basic where for<'a> &'a Self: IterTypes<G> {
+//           fn vertices<'a>(&'a self) -> IterVertex<Self>;
+//     }
+//
+//     // This works (with item #2)
+//     trait Basic {
+//           fn vertices<'a>(&'a self) -> IterVertex<Self> where &'a Self: IterTypes<G>;
+//     }
+//
+// 2 - On impl do not repeat the bound, use &'a (): Sized instead
+//
+//     // This do not compile (see https://github.com/rust-lang/rust/issues/28046)
+//     impl Basic for StaticGraph {
+//           fn vertices<'a>(&'a self) -> IterVertex<Self> where &'a Self: IterTypes<G>;
+//     }
+//
+//     // This works
+//     impl Basic for StaticGraph {
+//           fn vertices<'a>(&'a self) -> IterVertex<Self> where &'a (): Sized;
+//     }
+
 // To be implemented on &'a G
 pub trait IterTypes<G: Basic> {
     type Vertex: Iterator<Item=Vertex<G>>;
