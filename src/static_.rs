@@ -44,23 +44,23 @@ impl Hash for StaticEdge {
     }
 }
 
-pub struct StaticPropEdge<T>(pub Vec<T>);
+pub struct PropStaticEdge<T>(pub Vec<T>);
 
-impl<T> Index<StaticEdge> for StaticPropEdge<T> {
+impl<T> Index<StaticEdge> for PropStaticEdge<T> {
     type Output = T;
     fn index<'a>(&'a self, index: StaticEdge) -> &'a Self::Output {
         self.0.index(index.to_index())
     }
 }
 
-impl<T> IndexMut<StaticEdge> for StaticPropEdge<T> {
+impl<T> IndexMut<StaticEdge> for PropStaticEdge<T> {
     fn index_mut<'a>(&'a mut self, index: StaticEdge) -> &'a mut Self::Output {
         self.0.index_mut(index.to_index())
     }
 }
 
 
-// Graph
+// StaticGraph
 
 pub struct StaticGraph {
     num_vertices: usize,
@@ -127,7 +127,7 @@ impl<'a> IterTypes<StaticGraph> for &'a StaticGraph {
 
 impl<'a, T> PropTypes<T, StaticGraph> for &'a StaticGraph {
     type Vertex = Vec<T>;
-    type Edge = StaticPropEdge<T>;
+    type Edge = PropStaticEdge<T>;
 }
 
 impl Basic for StaticGraph {
@@ -201,7 +201,7 @@ impl<T: Clone> WithProps<T> for StaticGraph {
     fn edge_prop<'a>(&'a self, value: T) -> PropEdge<Self, T>
         where &'a (): Sized
     {
-        StaticPropEdge(vec![value; self.num_edges()])
+        PropStaticEdge(vec![value; self.num_edges()])
     }
 }
 
