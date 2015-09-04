@@ -122,3 +122,44 @@ impl<'a, T: Clone, G> WithProps<T> for Subgraph<'a, G>
         self.g.edge_prop(value)
     }
 }
+
+impl<'a, G> Subgraph<'a, G>
+    where G: 'a + Graph,
+          &'a G: Types<G>,
+          Vertex<G>: 'a,
+          Edge<G>: 'a,
+{
+    pub fn new<I>(g: &'a G, edges_iter: I) -> Subgraph<'a, G>
+        where I: Iterator<Item=Edge<G>>,
+    {
+        let mut vin = g.vertex_prop(false);
+        let mut vertices = vec![];
+        let mut edges = vec![];
+        let x: VecEdge<G> = vec![];
+        let mut inc = g.vertex_prop(x);
+        for e in edges_iter {
+            let (u, v) = g.endvertices(e);
+            if !vin[u] {
+                vin[u] = true;
+                vertices.push(u);
+            }
+            if !vin[v] {
+                vin[v] = true;
+                vertices.push(v);
+            }
+
+            edges.push(e);
+            inc[u].push(e);
+            inc[v].push(g.reverse(e));
+        }
+
+        Subgraph {
+            g: g,
+            vertices: vertices,
+            edges: edges,
+            inc: inc,
+        }
+    }
+}
+
+// TODO: write tests
