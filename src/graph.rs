@@ -13,11 +13,11 @@ impl<G> Graph for G
     where G: Basic + BasicProps { }
 
 
-pub trait Types<G: Graph>: IterTypes<G> + BasicPropTypes<G> { }
+pub trait Types<G: Graph>: IterTypes<G> { }
 
 impl<G, T> Types<G> for T
     where G: Graph,
-          T: IterTypes<G> + BasicPropTypes<G> { }
+          T: IterTypes<G> { }
 
 
 // Aliases
@@ -29,8 +29,8 @@ pub type IterVertex<'a, G> = <&'a G as IterTypes<G>>::Vertex;
 pub type IterEdge<'a, G> = <&'a G as IterTypes<G>>::Edge;
 pub type IterInc<'a, G> = <&'a G as IterTypes<G>>::Inc;
 
-pub type PropVertex<'a, G, T> = <&'a G as PropTypes<T, G>>::Vertex;
-pub type PropEdge<'a, G, T> = <&'a G as PropTypes<T, G>>::Edge;
+pub type PropVertex<G, T> = <G as WithProps<T>>::Vertex;
+pub type PropEdge<G, T> = <G as WithProps<T>>::Edge;
 
 pub type VecVertex<G> = Vec<Vertex<G>>;
 pub type VecEdge<G> = Vec<Edge<G>>;
@@ -139,19 +139,13 @@ pub trait Basic: Sized {
 
 // Properties
 
-// To be implemented on &'a G
-pub trait PropTypes<T, G: Basic> {
-    type Vertex: IndexMut<Vertex<G>, Output=T>;
-    type Edge: IndexMut<Edge<G>, Output=T>;
-}
-
-
 pub trait WithProps<T: Clone>: Basic {
-    fn vertex_prop<'a>(&'a self, value: T) -> PropVertex<Self, T>
-        where &'a Self: PropTypes<T, Self>;
+    type Vertex: IndexMut<Vertex<Self>, Output=T>;
+    type Edge: IndexMut<Edge<Self>, Output=T>;
 
-    fn edge_prop<'a>(&'a self, value: T) -> PropEdge<Self, T>
-        where &'a Self: PropTypes<T, Self>;
+    fn vertex_prop(&self, value: T) -> PropVertex<Self, T>;
+
+    fn edge_prop(&self, value: T) -> PropEdge<Self, T>;
 }
 
 macro_rules! basic_props1 {
@@ -162,12 +156,6 @@ macro_rules! basic_props1 {
 
             impl<G> BasicProps for G where G:
                 $(WithProps<$t2> +)* { }
-
-            pub trait BasicPropTypes<G: Basic>:
-                $(PropTypes<$t2, G> +)* { }
-
-            impl<G: Basic, T> BasicPropTypes<G> for T where T:
-                $(PropTypes<$t2, G> +)* { }
         }
     )
 }

@@ -43,8 +43,9 @@ pub trait Kruskal: Graph {
         }
     }
 
-    fn kruskal<'a, T, V>(&'a self, weight: &'a PropEdge<'a, Self, T>, visitor: &mut V)
-        where &'a Self: Types<Self> + PropTypes<T, Self>,
+    fn kruskal<'a, T, V>(&'a self, weight: &'a PropEdge<Self, T>, visitor: &mut V)
+        where &'a Self: Types<Self>,
+              Self: WithProps<T>,
               T: 'a + Ord + Clone,
               V: Visitor<Self>,
     {
@@ -53,8 +54,9 @@ pub trait Kruskal: Graph {
         self.kruskal_edges(edges.iter().cloned(), visitor);
     }
 
-    fn kruskal_mst<'a, T>(&'a self, weight: &'a PropEdge<'a, Self, T>) -> VecEdge<Self>
-        where &'a Self: Types<Self> + PropTypes<T, Self>,
+    fn kruskal_mst<'a, T>(&'a self, weight: &'a PropEdge<Self, T>) -> VecEdge<Self>
+        where &'a Self: Types<Self>,
+              Self: WithProps<T>,
               T: 'a + Ord + Clone,
     {
         let mut edges = vec![];

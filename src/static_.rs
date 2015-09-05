@@ -125,10 +125,6 @@ impl<'a> IterTypes<StaticGraph> for &'a StaticGraph {
     type Inc = Cloned<Iter<'a, StaticEdge>>;
 }
 
-impl<'a, T> PropTypes<T, StaticGraph> for &'a StaticGraph {
-    type Vertex = Vec<T>;
-    type Edge = PropStaticEdge<T>;
-}
 
 impl Basic for StaticGraph {
     type Vertex = usize;
@@ -192,15 +188,14 @@ impl Basic for StaticGraph {
 }
 
 impl<T: Clone> WithProps<T> for StaticGraph {
-    fn vertex_prop<'a>(&'a self, value: T) -> PropVertex<Self, T>
-        where &'a (): Sized
-    {
+    type Vertex = Vec<T>;
+    type Edge = PropStaticEdge<T>;
+
+    fn vertex_prop(&self, value: T) -> PropVertex<Self, T> {
         vec![value; self.num_vertices()]
     }
 
-    fn edge_prop<'a>(&'a self, value: T) -> PropEdge<Self, T>
-        where &'a (): Sized
-    {
+    fn edge_prop(&self, value: T) -> PropEdge<Self, T> {
         PropStaticEdge(vec![value; self.num_edges()])
     }
 }

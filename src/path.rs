@@ -3,15 +3,14 @@ use traverse::*;
 
 pub type Path<G> = VecEdge<G>;
 
-pub type ParentTree<'a, G> = PropVertex<'a, G, OptionEdge<G>>;
+pub type ParentTree<G> = PropVertex<G, OptionEdge<G>>;
 
 pub trait FindPath: Graph {
-    fn find_path_on_parent_tree<'a>(&'a self,
-                                    tree: &ParentTree<'a, Self>,
-                                    u: Vertex<Self>,
-                                    v: Vertex<Self>)
-                                    -> Option<Path<Self>>
-        where &'a Self: Types<Self>
+    fn find_path_on_parent_tree(&self,
+                                 tree: &ParentTree<Self>,
+                                 u: Vertex<Self>,
+                                 v: Vertex<Self>)
+                                 -> Option<Path<Self>>
     {
         if u == v {
             return None;

@@ -108,8 +108,8 @@ pub struct Dfs<'a, G>
           &'a G: Types<G>,
 {
     g: &'a G,
-    discovered: PropVertex<'a, G, bool>,
-    examined: PropEdge<'a, G, bool>,
+    discovered: PropVertex<G, bool>,
+    examined: PropEdge<G, bool>,
 }
 
 impl<'a, G> Traverser<'a, G> for Dfs<'a, G>
@@ -159,8 +159,8 @@ pub struct Bfs<'a, G>
           &'a G: Types<G>,
 {
     g: &'a G,
-    discovered: PropVertex<'a, G, bool>,
-    examined: PropEdge<'a, G, bool>,
+    discovered: PropVertex<G, bool>,
+    examined: PropEdge<G, bool>,
 }
 
 impl<'a, G> Traverser<'a, G> for Bfs<'a, G>
@@ -234,9 +234,9 @@ mod tests {
               &'a G: Types<G>,
     {
         g: &'a G,
-        parent: PropVertex<'a, G, OptionVertex<G>>,
-        d: PropVertex<'a, G, usize>,
-        edge_type: PropEdge<'a, G, usize>,
+        parent: PropVertex<G, OptionVertex<G>>,
+        d: PropVertex<G, usize>,
+        edge_type: PropEdge<G, usize>,
     }
 
     fn new_test_visitor(g: &StaticGraph) -> TestVisitor<StaticGraph> {

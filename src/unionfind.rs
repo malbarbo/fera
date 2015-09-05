@@ -1,18 +1,18 @@
 use graph::*;
 
-pub struct DisjointSet<'a, G>
-    where G: 'a + Graph,
-          &'a G: Types<G>,
+pub struct DisjointSet<G>
+    where G: Graph,
 {
-    parent: PropVertex<'a, G, Vertex<G>>,
-    rank: PropVertex<'a, G, usize>,
+    parent: PropVertex<G, Vertex<G>>,
+    rank: PropVertex<G, usize>,
 }
 
-impl<'a, G> DisjointSet<'a, G>
-    where G: 'a + Graph,
-          &'a G: Types<G>,
+impl<G> DisjointSet<G>
+    where G: Graph,
 {
-    pub fn new(g: &'a G) -> DisjointSet<G> {
+    pub fn new<'a>(g: &'a G) -> DisjointSet<G>
+        where &'a G: IterTypes<G>
+    {
         let mut ds = DisjointSet::<G> {
             parent: g.vertex_prop(g.vertices().next().unwrap()),
             rank: g.vertex_prop(0usize),

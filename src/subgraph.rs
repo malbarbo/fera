@@ -6,42 +6,25 @@ use rand::Rng;
 pub struct Subgraph<'a, G>
     where G: 'a + Graph,
           &'a G: Types<G>,
-          Vertex<G>: 'a,
-          Edge<G>: 'a,
 {
     g: &'a G,
     vertices: VecVertex<G>,
     edges: VecEdge<G>,
-    inc: PropVertex<'a, G, VecEdge<G>>,
+    inc: PropVertex<G, VecEdge<G>>,
 }
 
 impl<'a: 'b, 'b, G> IterTypes<Subgraph<'a, G>> for &'b Subgraph<'a, G>
     where G: 'a + Graph,
           &'a G: Types<G>,
-          Vertex<G>: 'a,
-          Edge<G>: 'a,
 {
     type Vertex = Cloned<Iter<'b, Vertex<G>>>;
     type Edge = Cloned<Iter<'b, Edge<G>>>;
     type Inc = Cloned<Iter<'b, Edge<G>>>;
 }
 
-impl<'a: 'b, 'b, T, G> PropTypes<T, Subgraph<'a, G>> for &'b Subgraph<'a, G>
-    where G: 'a + Graph,
-          &'a G: Types<G> + PropTypes<T, G>,
-          Vertex<G>: 'a,
-          Edge<G>: 'a,
-{
-    type Vertex = PropVertex<'a, G, T>;
-    type Edge = PropEdge<'a, G, T>;
-}
-
-
 impl<'a, G> Basic for Subgraph<'a, G>
     where G: 'a + Graph,
           &'a G: Types<G>,
-          Vertex<G>: 'a,
-          Edge<G>: 'a,
 {
 
     type Vertex = Vertex<G>;
@@ -106,19 +89,16 @@ impl<'a, G> Basic for Subgraph<'a, G>
 
 impl<'a, T: Clone, G> WithProps<T> for Subgraph<'a, G>
     where G: 'a + Graph + WithProps<T>,
-          &'a G: PropTypes<T, G> + Types<G>,
-          Vertex<G>: 'a,
-          Edge<G>: 'a,
+          &'a G: Types<G>,
 {
-    fn vertex_prop<'c>(&'c self, value: T) -> PropVertex<'c, Self, T>
-        where &'c (): Sized
-    {
+    type Vertex = PropVertex<G, T>;
+    type Edge = PropEdge<G, T>;
+
+    fn vertex_prop(&self, value: T) -> PropVertex<Self, T> {
         self.g.vertex_prop(value)
     }
 
-    fn edge_prop<'c>(&'c self, value: T) -> PropEdge<'c, Self, T>
-        where &'c (): Sized
-    {
+    fn edge_prop(&self, value: T) -> PropEdge<Self, T> {
         self.g.edge_prop(value)
     }
 }
@@ -126,8 +106,6 @@ impl<'a, T: Clone, G> WithProps<T> for Subgraph<'a, G>
 impl<'a, G> Subgraph<'a, G>
     where G: 'a + Graph,
           &'a G: Types<G>,
-          Vertex<G>: 'a,
-          Edge<G>: 'a,
 {
     pub fn new<I>(g: &'a G, edges_iter: I) -> Subgraph<'a, G>
         where I: Iterator<Item=Edge<G>>,
