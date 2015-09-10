@@ -1,62 +1,75 @@
 use graph::*;
+use iter::IteratorExt;
 use unionfind::DisjointSet;
 
-pub trait Visitor<G: Basic> {
-    fn visit(&mut self, e: G::Edge, in_same_set: bool) -> bool;
+#[derive(PartialEq, Eq)]
+pub enum Accept {
+    Yes,
+    No,
 }
 
-impl<F, G> Visitor< G> for F
-    where G: Basic,
-          F: FnMut(G::Edge, bool) -> bool {
-    fn visit(&mut self, e: G::Edge, in_same_set: bool) -> bool {
-        self(e, in_same_set)
+pub trait Visitor<G>
+    where G: Graph
+{
+    fn visit(&mut self, e: Edge<G>) -> Accept;
+}
+
+impl<F, G> Visitor<G> for F
+    where G: Graph,
+          F: FnMut(Edge<G>) -> Accept
+{
+    fn visit(&mut self, e: Edge<G>) -> Accept {
+        self(e)
     }
 }
 
-pub trait Kruskal: Basic + WithVertexProp + Sized {
-    fn kruskal_edges<I, V>(&self, edges: I, mut visitor: V)
-        where I: Iterator<Item = Self::Edge>,
+pub trait Kruskal: Graph {
+    fn kruskal_edges<'a, I, V>(&'a self, edges: I, visitor: &mut V)
+        where &'a Self: Types<Self>,
+              I: Iterator<Item=Edge<Self>>,
               V: Visitor<Self>
     {
         let mut ds = DisjointSet::new(self);
+        let mut num_sets = self.num_vertices();
         for e in edges {
             let (u, v) = self.endvertices(e);
-            let in_same_set = ds.in_same_set(u, v);
-            if !visitor.visit(e, in_same_set) {
-                return;
-            }
-            if !in_same_set {
+            if !ds.in_same_set(u, v) && visitor.visit(e) == Accept::Yes {
                 ds.union(u, v);
+                num_sets -= 1;
+                if num_sets == 1 {
+                    return;
+                }
             }
         }
     }
 
-    fn kruskal<T, V>(&self, weight: &EdgeProp<Self, T>, visitor: V)
-        where T: Ord,
+    fn kruskal<'a, T, V>(&'a self, weight: &'a PropEdge<Self, T>, visitor: &mut V)
+        where &'a Self: Types<Self>,
+              Self: WithProps<T>,
+              T: 'a + Ord + Clone,
               V: Visitor<Self>,
-              Self: for<'a> EdgePropType<'a, T>
     {
-        let mut edges = self.edges().collect::<Vec<_>>();
-        edges.sort_by(|a, b| weight[*a].cmp(&weight[*b]));
+        let mut edges = self.edges().as_vec();
+        edges.sort_by(|&a, &b| weight[a].cmp(&weight[b]));
         self.kruskal_edges(edges.iter().cloned(), visitor);
     }
 
-    fn kruskal_mst<T>(&self, weight: &EdgeProp<Self, T>) -> Vec<Self::Edge>
-        where T: Ord,
-              Self: for<'a> EdgePropType<'a, T>
+    fn kruskal_mst<'a, T>(&'a self, weight: &'a PropEdge<Self, T>) -> VecEdge<Self>
+        where &'a Self: Types<Self>,
+              Self: WithProps<T>,
+              T: 'a + Ord + Clone,
     {
-        let mut tree = vec![];
-        self.kruskal::<T, _>(weight, |e: Self::Edge, in_same_set: bool| {
-            if !in_same_set {
-                tree.push(e);
-            }
-            tree.len() != self.num_vertices() - 1
+        let mut edges = vec![];
+        self.kruskal::<T, _>(weight, &mut |e| {
+            edges.push(e);
+            Accept::Yes
         });
-        tree
+        edges
     }
 }
 
-impl<G> Kruskal for G where G: Basic + WithVertexProp { }
+impl<G> Kruskal for G
+    where G: Graph { }
 
 
 #[cfg(test)]
@@ -74,8 +87,8 @@ mod tests {
         // expected tree
         //      0       1       2               3
         let mut weight = g.edge_prop(0usize);
-        for (e, w) in g.edges().zip(&[1, 2, 3, 4, 5, 6, 7]) {
-            weight[e] = *w;
+        for (e, &w) in g.edges().zip(&[1, 2, 3, 4, 5, 6, 7]) {
+            weight[e] = w;
         }
         let e = g.edges().as_vec();
         assert_eq!(vec![e[0], e[1], e[2], e[4]], g.kruskal_mst(&weight));

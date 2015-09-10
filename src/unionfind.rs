@@ -1,13 +1,18 @@
 use graph::*;
 
-pub struct DisjointSet<'a, G: Basic + WithVertexProp> {
-    parent: VertexProp<'a, G, G::Vertex>,
-    rank: VertexProp<'a, G, usize>,
+pub struct DisjointSet<G>
+    where G: Graph,
+{
+    parent: PropVertex<G, Vertex<G>>,
+    rank: PropVertex<G, usize>,
 }
 
-impl<'a, G> DisjointSet<'a, G>
-    where G: Basic + WithVertexProp {
-    pub fn new(g: &G) -> DisjointSet<G> {
+impl<G> DisjointSet<G>
+    where G: Graph,
+{
+    pub fn new<'a>(g: &'a G) -> DisjointSet<G>
+        where &'a G: IterTypes<G>
+    {
         let mut ds = DisjointSet::<G> {
             parent: g.vertex_prop(g.vertices().next().unwrap()),
             rank: g.vertex_prop(0usize),
@@ -20,18 +25,18 @@ impl<'a, G> DisjointSet<'a, G>
         ds
     }
 
-    pub fn union(&mut self, x: G::Vertex, y: G::Vertex) {
+    pub fn union(&mut self, x: Vertex<G>, y: Vertex<G>) {
         let a = self.find_set(x);
         let b = self.find_set(y);
         assert!( a != b );
         self.link(a, b);
     }
 
-    pub fn in_same_set(&mut self, x: G::Vertex, y: G::Vertex) -> bool {
+    pub fn in_same_set(&mut self, x: Vertex<G>, y: Vertex<G>) -> bool {
         self.find_set(x) == self.find_set(y)
     }
 
-    fn link(&mut self, x: G::Vertex, y: G::Vertex) {
+    fn link(&mut self, x: Vertex<G>, y: Vertex<G>) {
         if self.rank[x] > self.rank[y] {
             self.parent[y] = x;
         } else {
@@ -42,7 +47,7 @@ impl<'a, G> DisjointSet<'a, G>
         }
     }
 
-    fn find_set(&mut self, x: G::Vertex) -> G::Vertex {
+    fn find_set(&mut self, x: Vertex<G>) -> Vertex<G> {
         // TODO: write a iterative version
         if self.parent[x] != x {
             let p = self.parent[x];
@@ -59,8 +64,8 @@ mod tests {
 
     fn check_groups(ds: &mut DisjointSet<StaticGraph>, groups: &[&[usize]]) {
         for group in groups.iter() {
-            for a in group.iter() {
-                assert!(ds.in_same_set(group[0], *a));
+            for &a in group.iter() {
+                assert!(ds.in_same_set(group[0], a));
             }
         }
     }

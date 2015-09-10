@@ -4,16 +4,18 @@ use std::collections::VecDeque;
 
 // Visitor
 
-pub trait Visitor<G: Basic> {
-    fn visit_start_vertex(&mut self, _v: G::Vertex) -> bool {
+pub trait Visitor<G>
+    where G: Graph
+{
+    fn visit_start_vertex(&mut self, _v: Vertex<G>) -> bool {
         true
     }
 
-    fn visit_tree_edge(&mut self, _e: G::Edge) -> bool {
+    fn visit_tree_edge(&mut self, _e: Edge<G>) -> bool {
         true
     }
 
-    fn visit_back_edge(&mut self, _e: G::Edge) -> bool {
+    fn visit_back_edge(&mut self, _e: Edge<G>) -> bool {
         true
     }
 }
@@ -23,25 +25,28 @@ pub struct TreeEdgeVisitor<F>(pub F);
 pub struct BackEdgeVisitor<F>(pub F);
 
 impl<G, F> Visitor<G> for StartVertexVisitor<F>
-    where G: Basic,
-          F: FnMut(G::Vertex) -> bool {
-    fn visit_start_vertex(&mut self, v: G::Vertex) -> bool {
+    where G: Graph,
+          F: FnMut(Vertex<G>) -> bool
+{
+    fn visit_start_vertex(&mut self, v: Vertex<G>) -> bool {
         self.0(v)
     }
 }
 
 impl<G, F> Visitor<G> for TreeEdgeVisitor<F>
-    where G: Basic,
-          F: FnMut(G::Edge) -> bool {
-    fn visit_tree_edge(&mut self, e: G::Edge) -> bool {
+    where G: Graph,
+          F: FnMut(Edge<G>) -> bool
+{
+    fn visit_tree_edge(&mut self, e: Edge<G>) -> bool {
         self.0(e)
     }
 }
 
 impl<G, F> Visitor<G> for BackEdgeVisitor<F>
-    where G: Basic,
-          F: FnMut(G::Edge) -> bool {
-    fn visit_back_edge(&mut self, e: G::Edge) -> bool {
+    where G: Graph,
+          F: FnMut(Edge<G>) -> bool
+{
+    fn visit_back_edge(&mut self, e: Edge<G>) -> bool {
         self.0(e)
     }
 }
@@ -65,16 +70,17 @@ macro_rules! break_if_false {
 
 // Traversers
 
-pub trait Traverser<'a, G: Basic> {
+pub trait Traverser<'a, G>: Sized
+    where G: 'a + Graph,
+          &'a G: Types<G>,
+{
     fn new(g: &'a G) -> Self;
 
-    fn is_discovered(&mut self, v: G::Vertex) -> bool;
+    fn is_discovered(&mut self, v: Vertex<G>) -> bool;
 
-    fn traverse<V: Visitor<G>>(&mut self, v: G::Vertex, vis: &mut V) -> bool;
+    fn traverse<V: Visitor<G>>(&mut self, v: Vertex<G>, vis: &mut V) -> bool;
 
-    fn run<V: Visitor<G>>(g: &'a G, vis: &mut V)
-        where Self: Sized
-    {
+    fn run<V: Visitor<G>>(g: &'a G, vis: &mut V) {
         let mut t = Self::new(g);
         for v in g.vertices() {
             if !t.is_discovered(v) {
@@ -84,9 +90,7 @@ pub trait Traverser<'a, G: Basic> {
         }
     }
 
-    fn run_start<V: Visitor<G>>(g: &'a G, v: G::Vertex, vis: &mut V)
-        where Self: Sized
-    {
+    fn run_start<V: Visitor<G>>(g: &'a G, v: Vertex<G>, vis: &mut V) {
         Self::new(g).traverse(v, vis);
     }
 }
@@ -99,13 +103,19 @@ pub trait Traverser<'a, G: Basic> {
 
 // Dfs
 
-pub struct Dfs<'a, G: 'a + GraphIncWithProps> {
+pub struct Dfs<'a, G>
+    where G: 'a + Graph,
+          &'a G: Types<G>,
+{
     g: &'a G,
-    discovered: VertexProp<'a, G, bool>,
-    examined: EdgeProp<'a, G, bool>,
+    discovered: PropVertex<G, bool>,
+    examined: PropEdge<G, bool>,
 }
 
-impl<'a, G: GraphIncWithProps> Traverser<'a, G> for Dfs<'a, G> {
+impl<'a, G> Traverser<'a, G> for Dfs<'a, G>
+    where G: 'a + Graph,
+          &'a G: Types<G>,
+{
     fn new(g: &'a G) -> Self {
         Dfs {
             g: g,
@@ -114,12 +124,12 @@ impl<'a, G: GraphIncWithProps> Traverser<'a, G> for Dfs<'a, G> {
         }
     }
 
-    fn is_discovered(&mut self, v: G::Vertex) -> bool {
+    fn is_discovered(&mut self, v: Vertex<G>) -> bool {
         self.discovered[v]
     }
 
-    fn traverse<V: Visitor<G>>(&mut self, v: G::Vertex, vis: &mut V) -> bool {
-        let mut stack: Vec<(_, IncIter<'a, _>)> = vec![(v, self.g.inc_edges(v))];
+    fn traverse<V: Visitor<G>>(&mut self, v: Vertex<G>, vis: &mut V) -> bool {
+        let mut stack: Vec<(_, IterInc<'a, _>)> = vec![(v, self.g.inc_edges(v))];
         self.discovered[v] = true;
         while let Some((u, mut inc)) = stack.pop() {
             while let Some(e) = inc.next() {
@@ -144,13 +154,19 @@ impl<'a, G: GraphIncWithProps> Traverser<'a, G> for Dfs<'a, G> {
 
 // Bfs
 
-pub struct Bfs<'a, G: 'a + GraphIncWithProps> {
+pub struct Bfs<'a, G>
+    where G: 'a + Graph,
+          &'a G: Types<G>,
+{
     g: &'a G,
-    discovered: VertexProp<'a, G, bool>,
-    examined: EdgeProp<'a, G, bool>,
+    discovered: PropVertex<G, bool>,
+    examined: PropEdge<G, bool>,
 }
 
-impl<'a, G: GraphIncWithProps> Traverser<'a, G> for Bfs<'a, G> {
+impl<'a, G> Traverser<'a, G> for Bfs<'a, G>
+    where G: 'a + Graph,
+          &'a G: Types<G>,
+{
     fn new(g: &'a G) -> Self {
         Bfs {
             g: g,
@@ -159,11 +175,11 @@ impl<'a, G: GraphIncWithProps> Traverser<'a, G> for Bfs<'a, G> {
         }
     }
 
-    fn is_discovered(&mut self, v: G::Vertex) -> bool {
+    fn is_discovered(&mut self, v: Vertex<G>) -> bool {
         self.discovered[v]
     }
 
-    fn traverse<V: Visitor<G>>(&mut self, v: G::Vertex, vis: &mut V) -> bool {
+    fn traverse<V: Visitor<G>>(&mut self, v: Vertex<G>, vis: &mut V) -> bool {
         let mut queue = VecDeque::new();
         queue.push_back(v);
         self.discovered[v] = true;
@@ -213,11 +229,14 @@ mod tests {
     const TREE: usize = 1;
     const BACK: usize = 2;
 
-    struct TestVisitor<'a, G: 'a + GraphAdjWithProps> {
+    struct TestVisitor<'a, G>
+        where G: 'a + Graph,
+              &'a G: Types<G>,
+    {
         g: &'a G,
-        parent: VertexProp<'a, G, Option<G::Vertex>>,
-        d: VertexProp<'a, G, usize>,
-        edge_type: EdgeProp<'a, G, usize>,
+        parent: PropVertex<G, OptionVertex<G>>,
+        d: PropVertex<G, usize>,
+        edge_type: PropEdge<G, usize>,
     }
 
     fn new_test_visitor(g: &StaticGraph) -> TestVisitor<StaticGraph> {
@@ -229,8 +248,11 @@ mod tests {
         }
     }
 
-    impl<'a, G: GraphAdjWithProps> Visitor<G> for TestVisitor<'a, G> {
-        fn visit_tree_edge(&mut self, e: G::Edge) -> bool {
+    impl<'a, G> Visitor<G> for TestVisitor<'a, G>
+        where G: 'a + Graph,
+              &'a G: Types<G>,
+    {
+        fn visit_tree_edge(&mut self, e: Edge<G>) -> bool {
             assert_eq!(0, self.edge_type[e]);
             self.parent[self.g.target(e)] = Some(self.g.source(e));
             self.d[self.g.target(e)] = self.d[self.g.source(e)] + 1;
@@ -238,7 +260,7 @@ mod tests {
             true
         }
 
-        fn visit_back_edge(&mut self, e: G::Edge) -> bool {
+        fn visit_back_edge(&mut self, e: Edge<G>) -> bool {
             assert_eq!(0, self.edge_type[e]);
             self.edge_type[e] = BACK;
             true

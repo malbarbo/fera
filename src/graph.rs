@@ -1,137 +1,206 @@
 use iter::{IteratorExt, Map1};
+
+use std::fmt::Debug;
+use std::hash::Hash;
 use std::ops::IndexMut;
+
+use rand::Rng;
+
+
+pub trait Graph: Basic + BasicProps { }
+
+impl<G> Graph for G
+    where G: Basic + BasicProps { }
+
+
+pub trait Types<G: Graph>: IterTypes<G> { }
+
+impl<G, T> Types<G> for T
+    where G: Graph,
+          T: IterTypes<G> { }
+
+
+// Aliases
+
+pub type Vertex<G> = <G as Basic>::Vertex;
+pub type Edge<G> = <G as Basic>::Edge;
+
+pub type IterVertex<'a, G> = <&'a G as IterTypes<G>>::Vertex;
+pub type IterEdge<'a, G> = <&'a G as IterTypes<G>>::Edge;
+pub type IterInc<'a, G> = <&'a G as IterTypes<G>>::Inc;
+
+pub type PropVertex<G, T> = <G as WithProps<T>>::Vertex;
+pub type PropEdge<G, T> = <G as WithProps<T>>::Edge;
+
+pub type VecVertex<G> = Vec<Vertex<G>>;
+pub type VecEdge<G> = Vec<Edge<G>>;
+
+pub type OptionVertex<G> = Option<Vertex<G>>;
+pub type OptionEdge<G> = Option<Edge<G>>;
 
 
 // Basic
 
-pub trait Basic {
-    type Vertex: Copy + Eq;
-    type Edge: Copy + Eq;
-    type VertexIter: Iterator<Item=Self::Vertex>;
-    type EdgeIter: Iterator<Item=Self::Edge>;
+// We are implementing lifetime polymorphism using the idea described in
+// https://github.com/rust-lang/rfcs/blob/master/text/0195-associated-items.md#encoding-higher-kinded-types
+//
+// To understand the problem, see
+// https://github.com/rust-lang/rfcs/blob/master/text/0195-associated-items.md#limitations
+//
+// When declaring and implementing methods that return types with lifetime polymorphism some care
+// must be taken.
+//
+// 1 - On declaration, put bounds on methods, not on traits
+//
+//     // This generates an ICE (see https://github.com/rust-lang/rust/issues/23958)
+//     trait Basic where for<'a> &'a Self: IterTypes<G> {
+//           fn vertices<'a>(&'a self) -> IterVertex<Self>;
+//     }
+//
+//     // This works (with item #2)
+//     trait Basic {
+//           fn vertices<'a>(&'a self) -> IterVertex<Self> where &'a Self: IterTypes<G>;
+//     }
+//
+// 2 - On impl do not repeat the bound, use &'a (): Sized instead
+//
+//     // This do not compile (see https://github.com/rust-lang/rust/issues/28046)
+//     impl Basic for StaticGraph {
+//           fn vertices<'a>(&'a self) -> IterVertex<Self> where &'a Self: IterTypes<G>;
+//     }
+//
+//     // This works
+//     impl Basic for StaticGraph {
+//           fn vertices<'a>(&'a self) -> IterVertex<Self> where &'a (): Sized;
+//     }
+
+// To be implemented on &'a G
+pub trait IterTypes<G: Basic> {
+    type Vertex: Iterator<Item=Vertex<G>>;
+    type Edge: Iterator<Item=Edge<G>>;
+    type Inc: Iterator<Item=Edge<G>>;
+}
+
+pub trait Basic: Sized {
+    type Vertex: Copy + Eq + Hash + Debug;
+    type Edge: Copy + Eq + Hash + Debug;
+
+    // Vertices
 
     fn num_vertices(&self) -> usize;
-    fn vertices(&self) -> Self::VertexIter;
+
+    fn vertices<'a>(&'a self) -> IterVertex<Self>
+        where &'a Self: IterTypes<Self>;
+
+    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self>;
+
+
+    // Edges
 
     fn num_edges(&self) -> usize;
-    fn edges(&self) -> Self::EdgeIter;
 
-    fn source(&self, e: Self::Edge) -> Self::Vertex;
-    fn target(&self, e: Self::Edge) -> Self::Vertex;
+    fn edges<'a>(&'a self) -> IterEdge<Self>
+        where &'a Self: IterTypes<Self>;
 
-    fn endvertices(&self, e: Self::Edge) -> (Self::Vertex, Self::Vertex) {
+    fn source(&self, e: Edge<Self>) -> Vertex<Self>;
+
+    fn target(&self, e: Edge<Self>) -> Vertex<Self>;
+
+    fn endvertices(&self, e: Edge<Self>) -> (Vertex<Self>, Vertex<Self>) {
         (self.source(e), self.target(e))
     }
-}
 
+    fn reverse(&self, e: Edge<Self>) -> Edge<Self>;
 
-// Degree
-
-pub trait Degree: Basic {
-    fn degree(&self, v: Self::Vertex) -> usize;
-}
-
-
-// Inc
-
-pub trait IncIterType<'a>: Basic {
-    type Type: Iterator<Item=Self::Edge>;
-}
-
-// FIXME: change definition when [E0122] is resolved
-// pub type IncIter<'a, G: Inc> = <G as IncIterType<'a>>::Type;
-pub type IncIter<'a, G> = <G as IncIterType<'a>>::Type;
-
-pub trait Inc: Basic + for<'a> IncIterType<'a> {
-    fn inc_edges(&self, v: Self::Vertex) -> IncIter<Self>;
-}
-
-
-// Adj
-
-pub trait AdjIterType<'a>: Basic {
-    type Type: Iterator<Item=Self::Vertex>;
-}
-
-// FIXME: change definition when [E0122] is resolved
-// pub type AdjIter<'a, G: Adj> = <G as AdjIterType<'a>>::Type;
-pub type AdjIter<'a, G> = <G as AdjIterType<'a>>::Type;
-
-pub trait Adj: Basic + for<'a> AdjIterType<'a> {
-    fn neighbors(&self, v: Self::Vertex) -> AdjIter<Self>;
-}
-
-// Implementation of Adj traits for Graphs which implements Inc
-impl<'a, G: Inc> AdjIterType<'a> for G {
-    type Type = Map1<'a, IncIter<'a, G>, G, fn(&G, G::Edge) -> G::Vertex>;
-}
-
-impl<G: Inc> Adj for G {
-    fn neighbors(&self, v: Self::Vertex) -> AdjIter<Self> {
-        self.inc_edges(v).map1(self, Self::target)
-    }
-}
-
-
-// Vertex Property
-
-pub trait VertexPropType<'a, T>: Basic {
-    type Type: IndexMut<Self::Vertex, Output=T>;
-}
-
-// FIXME: change definition when [E0122] is resolved
-// pub type VertexProp<'a, G: VertexPropType<'a, T>, T> = <G as VertexPropType<'a, T>>::Type;
-pub type VertexProp<'a, G, T> = <G as VertexPropType<'a, T>>::Type;
-
-
-// Edge Property
-
-pub trait EdgePropType<'a, T>: Basic {
-    type Type: IndexMut<Self::Edge, Output=T>;
-}
-
-// FIXME: change definition when [E0122] is resolved
-// pub type EdgeProp<'a, G: EdgePropType<'a, T>, T> = <G as EdgePropType<'a, T>>::Type;
-pub type EdgeProp<'a, G, T> = <G as EdgePropType<'a, T>>::Type;
-
-
-// WithVertexProp and WithEdgeProp
-
-macro_rules! with_prop {
-    ($t:ty, $($ty:ty),*) => (
-        pub trait WithVertexProp: for<'a> VertexPropType<'a, $t> +
-                     for<'a> VertexPropType<'a, Option<$t>>
-                     $(+ for<'a> VertexPropType<'a, $ty>)*
-                     $(+ for<'a> VertexPropType<'a, Option<$ty>>)*
-        {
-            fn vertex_prop<T: Clone>(&self, value: T) -> VertexProp<Self, T>;
+    fn opposite(&self, u: Vertex<Self>, e: Edge<Self>) -> Vertex<Self> {
+        let (s, t) = self.endvertices(e);
+        if u == s {
+            t
+        } else if u == t {
+            s
+        } else {
+            panic!("u is not an endvertex of e");
         }
+    }
 
-        pub trait WithEdgeProp: for<'a> EdgePropType<'a, $t> +
-                     for<'a> EdgePropType<'a, Option<$t>>
-                     $(+ for<'a> EdgePropType<'a, $ty>)*
-                     $(+ for<'a> EdgePropType<'a, Option<$ty>>)*
-        {
-            fn edge_prop<T: Clone>(&self, value: T) -> EdgeProp<Self, T>;
+    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Edge<Self>;
+
+
+    // Incidence
+
+    fn degree(&self, v: Vertex<Self>) -> usize;
+
+    fn inc_edges<'a>(&'a self, v: Vertex<Self>) -> IterInc<Self>
+        where &'a Self: IterTypes<Self>;
+
+    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self>;
+}
+
+
+// Properties
+
+pub trait WithProps<T: Clone>: Basic {
+    type Vertex: IndexMut<Vertex<Self>, Output=T>;
+    type Edge: IndexMut<Edge<Self>, Output=T>;
+
+    fn vertex_prop(&self, value: T) -> PropVertex<Self, T>;
+
+    fn edge_prop(&self, value: T) -> PropEdge<Self, T>;
+}
+
+macro_rules! basic_props1 {
+    ($($t1:ty),* ; $($t2:ty),* ) => (
+        items! {
+            pub trait BasicProps:
+                $(WithProps<$t1> +)* { }
+
+            impl<G> BasicProps for G where G:
+                $(WithProps<$t2> +)* { }
         }
     )
 }
 
-with_prop! {
+macro_rules! basic_props2 {
+    ($($t1:ty),* ; $($t2:ty),* ) => (
+        basic_props1!{
+            $($t1),+ , $(Vec<$t1>),+ , $(Option<$t1>),+ ;
+            $($t2),+ , $(Vec<$t2>),+ , $(Option<$t2>),+
+        }
+    )
+}
+
+macro_rules! basic_props {
+    ($($ty:ty),*) => (
+        basic_props2!{
+            Vertex<Self>, Edge<Self>, $($ty),+ ;
+            Vertex<G>, Edge<G>, $($ty),+
+        }
+    )
+}
+
+basic_props! {
     bool,
     char,
     i8, i16, i32, i64, isize,
     u8, u16, u32, u64, usize,
-    &'a str, String,
-    <Self as Basic>::Vertex,
-    <Self as Basic>::Edge
+    String
 }
 
 
-// Graph alias
+// Adjacency
 
-trait_alias!(GraphInc: Basic + Degree + Inc);
-trait_alias!(GraphIncWithProps: GraphInc + WithVertexProp + WithEdgeProp);
+pub trait Adj: Basic {
+    fn neighbors<'a>(&'a self,
+                     v: Vertex<Self>)
+                     -> Map1<'a,
+                             IterInc<'a, Self>,
+                             Self,
+                             fn(&'a Self, Edge<Self>) -> Vertex<Self>>
+        where &'a Self: IterTypes<Self>
+    {
+        self.inc_edges(v).map1(self, Self::target)
+    }
+}
 
-trait_alias!(GraphAdj: Basic + Degree + Adj);
-trait_alias!(GraphAdjWithProps: GraphAdj + WithVertexProp + WithEdgeProp);
+impl<G> Adj for G
+    where G: Basic { }
