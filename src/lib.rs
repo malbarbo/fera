@@ -45,6 +45,8 @@ pub use static_::*;
 pub mod builder;
 pub use builder::*;
 
+pub mod choose;
+
 pub mod iter;
 pub mod kruskal;
 pub mod path;

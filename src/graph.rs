@@ -4,9 +4,6 @@ use std::fmt::Debug;
 use std::hash::Hash;
 use std::ops::IndexMut;
 
-use rand::Rng;
-
-
 pub trait Graph: Basic + BasicProps { }
 
 impl<G> Graph for G
@@ -92,8 +89,6 @@ pub trait Basic: Sized {
     fn vertices<'a>(&'a self) -> IterVertex<Self>
         where &'a Self: IterTypes<Self>;
 
-    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self>;
-
 
     // Edges
 
@@ -123,8 +118,6 @@ pub trait Basic: Sized {
         }
     }
 
-    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Edge<Self>;
-
 
     // Incidence
 
@@ -132,21 +125,6 @@ pub trait Basic: Sized {
 
     fn inc_edges<'a>(&'a self, v: Vertex<Self>) -> IterInc<Self>
         where &'a Self: IterTypes<Self>;
-
-    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self>;
-
-    fn choose_inc_edge_if<R, F>(&self, rng: &mut R, v: Vertex<Self>, mut fun: F) -> Edge<Self>
-        where R: Rng,
-              F: FnMut(Edge<Self>) -> bool,
-    {
-        loop {
-            // TODO: on static create an range and use ind_sample
-            let e = self.choose_inc_edge(rng, v);
-            if fun(e) {
-                return e;
-            }
-        }
-    }
 }
 
 

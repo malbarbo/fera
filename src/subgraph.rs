@@ -1,4 +1,5 @@
 use graph::*;
+use choose::Choose;
 use std::iter::Cloned;
 use std::slice::Iter;
 use rand::Rng;
@@ -26,7 +27,6 @@ impl<'a, G> Basic for Subgraph<'a, G>
     where G: 'a + Graph,
           &'a G: Types<G>,
 {
-
     type Vertex = Vertex<G>;
     type Edge = Edge<G>;
 
@@ -38,10 +38,6 @@ impl<'a, G> Basic for Subgraph<'a, G>
         where &'b (): Sized
     {
         self.vertices.iter().cloned()
-    }
-
-    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {
-        self.vertices[rng.gen_range(0, self.num_vertices())]
     }
 
     fn source(&self, e: Edge<Self>) -> Vertex<Self> {
@@ -66,10 +62,6 @@ impl<'a, G> Basic for Subgraph<'a, G>
         self.g.reverse(e)
     }
 
-    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Edge<Self> {
-        self.edges[rng.gen_range(0, self.num_edges())]
-    }
-
     // Inc
 
     fn degree(&self, v: Vertex<Self>) -> usize {
@@ -81,11 +73,8 @@ impl<'a, G> Basic for Subgraph<'a, G>
     {
         self.inc[v].iter().cloned()
     }
-
-    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self> {
-        self.inc[v][rng.gen_range(0, self.degree(v))]
-    }
 }
+
 
 impl<'a, T: Clone, G> WithProps<T> for Subgraph<'a, G>
     where G: 'a + Graph + WithProps<T>,
@@ -102,6 +91,27 @@ impl<'a, T: Clone, G> WithProps<T> for Subgraph<'a, G>
         self.g.edge_prop(value)
     }
 }
+
+
+// Choose
+
+impl<'a, G> Choose for Subgraph<'a, G>
+    where G: 'a + Graph,
+          &'a G: Types<G>,
+{
+    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {
+        self.vertices[rng.gen_range(0, self.num_vertices())]
+    }
+
+    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Edge<Self> {
+        self.edges[rng.gen_range(0, self.num_edges())]
+    }
+
+    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self> {
+        self.inc[v][rng.gen_range(0, self.degree(v))]
+    }
+}
+
 
 impl<'a, G> Subgraph<'a, G>
     where G: 'a + Graph,

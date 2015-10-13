@@ -1,6 +1,7 @@
 use graph::*;
 use iter::IteratorExt;
-use builder::*;
+use builder::{Builder, WithBuilder};
+use choose::Choose;
 use std::iter::{Cloned, Map};
 use std::ops::{Index, IndexMut, Range};
 use std::slice::Iter;
@@ -164,10 +165,6 @@ impl Basic for StaticGraph {
         0..self.num_vertices
     }
 
-    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {
-        rng.gen_range(0, self.num_vertices())
-    }
-
     fn source(&self, e: Edge<Self>) -> Vertex<Self> {
         self.endvertices[e.0 ^ 1]
     }
@@ -190,10 +187,6 @@ impl Basic for StaticGraph {
         e.reverse()
     }
 
-    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Edge<Self> {
-        StaticEdge::new(rng.gen_range(0, self.num_edges()))
-    }
-
     // Inc
 
     fn degree(&self, v: Vertex<Self>) -> usize {
@@ -204,10 +197,6 @@ impl Basic for StaticGraph {
         where &'a (): Sized
     {
         self.inc[v].iter().cloned()
-    }
-
-    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self> {
-        self.inc[v][rng.gen_range(0, self.degree(v))]
     }
 }
 
@@ -224,6 +213,20 @@ impl<T: Clone> WithProps<T> for StaticGraph {
     }
 }
 
+
+impl Choose for StaticGraph  {
+    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {
+        rng.gen_range(0, self.num_vertices())
+    }
+
+    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Edge<Self> {
+        StaticEdge::new(rng.gen_range(0, self.num_edges()))
+    }
+
+    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self> {
+        self.inc[v][rng.gen_range(0, self.degree(v))]
+    }
+}
 
 // Tests
 
