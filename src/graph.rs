@@ -134,6 +134,19 @@ pub trait Basic: Sized {
         where &'a Self: IterTypes<Self>;
 
     fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self>;
+
+    fn choose_inc_edge_if<R, F>(&self, rng: &mut R, v: Vertex<Self>, mut fun: F) -> Edge<Self>
+        where R: Rng,
+              F: FnMut(Edge<Self>) -> bool,
+    {
+        loop {
+            // TODO: on static create an range and use ind_sample
+            let e = self.choose_inc_edge(rng, v);
+            if fun(e) {
+                return e;
+            }
+        }
+    }
 }
 
 
