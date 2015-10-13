@@ -140,8 +140,8 @@ pub trait Basic: Sized {
 // Properties
 
 pub trait WithProps<T: Clone>: Basic {
-    type Vertex: IndexMut<Vertex<Self>, Output=T>;
-    type Edge: IndexMut<Edge<Self>, Output=T>;
+    type Vertex: IndexMut<Vertex<Self>, Output=T> + Clone;
+    type Edge: IndexMut<Edge<Self>, Output=T> + Clone;
 
     fn vertex_prop(&self, value: T) -> PropVertex<Self, T>;
 
