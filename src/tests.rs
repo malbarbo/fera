@@ -30,16 +30,16 @@ macro_rules! test_basic {
             let (g, vertices, _) = create_case!{$B};
             assert_eq!(5, vertices.len());
             assert_eq!(5, g.num_vertices());
-            assert_eq!(vertices, g.vertices().as_vec());
+            assert_eq!(vertices, g.vertices().into_vec());
         }
 
         #[test] fn edges() {
             let (g, v, edges) = create_case!{$B};
             assert_eq!(4, edges.len());
             assert_eq!(4, g.num_edges());
-            assert_eq!(edges, g.edges().as_vec());
+            assert_eq!(edges, g.edges().into_vec());
             assert_eq!(vec![(v[0], v[1]), (v[0], v[2]), (v[1], v[2]), (v[1], v[3])],
-                       g.edges().endvertices(&g).as_vec());
+                       g.edges().endvertices(&g).into_vec());
         }
 
         #[test] fn reverse() {
@@ -69,9 +69,9 @@ macro_rules! test_degree {
             let (g, v, edges) = create_case!{$B};
             assert_eq!(4, edges.len());
             assert_eq!(4, g.num_edges());
-            assert_eq!(edges, g.edges().as_vec());
+            assert_eq!(edges, g.edges().into_vec());
             assert_eq!(vec![(v[0], v[1]), (v[0], v[2]), (v[1], v[2]), (v[1], v[3])],
-                       g.edges().endvertices(&g).as_vec());
+                       g.edges().endvertices(&g).into_vec());
         }
     }
 }
@@ -96,15 +96,15 @@ macro_rules! test_inc {
         #[test] fn inc_edges() {
             let (g, v, e) = create_case!{$B};
             assert_eq!(set![e[0], e[1]],
-                       g.inc_edges(v[0]).as_set());
+                       g.inc_edges(v[0]).into_set());
             assert_eq!(set![e[0], e[2], e[3]],
-                       g.inc_edges(v[1]).as_set());
+                       g.inc_edges(v[1]).into_set());
             assert_eq!(set![e[1], e[2]],
-                       g.inc_edges(v[2]).as_set());
+                       g.inc_edges(v[2]).into_set());
             assert_eq!(set![e[3]],
-                       g.inc_edges(v[3]).as_set());
+                       g.inc_edges(v[3]).into_set());
             assert_eq!(set![],
-                       g.inc_edges(v[4]).as_set());
+                       g.inc_edges(v[4]).into_set());
         }
     }
 }
@@ -115,15 +115,15 @@ macro_rules! test_adj {
         #[test] fn neighbors() {
             let (g, v, _) = create_case!{$B};
             assert_eq!(set![v[1], v[2]],
-                       g.neighbors(v[0]).as_set());
+                       g.neighbors(v[0]).into_set());
             assert_eq!(set![v[0], v[2], v[3]],
-                       g.neighbors(v[1]).as_set());
+                       g.neighbors(v[1]).into_set());
             assert_eq!(set![v[0], v[1]],
-                       g.neighbors(v[2]).as_set());
+                       g.neighbors(v[2]).into_set());
             assert_eq!(set![v[1]],
-                       g.neighbors(v[3]).as_set());
+                       g.neighbors(v[3]).into_set());
             assert_eq!(set![],
-                       g.neighbors(v[4]).as_set());
+                       g.neighbors(v[4]).into_set());
         }
     }
 }

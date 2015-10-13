@@ -107,6 +107,7 @@ impl<'a, G> Subgraph<'a, G>
     where G: 'a + Graph,
           &'a G: Types<G>,
 {
+    // TODO: add subgraph methos on Basic
     pub fn new<I>(g: &'a G, edges_iter: I) -> Subgraph<'a, G>
         where I: Iterator<Item=Edge<G>>,
     {
