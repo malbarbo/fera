@@ -48,10 +48,11 @@ impl<G> DisjointSet<G>
     }
 
     fn find_set(&mut self, x: Vertex<G>) -> Vertex<G> {
-        // TODO: write a iterative version
-        if self.parent[x] != x {
-            let p = self.parent[x];
-            self.parent[x] = self.find_set(p);
+        let mut x = x;
+        // TODO: test pass when if is used in place of while. Write more robust test
+        while self.parent[x] != x {
+            self.parent[x] = self.parent[self.parent[x]];
+            x = self.parent[x];
         }
         self.parent[x]
     }
