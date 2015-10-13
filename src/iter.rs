@@ -25,21 +25,25 @@ impl<'a, A, I, D, F> Iterator for Map1<'a, I, D, F>
     }
 }
 
-pub trait IteratorExt: Iterator + Sized {
-    fn map1<D, F>(self, data: &D, f: F) -> Map1<Self, D, F> {
-        Map1 { iter: self, data: data, f: f }
+pub trait IteratorExt: IntoIterator + Sized {
+    #[inline]
+    fn map1<D, F>(self, data: &D, f: F) -> Map1<Self::IntoIter, D, F> {
+        Map1 { iter: self.into_iter(), data: data, f: f }
     }
 
+    #[inline]
     fn into_vec(self) -> Vec<Self::Item> {
-        self.collect()
+        self.into_iter().collect()
     }
 
+    #[inline]
     fn into_set(self) -> HashSet<Self::Item>
         where Self::Item: Hash + Eq
     {
-        self.collect()
+        self.into_iter().collect()
     }
 
+    #[inline]
     fn into_shuffled_vec<R: Rng>(self, rng: &mut R) -> Vec<Self::Item> {
         let mut v = self.into_vec();
         rng.shuffle(&mut v[..]);
@@ -47,4 +51,4 @@ pub trait IteratorExt: Iterator + Sized {
     }
 }
 
-impl<I: Iterator> IteratorExt for I {}
+impl<I: IntoIterator> IteratorExt for I {}
