@@ -291,7 +291,7 @@ mod tests {
             edges.push(e);
             edges.len() != 2
         }));
-        let e = g.edges().as_vec();
+        let e = g.edges().into_vec();
         assert_eq!(vec![e[0], e[2]], edges);
     }
 
@@ -303,7 +303,7 @@ mod tests {
             edges.push(e);
             edges.len() != 2
         }));
-        let e = g.edges().as_vec();
+        let e = g.edges().into_vec();
         assert_eq!(vec![e[1], e[3]], edges);
     }
 
@@ -331,7 +331,7 @@ mod tests {
             edges.push(e);
             edges.len() != 2
         }));
-        let e = g.edges().as_vec();
+        let e = g.edges().into_vec();
         assert_eq!(vec![e[0], e[1]], edges);
     }
 
@@ -343,7 +343,7 @@ mod tests {
             edges.push(e);
             edges.len() != 2
         }));
-        let e = g.edges().as_vec();
+        let e = g.edges().into_vec();
         assert_eq!(vec![e[2], e[4]], edges);
     }
 }

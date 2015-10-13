@@ -65,7 +65,7 @@ mod tests {
     #[test]
     fn find_path() {
         let g = StaticGraph::new_with_edges(6, &[(0, 1), (0, 2), (1, 4), (2, 3), (2, 4)]);
-        let e = g.edges().as_vec();
+        let e = g.edges().into_vec();
 
         assert_eq!(None, g.find_path(0, 0));
 

@@ -1,6 +1,8 @@
 use std::collections::HashSet;
 use std::hash::Hash;
 
+use rand::Rng;
+
 pub struct Map1<'a, I, D: 'a, F> {
     iter: I,
     data: &'a D,
@@ -28,14 +30,20 @@ pub trait IteratorExt: Iterator + Sized {
         Map1 { iter: self, data: data, f: f }
     }
 
-    fn as_vec(self) -> Vec<Self::Item> {
+    fn into_vec(self) -> Vec<Self::Item> {
         self.collect()
     }
 
-    fn as_set(self) -> HashSet<Self::Item>
+    fn into_set(self) -> HashSet<Self::Item>
         where Self::Item: Hash + Eq
     {
         self.collect()
+    }
+
+    fn into_shuffled_vec<R: Rng>(self, rng: &mut R) -> Vec<Self::Item> {
+        let mut v = self.into_vec();
+        rng.shuffle(&mut v[..]);
+        v
     }
 }
 

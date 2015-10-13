@@ -49,7 +49,7 @@ pub trait Kruskal: Graph {
               T: 'a + Ord + Clone,
               V: Visitor<Self>,
     {
-        let mut edges = self.edges().as_vec();
+        let mut edges = self.edges().into_vec();
         edges.sort_by(|&a, &b| weight[a].cmp(&weight[b]));
         self.kruskal_edges(edges.iter().cloned(), visitor);
     }
@@ -90,7 +90,7 @@ mod tests {
         for (e, &w) in g.edges().zip(&[1, 2, 3, 4, 5, 6, 7]) {
             weight[e] = w;
         }
-        let e = g.edges().as_vec();
+        let e = g.edges().into_vec();
         assert_eq!(vec![e[0], e[1], e[2], e[4]], g.kruskal_mst(&weight));
     }
 }
