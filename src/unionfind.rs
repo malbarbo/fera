@@ -1,69 +1,30 @@
 use graph::*;
 
-pub struct DisjointSet<G>
-    where G: Graph,
-{
-    parent: PropVertex<G, Vertex<G>>,
-    rank: PropVertex<G, usize>,
-}
+use ds;
 
-impl<G> DisjointSet<G>
-    where G: Graph,
-{
-    pub fn new<'a>(g: &'a G) -> DisjointSet<G>
-        where &'a G: IterTypes<G>
+pub type UnionFind<G> = ds::unionfind::UnionFind<Vertex<G>,
+                                                 PropVertex<G, Vertex<G>>,
+                                                 PropVertex<G, usize>>;
+
+pub trait WithUnionFind: Graph {
+    fn new_unionfind<'a>(&'a self) -> UnionFind<Self>
+        where &'a Self: IterTypes<Self>
     {
-        let mut ds = DisjointSet::<G> {
-            parent: g.vertex_prop(g.vertices().next().unwrap()),
-            rank: g.vertex_prop(0usize),
-        };
-
-        for v in g.vertices() {
-            ds.parent[v] = v;
-        }
-
-        ds
-    }
-
-    pub fn union(&mut self, x: Vertex<G>, y: Vertex<G>) {
-        let a = self.find_set(x);
-        let b = self.find_set(y);
-        assert!( a != b );
-        self.link(a, b);
-    }
-
-    pub fn in_same_set(&mut self, x: Vertex<G>, y: Vertex<G>) -> bool {
-        self.find_set(x) == self.find_set(y)
-    }
-
-    fn link(&mut self, x: Vertex<G>, y: Vertex<G>) {
-        if self.rank[x] > self.rank[y] {
-            self.parent[y] = x;
-        } else {
-            self.parent[x] = y;
-            if self.rank[x] == self.rank[y] {
-                self.rank[y] += 1
-            }
-        }
-    }
-
-    fn find_set(&mut self, x: Vertex<G>) -> Vertex<G> {
-        let mut x = x;
-        // TODO: test pass when if is used in place of while. Write more robust test
-        while self.parent[x] != x {
-            self.parent[x] = self.parent[self.parent[x]];
-            x = self.parent[x];
-        }
-        self.parent[x]
+        ds::unionfind::UnionFind::new_with_all(self.vertices(),
+                                               self.vertex_prop(self.vertices().next().unwrap()),
+                                               self.vertex_prop(0usize))
     }
 }
+
+impl<G: Graph> WithUnionFind for G { }
+
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use static_::*;
-    use unionfind::*;
 
-    fn check_groups(ds: &mut DisjointSet<StaticGraph>, groups: &[&[usize]]) {
+    fn check_groups(ds: &mut UnionFind<StaticGraph>, groups: &[&[usize]]) {
         for group in groups.iter() {
             for &a in group.iter() {
                 assert!(ds.in_same_set(group[0], a));
@@ -74,7 +35,7 @@ mod tests {
     #[test]
     fn unionfind() {
         let g = StaticGraph::new_with_edges(5, &[]);
-        let mut ds = DisjointSet::new(&g);
+        let mut ds = g.new_unionfind();
         ds.union(0, 2);
         check_groups(&mut ds, &[&[0, 2]]);
         ds.union(1, 3);

@@ -1,6 +1,6 @@
 use graph::*;
 use ds::IteratorExt;
-use unionfind::DisjointSet;
+use unionfind::WithUnionFind;
 
 #[derive(PartialEq, Eq)]
 pub enum Accept {
@@ -29,7 +29,7 @@ pub trait Kruskal: Graph {
               I: Iterator<Item=Edge<Self>>,
               V: Visitor<Self>
     {
-        let mut ds = DisjointSet::new(self);
+        let mut ds = self.new_unionfind();
         let mut num_sets = self.num_vertices();
         for e in edges {
             let (u, v) = self.endvertices(e);
