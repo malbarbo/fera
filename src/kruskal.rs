@@ -26,7 +26,7 @@ impl<F, G> Visitor<G> for F
 pub trait Kruskal: Graph {
     fn kruskal_with_edges<'a, I, V>(&'a self, edges: I, visitor: &mut V)
         where &'a Self: Types<Self>,
-              I: Iterator<Item=Edge<Self>>,
+              I: Iterator<Item = Edge<Self>>,
               V: Visitor<Self>
     {
         let mut ds = self.new_unionfind();
@@ -45,13 +45,14 @@ pub trait Kruskal: Graph {
 
     fn kruskal_with_edges_collect<'a, I>(&'a self, edges: I) -> VecEdge<Self>
         where &'a Self: Types<Self>,
-              I: Iterator<Item=Edge<Self>>,
+              I: Iterator<Item = Edge<Self>>
     {
         let mut tree = vec![];
-        self.kruskal_with_edges(edges, &mut |e| {
-            tree.push(e);
-            Accept::Yes
-        });
+        self.kruskal_with_edges(edges,
+                                &mut |e| {
+                                    tree.push(e);
+                                    Accept::Yes
+                                });
         tree
     }
 
@@ -59,7 +60,7 @@ pub trait Kruskal: Graph {
         where &'a Self: Types<Self>,
               Self: WithProps<T>,
               T: 'a + PartialOrd + Clone,
-              V: Visitor<Self>,
+              V: Visitor<Self>
     {
         let mut edges = self.edges().into_vec();
         edges.sort_by(|&a, &b| weight[a].partial_cmp(&weight[b]).expect("partial_cmp failed"));
@@ -69,13 +70,14 @@ pub trait Kruskal: Graph {
     fn kruskal_mst<'a, T>(&'a self, weight: &'a PropEdge<Self, T>) -> VecEdge<Self>
         where &'a Self: Types<Self>,
               Self: WithProps<T>,
-              T: 'a + PartialOrd + Clone,
+              T: 'a + PartialOrd + Clone
     {
         let mut tree = vec![];
-        self.kruskal::<T, _>(weight, &mut |e| {
-            tree.push(e);
-            Accept::Yes
-        });
+        self.kruskal::<T, _>(weight,
+                             &mut |e| {
+                                 tree.push(e);
+                                 Accept::Yes
+                             });
         tree
     }
 }
@@ -92,6 +94,7 @@ mod tests {
     use kruskal::*;
 
     #[test]
+    #[rustfmt_skip]
     fn kruskal_mst() {
         let g = StaticGraph::new_with_edges(
             5,

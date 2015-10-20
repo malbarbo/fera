@@ -26,11 +26,11 @@ pub trait WithBuilder: Basic {
 
 pub fn complete<G: WithBuilder>(n: usize) -> G::Builder {
     if n == 0 {
-        return G::builder(0, 0)
+        return G::builder(0, 0);
     }
     let mut b = G::builder(n, n * (n - 1) / 2);
     for u in 0..n {
-        for v in u+1..n {
+        for v in u + 1..n {
             b.add_edge(u, v);
         }
     }

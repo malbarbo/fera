@@ -2,11 +2,7 @@ use graph::*;
 use ds::{Map1, IteratorExt};
 
 pub trait IteratorGraph<G: Basic>: Iterator<Item=Edge<G>> + Sized {
-    fn endvertices(self,
-                   g: &G)
-                   -> Map1<Self,
-                           G,
-                           fn(&G, Edge<G>) -> (Vertex<G>, Vertex<G>)> {
+    fn endvertices(self, g: &G) -> Map1<Self, G, fn(&G, Edge<G>) -> (Vertex<G>, Vertex<G>)> {
         self.map1(&g, G::endvertices)
     }
 }

@@ -7,7 +7,7 @@ use rand::Rng;
 #[derive(Clone)]
 pub struct Subgraph<'a, G>
     where G: 'a + Graph,
-          &'a G: Types<G>,
+          &'a G: Types<G>
 {
     g: &'a G,
     vertices: VecVertex<G>,
@@ -120,7 +120,7 @@ impl<'a, G> Subgraph<'a, G>
 {
     // TODO: add subgraph methos on Basic
     pub fn new<I>(g: &'a G, edges_iter: I) -> Subgraph<'a, G>
-        where I: Iterator<Item=Edge<G>>,
+        where I: Iterator<Item = Edge<G>>
     {
         let mut vin = g.vertex_prop(false);
         let mut vertices = vec![];

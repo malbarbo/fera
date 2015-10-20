@@ -56,14 +56,14 @@ pub type OptionEdge<G> = Option<Edge<G>>;
 //
 //     // This works (with item #2)
 //     trait Basic {
-//           fn vertices<'a>(&'a self) -> IterVertex<Self> where &'a Self: IterTypes<G>;
+//         fn vertices<'a>(&'a self) -> IterVertex<Self> where &'a Self: IterTypes<G>;
 //     }
 //
 // 2 - On impl do not repeat the bound, use &'a (): Sized instead
 //
 //     // This do not compile (see https://github.com/rust-lang/rust/issues/28046)
 //     impl Basic for StaticGraph {
-//           fn vertices<'a>(&'a self) -> IterVertex<Self> where &'a Self: IterTypes<G>;
+//         fn vertices<'a>(&'a self) -> IterVertex<Self> where &'a Self: IterTypes<G>;
 //     }
 //
 //     // This works
@@ -86,16 +86,14 @@ pub trait Basic: Sized {
 
     fn num_vertices(&self) -> usize;
 
-    fn vertices<'a>(&'a self) -> IterVertex<Self>
-        where &'a Self: IterTypes<Self>;
+    fn vertices<'a>(&'a self) -> IterVertex<Self> where &'a Self: IterTypes<Self>;
 
 
     // Edges
 
     fn num_edges(&self) -> usize;
 
-    fn edges<'a>(&'a self) -> IterEdge<Self>
-        where &'a Self: IterTypes<Self>;
+    fn edges<'a>(&'a self) -> IterEdge<Self> where &'a Self: IterTypes<Self>;
 
     fn source(&self, e: Edge<Self>) -> Vertex<Self>;
 
@@ -123,8 +121,7 @@ pub trait Basic: Sized {
 
     fn degree(&self, v: Vertex<Self>) -> usize;
 
-    fn inc_edges<'a>(&'a self, v: Vertex<Self>) -> IterInc<Self>
-        where &'a Self: IterTypes<Self>;
+    fn inc_edges<'a>(&'a self, v: Vertex<Self>) -> IterInc<Self> where &'a Self: IterTypes<Self>;
 }
 
 
@@ -184,15 +181,11 @@ basic_props! {
 pub trait Adj: Basic {
     fn neighbors<'a>(&'a self,
                      v: Vertex<Self>)
-                     -> Map1<'a,
-                             IterInc<'a, Self>,
-                             Self,
-                             fn(&'a Self, Edge<Self>) -> Vertex<Self>>
+                     -> Map1<'a, IterInc<'a, Self>, Self, fn(&'a Self, Edge<Self>) -> Vertex<Self>>
         where &'a Self: IterTypes<Self>
     {
         self.inc_edges(v).map1(self, Self::target)
     }
 }
 
-impl<G> Adj for G
-    where G: Basic { }
+impl<G> Adj for G where G: Basic { }

@@ -105,7 +105,7 @@ pub trait Traverser<'a, G>: Sized
 
 pub struct Dfs<'a, G>
     where G: 'a + Graph,
-          &'a G: Types<G>,
+          &'a G: Types<G>
 {
     g: &'a G,
     discovered: PropVertex<G, bool>,
@@ -156,7 +156,7 @@ impl<'a, G> Traverser<'a, G> for Dfs<'a, G>
 
 pub struct Bfs<'a, G>
     where G: 'a + Graph,
-          &'a G: Types<G>,
+          &'a G: Types<G>
 {
     g: &'a G,
     discovered: PropVertex<G, bool>,
@@ -212,9 +212,9 @@ mod tests {
     use traverse::*;
 
     fn new() -> StaticGraph {
-        StaticGraph::new_with_edges(
-            7, &[(0, 1), (0, 2), (1, 2), (1, 3), (2, 3),
-                 (4, 5), (4, 6), (5, 6)])
+        StaticGraph::new_with_edges(7,
+                                    &[(0, 1), (0, 2), (1, 2), (1, 3), (2, 3), (4, 5), (4, 6),
+                                      (5, 6)])
         // u -> e (u, v)
         // 0 -> 0 (0, 1) 1 (0, 2)
         // 1 -> 1 (1, 0) 2 (1, 2) 3 (1, 3)
@@ -231,8 +231,8 @@ mod tests {
 
     struct TestVisitor<'a, G>
         where G: 'a + Graph,
-              &'a G: Types<G>,
-    {
+              &'a G: Types<G>    
+{
         g: &'a G,
         parent: PropVertex<G, OptionVertex<G>>,
         d: PropVertex<G, usize>,
@@ -276,8 +276,7 @@ mod tests {
         assert_eq!(vec![None, Some(0), Some(1), Some(2), None, Some(4), Some(5)],
                    vis.parent);
 
-        assert_eq!(vec![0, 1, 2, 3, 0, 1, 2],
-                   vis.d);
+        assert_eq!(vec![0, 1, 2, 3, 0, 1, 2], vis.d);
 
         assert_eq!(vec![TREE, BACK, TREE, BACK, TREE, TREE, BACK, TREE],
                    vis.edge_type.0);
@@ -287,10 +286,11 @@ mod tests {
     fn dfs_tree_visitor() {
         let g = new();
         let mut edges = vec![];
-        Dfs::run(&g, &mut TreeEdgeVisitor(|e| {
-            edges.push(e);
-            edges.len() != 2
-        }));
+        Dfs::run(&g,
+                 &mut TreeEdgeVisitor(|e| {
+                     edges.push(e);
+                     edges.len() != 2
+                 }));
         let e = g.edges().into_vec();
         assert_eq!(vec![e[0], e[2]], edges);
     }
@@ -299,10 +299,11 @@ mod tests {
     fn dfs_back_visitor() {
         let g = new();
         let mut edges = vec![];
-        Dfs::run(&g, &mut BackEdgeVisitor(|e| {
-            edges.push(e);
-            edges.len() != 2
-        }));
+        Dfs::run(&g,
+                 &mut BackEdgeVisitor(|e| {
+                     edges.push(e);
+                     edges.len() != 2
+                 }));
         let e = g.edges().into_vec();
         assert_eq!(vec![e[1], e[3]], edges);
     }
@@ -316,8 +317,7 @@ mod tests {
         assert_eq!(vec![None, Some(0), Some(0), Some(1), None, Some(4), Some(4)],
                    vis.parent);
 
-        assert_eq!(vec![0, 1, 1, 2, 0, 1, 1],
-                   vis.d);
+        assert_eq!(vec![0, 1, 1, 2, 0, 1, 1], vis.d);
 
         assert_eq!(vec![TREE, TREE, BACK, TREE, BACK, TREE, TREE, BACK],
                    vis.edge_type.0);
@@ -327,10 +327,11 @@ mod tests {
     fn bfs_tree_visitor() {
         let g = new();
         let mut edges = vec![];
-        Bfs::run(&g, &mut TreeEdgeVisitor(|e| {
-            edges.push(e);
-            edges.len() != 2
-        }));
+        Bfs::run(&g,
+                 &mut TreeEdgeVisitor(|e| {
+                     edges.push(e);
+                     edges.len() != 2
+                 }));
         let e = g.edges().into_vec();
         assert_eq!(vec![e[0], e[1]], edges);
     }
@@ -339,10 +340,11 @@ mod tests {
     fn bfs_back_visitor() {
         let g = new();
         let mut edges = vec![];
-        Bfs::run(&g, &mut BackEdgeVisitor(|e| {
-            edges.push(e);
-            edges.len() != 2
-        }));
+        Bfs::run(&g,
+                 &mut BackEdgeVisitor(|e| {
+                     edges.push(e);
+                     edges.len() != 2
+                 }));
         let e = g.edges().into_vec();
         assert_eq!(vec![e[2], e[4]], edges);
     }

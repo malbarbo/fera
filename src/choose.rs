@@ -3,8 +3,7 @@ use graph::*;
 use rand::Rng;
 
 pub trait Choose: Basic {
-    fn choose_vertex<R>(&self, rng: &mut R) -> Vertex<Self>
-        where R: Rng;
+    fn choose_vertex<R>(&self, rng: &mut R) -> Vertex<Self> where R: Rng;
 
     fn choose_vertex_if<R, F>(&self, rng: &mut R, fun: &mut F) -> Vertex<Self>
         where R: Rng,
@@ -13,8 +12,7 @@ pub trait Choose: Basic {
         choose(|| Choose::choose_vertex(self, rng), fun)
     }
 
-    fn choose_edge<R>(&self, rng: &mut R) -> Edge<Self>
-        where R: Rng;
+    fn choose_edge<R>(&self, rng: &mut R) -> Edge<Self> where R: Rng;
 
     fn choose_edge_if<R, F>(&self, rng: &mut R, fun: &mut F) -> Edge<Self>
         where R: Rng,
@@ -23,8 +21,7 @@ pub trait Choose: Basic {
         choose(|| Choose::choose_edge(self, rng), fun)
     }
 
-    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self>
-        where R: Rng;
+    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self> where R: Rng;
 
     fn choose_inc_edge_if<R, F>(&self, rng: &mut R, v: Vertex<Self>, fun: &mut F) -> Edge<Self>
         where R: Rng,
