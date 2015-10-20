@@ -208,7 +208,7 @@ impl<'a, G> Traverser<'a, G> for Bfs<'a, G>
 mod tests {
     use graph::*;
     use static_::*;
-    use iter::*;
+    use ds::IteratorExt;
     use traverse::*;
 
     fn new() -> StaticGraph {

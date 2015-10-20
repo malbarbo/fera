@@ -1,5 +1,5 @@
 use graph::*;
-use iter::IteratorExt;
+use ds::IteratorExt;
 use unionfind::DisjointSet;
 
 #[derive(PartialEq, Eq)]
@@ -88,7 +88,7 @@ impl<G> Kruskal for G
 mod tests {
     use graph::*;
     use static_::*;
-    use iter::*;
+    use ds::IteratorExt;
     use kruskal::*;
 
     #[test]

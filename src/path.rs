@@ -59,7 +59,7 @@ impl<G> FindPath for G
 mod tests {
     use graph::*;
     use static_::*;
-    use iter::*;
+    use ds::IteratorExt;
     use path::*;
 
     #[test]

@@ -28,6 +28,7 @@ macro_rules! trait_alias {
 }
 
 extern crate rand;
+extern crate ds;
 
 #[cfg(test)]
 #[macro_use]
@@ -47,7 +48,6 @@ pub use builder::*;
 
 pub mod choose;
 
-pub mod iter;
 pub mod kruskal;
 pub mod path;
 pub mod props;

@@ -1,5 +1,5 @@
 use graph::*;
-use iter::{Map1, IteratorExt};
+use ds::{Map1, IteratorExt};
 
 pub trait IteratorGraph<G: Basic>: Iterator<Item=Edge<G>> + Sized {
     fn endvertices(self,

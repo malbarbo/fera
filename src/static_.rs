@@ -1,5 +1,5 @@
 use graph::*;
-use iter::IteratorExt;
+use ds::IteratorExt;
 use builder::{Builder, WithBuilder};
 use choose::Choose;
 use std::iter::{Cloned, Map};
@@ -236,7 +236,7 @@ mod tests {
     use graph::*;
     use static_::*;
     use builder::*;
-    use iter::*;
+    use ds::IteratorExt;
     use tests::*;
 
     #[test]

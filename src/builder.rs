@@ -55,7 +55,7 @@ mod tests {
     use super::*;
     use graph::*;
     use static_::*;
-    use iter::*;
+    use ds::IteratorExt;
     use props::*;
 
     #[test]

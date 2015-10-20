@@ -1,7 +1,8 @@
-use iter::{IteratorExt, Map1};
+use ds::{IteratorExt, Map1};
 
 use std::hash::Hash;
 use std::ops::IndexMut;
+use std::fmt::Debug;
 
 pub trait Graph: Basic + BasicProps { }
 
