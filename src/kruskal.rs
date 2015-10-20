@@ -58,18 +58,18 @@ pub trait Kruskal: Graph {
     fn kruskal<'a, T, V>(&'a self, weight: &'a PropEdge<Self, T>, visitor: &mut V)
         where &'a Self: Types<Self>,
               Self: WithProps<T>,
-              T: 'a + Ord + Clone,
+              T: 'a + PartialOrd + Clone,
               V: Visitor<Self>,
     {
         let mut edges = self.edges().into_vec();
-        edges.sort_by(|&a, &b| weight[a].cmp(&weight[b]));
+        edges.sort_by(|&a, &b| weight[a].partial_cmp(&weight[b]).expect("partial_cmp failed"));
         self.kruskal_with_edges(edges.into_iter(), visitor);
     }
 
     fn kruskal_mst<'a, T>(&'a self, weight: &'a PropEdge<Self, T>) -> VecEdge<Self>
         where &'a Self: Types<Self>,
               Self: WithProps<T>,
-              T: 'a + Ord + Clone,
+              T: 'a + PartialOrd + Clone,
     {
         let mut tree = vec![];
         self.kruskal::<T, _>(weight, &mut |e| {
