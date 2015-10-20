@@ -1,6 +1,5 @@
 use iter::{IteratorExt, Map1};
 
-use std::fmt::Debug;
 use std::hash::Hash;
 use std::ops::IndexMut;
 
@@ -174,6 +173,7 @@ basic_props! {
     char,
     i8, i16, i32, i64, isize,
     u8, u16, u32, u64, usize,
+    f32, f64,
     String
 }
 
