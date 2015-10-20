@@ -79,6 +79,7 @@ impl<T> IndexMut<StaticEdge> for PropStaticEdge<T> {
 
 // StaticGraph
 
+#[derive(Clone)]
 pub struct StaticGraph {
     num_vertices: usize,
     endvertices: Vec<usize>,

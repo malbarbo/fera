@@ -4,6 +4,7 @@ use std::iter::Cloned;
 use std::slice::Iter;
 use rand::Rng;
 
+#[derive(Clone)]
 pub struct Subgraph<'a, G>
     where G: 'a + Graph,
           &'a G: Types<G>,
