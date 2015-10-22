@@ -6,22 +6,25 @@ pub trait Props: Graph {
         where &'a Self: Types<Self>
     {
         let mut acyclic = true;
-        Dfs::run(self, &mut BackEdgeVisitor(|_| {
-            acyclic = false;
-            false
-        }));
+        Dfs::run(self,
+                 &mut BackEdgeVisitor(|_| {
+                     acyclic = false;
+                     false
+                 }));
         acyclic
     }
 
     fn is_connected<'a>(&'a self) -> bool
         where &'a Self: Types<Self>
     {
-        self.num_vertices() == 0 || {
+        self.num_vertices() == 0 ||
+        {
             let mut count = 0;
-            Dfs::run(self, &mut StartVertexVisitor(|_| {
-                count += 1;
-                count == 1
-            }));
+            Dfs::run(self,
+                     &mut StartVertexVisitor(|_| {
+                         count += 1;
+                         count == 1
+                     }));
             count == 1
         }
     }
@@ -29,7 +32,8 @@ pub trait Props: Graph {
     fn is_tree<'a>(&'a self) -> bool
         where &'a Self: Types<Self>
     {
-        self.num_vertices() == 0 || {
+        self.num_vertices() == 0 ||
+        {
             self.num_edges() == self.num_vertices() - 1 && self.is_acyclic()
         }
     }
@@ -119,14 +123,16 @@ mod tests {
     #[test]
     fn is_connected() {
         for (i, case) in cases().iter().enumerate() {
-            assert!(case.is_connected == case.g.is_connected(), format!("Case {}", i));
+            assert!(case.is_connected == case.g.is_connected(),
+                    format!("Case {}", i));
         }
     }
 
     #[test]
     fn is_acyclic() {
         for (i, case) in cases().iter().enumerate() {
-            assert!(case.is_acyclic == case.g.is_acyclic(), format!("Case {}", i));
+            assert!(case.is_acyclic == case.g.is_acyclic(),
+                    format!("Case {}", i));
         }
     }
 

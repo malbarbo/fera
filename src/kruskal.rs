@@ -1,6 +1,6 @@
 use graph::*;
-use iter::IteratorExt;
-use unionfind::DisjointSet;
+use ds::IteratorExt;
+use unionfind::WithUnionFind;
 
 #[derive(PartialEq, Eq)]
 pub enum Accept {
@@ -24,12 +24,12 @@ impl<F, G> Visitor<G> for F
 }
 
 pub trait Kruskal: Graph {
-    fn kruskal_edges<'a, I, V>(&'a self, edges: I, visitor: &mut V)
+    fn kruskal_with_edges<'a, I, V>(&'a self, edges: I, visitor: &mut V)
         where &'a Self: Types<Self>,
-              I: Iterator<Item=Edge<Self>>,
+              I: Iterator<Item = Edge<Self>>,
               V: Visitor<Self>
     {
-        let mut ds = DisjointSet::new(self);
+        let mut ds = self.new_unionfind();
         let mut num_sets = self.num_vertices();
         for e in edges {
             let (u, v) = self.endvertices(e);
@@ -43,28 +43,42 @@ pub trait Kruskal: Graph {
         }
     }
 
+    fn kruskal_with_edges_collect<'a, I>(&'a self, edges: I) -> VecEdge<Self>
+        where &'a Self: Types<Self>,
+              I: Iterator<Item = Edge<Self>>
+    {
+        let mut tree = vec![];
+        self.kruskal_with_edges(edges,
+                                &mut |e| {
+                                    tree.push(e);
+                                    Accept::Yes
+                                });
+        tree
+    }
+
     fn kruskal<'a, T, V>(&'a self, weight: &'a PropEdge<Self, T>, visitor: &mut V)
         where &'a Self: Types<Self>,
               Self: WithProps<T>,
-              T: 'a + Ord + Clone,
-              V: Visitor<Self>,
+              T: 'a + PartialOrd + Clone,
+              V: Visitor<Self>
     {
-        let mut edges = self.edges().as_vec();
-        edges.sort_by(|&a, &b| weight[a].cmp(&weight[b]));
-        self.kruskal_edges(edges.iter().cloned(), visitor);
+        let mut edges = self.edges().into_vec();
+        edges.sort_by(|&a, &b| weight[a].partial_cmp(&weight[b]).expect("partial_cmp failed"));
+        self.kruskal_with_edges(edges.into_iter(), visitor);
     }
 
     fn kruskal_mst<'a, T>(&'a self, weight: &'a PropEdge<Self, T>) -> VecEdge<Self>
         where &'a Self: Types<Self>,
               Self: WithProps<T>,
-              T: 'a + Ord + Clone,
+              T: 'a + PartialOrd + Clone
     {
-        let mut edges = vec![];
-        self.kruskal::<T, _>(weight, &mut |e| {
-            edges.push(e);
-            Accept::Yes
-        });
-        edges
+        let mut tree = vec![];
+        self.kruskal::<T, _>(weight,
+                             &mut |e| {
+                                 tree.push(e);
+                                 Accept::Yes
+                             });
+        tree
     }
 }
 
@@ -76,10 +90,11 @@ impl<G> Kruskal for G
 mod tests {
     use graph::*;
     use static_::*;
-    use iter::*;
+    use ds::IteratorExt;
     use kruskal::*;
 
     #[test]
+    #[rustfmt_skip]
     fn kruskal_mst() {
         let g = StaticGraph::new_with_edges(
             5,
@@ -90,7 +105,7 @@ mod tests {
         for (e, &w) in g.edges().zip(&[1, 2, 3, 4, 5, 6, 7]) {
             weight[e] = w;
         }
-        let e = g.edges().as_vec();
+        let e = g.edges().into_vec();
         assert_eq!(vec![e[0], e[1], e[2], e[4]], g.kruskal_mst(&weight));
     }
 }

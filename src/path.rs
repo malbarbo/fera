@@ -7,11 +7,10 @@ pub type ParentTree<G> = PropVertex<G, OptionEdge<G>>;
 
 pub trait FindPath: Graph {
     fn find_path_on_parent_tree(&self,
-                                 tree: &ParentTree<Self>,
-                                 u: Vertex<Self>,
-                                 v: Vertex<Self>)
-                                 -> Option<Path<Self>>
-    {
+                                tree: &ParentTree<Self>,
+                                u: Vertex<Self>,
+                                v: Vertex<Self>)
+                                -> Option<Path<Self>> {
         if u == v {
             return None;
         }
@@ -38,12 +37,14 @@ pub trait FindPath: Graph {
         let mut found = false;
         let none: OptionEdge<Self> = None;
         let mut tree = self.vertex_prop(none);
-        Dfs::run_start(self, u, &mut TreeEdgeVisitor(|e| {
-            let t = self.target(e);
-            tree[t] = Some(e);
-            found = t == v;
-            !found
-        }));
+        Dfs::run_start(self,
+                       u,
+                       &mut TreeEdgeVisitor(|e| {
+                           let t = self.target(e);
+                           tree[t] = Some(e);
+                           found = t == v;
+                           !found
+                       }));
         if found {
             self.find_path_on_parent_tree(&tree, u, v)
         } else {
@@ -59,22 +60,20 @@ impl<G> FindPath for G
 mod tests {
     use graph::*;
     use static_::*;
-    use iter::*;
+    use ds::IteratorExt;
     use path::*;
 
     #[test]
     fn find_path() {
         let g = StaticGraph::new_with_edges(6, &[(0, 1), (0, 2), (1, 4), (2, 3), (2, 4)]);
-        let e = g.edges().as_vec();
+        let e = g.edges().into_vec();
 
         assert_eq!(None, g.find_path(0, 0));
 
         assert_eq!(None, g.find_path(0, 5));
 
-        assert_eq!(vec![e[0]],
-                   g.find_path(0, 1).unwrap());
+        assert_eq!(vec![e[0]], g.find_path(0, 1).unwrap());
 
-        assert_eq!(vec![e[0], e[1], e[4]],
-                   g.find_path(1, 4).unwrap());
+        assert_eq!(vec![e[0], e[1], e[4]], g.find_path(1, 4).unwrap());
     }
 }

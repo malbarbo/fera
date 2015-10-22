@@ -1,11 +1,8 @@
-use iter::{IteratorExt, Map1};
+use ds::{IteratorExt, Map1};
 
-use std::fmt::Debug;
 use std::hash::Hash;
 use std::ops::IndexMut;
-
-use rand::Rng;
-
+use std::fmt::Debug;
 
 pub trait Graph: Basic + BasicProps { }
 
@@ -59,14 +56,14 @@ pub type OptionEdge<G> = Option<Edge<G>>;
 //
 //     // This works (with item #2)
 //     trait Basic {
-//           fn vertices<'a>(&'a self) -> IterVertex<Self> where &'a Self: IterTypes<G>;
+//         fn vertices<'a>(&'a self) -> IterVertex<Self> where &'a Self: IterTypes<G>;
 //     }
 //
 // 2 - On impl do not repeat the bound, use &'a (): Sized instead
 //
 //     // This do not compile (see https://github.com/rust-lang/rust/issues/28046)
 //     impl Basic for StaticGraph {
-//           fn vertices<'a>(&'a self) -> IterVertex<Self> where &'a Self: IterTypes<G>;
+//         fn vertices<'a>(&'a self) -> IterVertex<Self> where &'a Self: IterTypes<G>;
 //     }
 //
 //     // This works
@@ -89,18 +86,14 @@ pub trait Basic: Sized {
 
     fn num_vertices(&self) -> usize;
 
-    fn vertices<'a>(&'a self) -> IterVertex<Self>
-        where &'a Self: IterTypes<Self>;
-
-    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self>;
+    fn vertices<'a>(&'a self) -> IterVertex<Self> where &'a Self: IterTypes<Self>;
 
 
     // Edges
 
     fn num_edges(&self) -> usize;
 
-    fn edges<'a>(&'a self) -> IterEdge<Self>
-        where &'a Self: IterTypes<Self>;
+    fn edges<'a>(&'a self) -> IterEdge<Self> where &'a Self: IterTypes<Self>;
 
     fn source(&self, e: Edge<Self>) -> Vertex<Self>;
 
@@ -123,25 +116,20 @@ pub trait Basic: Sized {
         }
     }
 
-    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Edge<Self>;
-
 
     // Incidence
 
     fn degree(&self, v: Vertex<Self>) -> usize;
 
-    fn inc_edges<'a>(&'a self, v: Vertex<Self>) -> IterInc<Self>
-        where &'a Self: IterTypes<Self>;
-
-    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self>;
+    fn inc_edges<'a>(&'a self, v: Vertex<Self>) -> IterInc<Self> where &'a Self: IterTypes<Self>;
 }
 
 
 // Properties
 
 pub trait WithProps<T: Clone>: Basic {
-    type Vertex: IndexMut<Vertex<Self>, Output=T>;
-    type Edge: IndexMut<Edge<Self>, Output=T>;
+    type Vertex: IndexMut<Vertex<Self>, Output=T> + Clone;
+    type Edge: IndexMut<Edge<Self>, Output=T> + Clone;
 
     fn vertex_prop(&self, value: T) -> PropVertex<Self, T>;
 
@@ -183,6 +171,7 @@ basic_props! {
     char,
     i8, i16, i32, i64, isize,
     u8, u16, u32, u64, usize,
+    f32, f64,
     String
 }
 
@@ -192,15 +181,11 @@ basic_props! {
 pub trait Adj: Basic {
     fn neighbors<'a>(&'a self,
                      v: Vertex<Self>)
-                     -> Map1<'a,
-                             IterInc<'a, Self>,
-                             Self,
-                             fn(&'a Self, Edge<Self>) -> Vertex<Self>>
+                     -> Map1<'a, IterInc<'a, Self>, Self, fn(&'a Self, Edge<Self>) -> Vertex<Self>>
         where &'a Self: IterTypes<Self>
     {
         self.inc_edges(v).map1(self, Self::target)
     }
 }
 
-impl<G> Adj for G
-    where G: Basic { }
+impl<G> Adj for G where G: Basic { }

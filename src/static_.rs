@@ -1,8 +1,12 @@
 use graph::*;
+use ds::IteratorExt;
+use builder::{Builder, WithBuilder};
+use choose::Choose;
 use std::iter::{Cloned, Map};
 use std::ops::{Index, IndexMut, Range};
 use std::slice::Iter;
 use std::hash::{Hash, Hasher};
+use std::cmp::Ordering;
 use rand::Rng;
 
 // StaticEdge
@@ -36,6 +40,18 @@ impl PartialEq<StaticEdge> for StaticEdge {
 
 impl Eq for StaticEdge { }
 
+impl PartialOrd for StaticEdge {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.to_index().partial_cmp(&other.to_index())
+    }
+}
+
+impl Ord for StaticEdge {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.to_index().cmp(&other.to_index())
+    }
+}
+
 impl Hash for StaticEdge {
     fn hash<H>(&self, state: &mut H)
         where H: Hasher
@@ -44,17 +60,18 @@ impl Hash for StaticEdge {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct PropStaticEdge<T>(pub Vec<T>);
 
 impl<T> Index<StaticEdge> for PropStaticEdge<T> {
     type Output = T;
-    fn index<'a>(&'a self, index: StaticEdge) -> &'a Self::Output {
+    fn index(&self, index: StaticEdge) -> &Self::Output {
         self.0.index(index.to_index())
     }
 }
 
 impl<T> IndexMut<StaticEdge> for PropStaticEdge<T> {
-    fn index_mut<'a>(&'a mut self, index: StaticEdge) -> &'a mut Self::Output {
+    fn index_mut(&mut self, index: StaticEdge) -> &mut Self::Output {
         self.0.index_mut(index.to_index())
     }
 }
@@ -62,6 +79,7 @@ impl<T> IndexMut<StaticEdge> for PropStaticEdge<T> {
 
 // StaticGraph
 
+#[derive(Clone)]
 pub struct StaticGraph {
     num_vertices: usize,
     endvertices: Vec<usize>,
@@ -81,16 +99,6 @@ impl StaticGraph {
         StaticGraph::new_with_edges(0, &[])
     }
 
-    pub fn builder(num_vertices: usize, num_edges_hint: usize) -> StaticGraphBuilder {
-        StaticGraphBuilder {
-            g: StaticGraph {
-                num_vertices: num_vertices,
-                endvertices: Vec::with_capacity(num_edges_hint),
-                inc: vec![vec![]; num_vertices],
-            },
-        }
-    }
-
     fn add_edge(&mut self, u: usize, v: usize) {
         self.endvertices.push(u);
         self.endvertices.push(v);
@@ -100,21 +108,39 @@ impl StaticGraph {
     }
 }
 
+impl WithBuilder for StaticGraph {
+    type Builder = StaticGraphBuilder;
+
+    fn builder(num_vertices: usize, num_edges: usize) -> StaticGraphBuilder {
+        StaticGraphBuilder {
+            g: StaticGraph {
+                num_vertices: num_vertices,
+                endvertices: Vec::with_capacity(2 * num_edges),
+                inc: vec![vec![]; num_vertices],
+            },
+        }
+    }
+}
+
 pub struct StaticGraphBuilder {
     g: StaticGraph,
 }
 
-impl StaticGraphBuilder {
-    pub fn add_edge(&mut self, u: usize, v: usize) {
+impl Builder for StaticGraphBuilder {
+    type Graph = StaticGraph;
+
+    fn add_edge(&mut self, u: usize, v: usize) {
         self.g.add_edge(u, v);
     }
 
-    pub fn num_edges(&self) -> usize {
-        self.g.num_edges()
+    fn finalize(self) -> Self::Graph {
+        self.g
     }
 
-    pub fn finalize(self) -> StaticGraph {
-        self.g
+    fn finalize_(self) -> (Self::Graph, VecVertex<Self::Graph>, VecEdge<Self::Graph>) {
+        let v = self.g.vertices().into_vec();
+        let e = self.g.edges().into_vec();
+        (self.g, v, e)
     }
 }
 
@@ -140,10 +166,6 @@ impl Basic for StaticGraph {
         0..self.num_vertices
     }
 
-    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {
-        rng.gen_range(0, self.num_vertices())
-    }
-
     fn source(&self, e: Edge<Self>) -> Vertex<Self> {
         self.endvertices[e.0 ^ 1]
     }
@@ -166,10 +188,6 @@ impl Basic for StaticGraph {
         e.reverse()
     }
 
-    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Edge<Self> {
-        StaticEdge::new(rng.gen_range(0, self.num_edges()))
-    }
-
     // Inc
 
     fn degree(&self, v: Vertex<Self>) -> usize {
@@ -180,10 +198,6 @@ impl Basic for StaticGraph {
         where &'a (): Sized
     {
         self.inc[v].iter().cloned()
-    }
-
-    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self> {
-        self.inc[v][rng.gen_range(0, self.degree(v))]
     }
 }
 
@@ -201,25 +215,36 @@ impl<T: Clone> WithProps<T> for StaticGraph {
 }
 
 
+impl Choose for StaticGraph  {
+    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {
+        rng.gen_range(0, self.num_vertices())
+    }
+
+    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Edge<Self> {
+        StaticEdge::new(rng.gen_range(0, self.num_edges()))
+    }
+
+    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self> {
+        self.inc[v][rng.gen_range(0, self.degree(v))]
+    }
+}
+
 // Tests
 
 #[cfg(test)]
 mod tests {
     use graph::*;
     use static_::*;
-    use iter::*;
+    use builder::*;
+    use ds::IteratorExt;
     use tests::*;
 
     #[test]
     fn builder() {
         let mut builder = StaticGraph::builder(3, 1);
-        assert_eq!(0, builder.num_edges());
 
         builder.add_edge(0, 1);
-        assert_eq!(1, builder.num_edges());
-
         builder.add_edge(1, 2);
-        assert_eq!(2, builder.num_edges());
 
         let g = builder.finalize();
         assert_eq!(3, g.num_vertices);
@@ -236,8 +261,8 @@ mod tests {
                edges: &[(usize, usize)])
                -> (Self, VecVertex<Self>, VecEdge<Self>) {
             let g = StaticGraph::new_with_edges(num_vertices, edges);
-            let vertices = g.vertices().as_vec();
-            let edges = g.edges().as_vec();
+            let vertices = g.vertices().into_vec();
+            let edges = g.edges().into_vec();
             (g, vertices, edges)
         }
     }
