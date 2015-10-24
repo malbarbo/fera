@@ -1,17 +1,5 @@
-use graph::*;
-use ds::{Map1, IteratorExt};
-
-pub trait IteratorGraph<G: Basic>: Iterator<Item=Edge<G>> + Sized {
-    fn endvertices(self, g: &G) -> Map1<Self, G, fn(&G, Edge<G>) -> (Vertex<G>, Vertex<G>)> {
-        self.map1(&g, G::endvertices)
-    }
-}
-
-impl<G, I>IteratorGraph<G> for I
-    where G: Basic,
-          I: Iterator<Item=Edge<G>>
-{ }
-
+pub use ds::{Map1, IteratorExt, VecExt};
+pub use iter::IteratorGraphExt;
 
 macro_rules! create_case {
     ($B:ident) => {
