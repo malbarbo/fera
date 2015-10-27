@@ -94,7 +94,7 @@ mod tests {
     use kruskal::*;
 
     #[test]
-    #[rustfmt_skip]
+    #[cfg_attr(rustfmt, rustfmt_skip)]
     fn kruskal_mst() {
         let g = StaticGraph::new_with_edges(
             5,

@@ -1,7 +1,6 @@
 use graph::*;
 use std::collections::VecDeque;
 
-
 // Visitor
 
 pub trait Visitor<G>
@@ -51,6 +50,8 @@ impl<G, F> Visitor<G> for BackEdgeVisitor<F>
     }
 }
 
+// TODO: change if_false to unless?
+
 macro_rules! return_if_false {
     ($e:expr) => (
         if !$e {
@@ -80,6 +81,7 @@ pub trait Traverser<'a, G>: Sized
 
     fn traverse<V: Visitor<G>>(&mut self, v: Vertex<G>, vis: &mut V) -> bool;
 
+    // TODO: should this return the visitor?
     fn run<V: Visitor<G>>(g: &'a G, vis: &mut V) {
         let mut t = Self::new(g);
         for v in g.vertices() {
@@ -202,6 +204,27 @@ impl<'a, G> Traverser<'a, G> for Bfs<'a, G>
 }
 
 
+// Dfs parent
+
+// TODO: write test
+pub trait DfsParent: Graph {
+    fn dfs_parent<'a>(&'a self) -> PropVertex<Self, OptionEdge<Self>>
+        where &'a Self: Types<Self>
+    {
+        let none: OptionEdge<Self> = None;
+        let mut parent = self.vertex_prop(none);
+        Dfs::run(self,
+                 &mut TreeEdgeVisitor(|e| {
+                     parent[self.target(e)] = Some(self.reverse(e));
+                     true
+                 }));
+        parent
+    }
+}
+
+impl<G> DfsParent for G where G: Graph { }
+
+
 // Tests
 
 #[cfg(test)]
@@ -231,8 +254,8 @@ mod tests {
 
     struct TestVisitor<'a, G>
         where G: 'a + Graph,
-              &'a G: Types<G>    
-{
+              &'a G: Types<G>
+    {
         g: &'a G,
         parent: PropVertex<G, OptionVertex<G>>,
         d: PropVertex<G, usize>,

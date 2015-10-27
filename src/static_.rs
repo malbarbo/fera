@@ -236,7 +236,6 @@ mod tests {
     use graph::*;
     use static_::*;
     use builder::*;
-    use ds::IteratorExt;
     use tests::*;
 
     #[test]
