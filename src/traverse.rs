@@ -313,7 +313,7 @@ mod tests {
             start.push(v);
             true
         }));
-        let v = g.vertices().as_vec();
+        let v = g.vertices().into_vec();
         assert_eq!(vec![v[0], v[4]], start);
     }
 
@@ -366,7 +366,7 @@ mod tests {
             start.push(v);
             true
         }));
-        let v = g.vertices().as_vec();
+        let v = g.vertices().into_vec();
         assert_eq!(vec![v[0], v[4]], start);
     }
 

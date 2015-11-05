@@ -2,17 +2,21 @@ use graph::*;
 
 use ds;
 
-pub type UnionFind<G> = ds::unionfind::UnionFind<Vertex<G>,
-                                                 PropVertex<G, Vertex<G>>,
-                                                 PropVertex<G, usize>>;
+pub type UnionFind<G> = ds::unionfind::GenericUnionFind<Vertex<G>,
+                                                        Vertex<G>,
+                                                        PropVertex<G, Vertex<G>>,
+                                                        PropVertex<G, usize>,
+                                                        usize>;
 
 pub trait WithUnionFind: Graph {
     fn new_unionfind<'a>(&'a self) -> UnionFind<Self>
         where &'a Self: IterTypes<Self>
     {
-        ds::unionfind::UnionFind::new_with_all(self.vertices(),
-                                               self.vertex_prop(self.vertices().next().unwrap()),
-                                               self.vertex_prop(0usize))
+        ds::unionfind::GenericUnionFind::new_with_all(self.vertices(),
+                                                      self.vertex_prop(self.vertices()
+                                                                           .next()
+                                                                           .unwrap()),
+                                                      self.vertex_prop(0usize))
     }
 }
 
