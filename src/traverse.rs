@@ -97,57 +97,89 @@ pub trait Traverser<'a, G>: Sized
     }
 }
 
+use std;
+const WHITE: usize = std::usize::MAX;
+const BLACK: usize = std::usize::MAX - 1;
 
-// FIXME: To initialize Dfs and Bfs is necessary O(V + E). Some uses of dfs and bfs stop
-// traversing before visiting all vertices and edges. Ideally the running time and space
-// should be proportional to the number of visited vertices and edges.
-
-
-// Dfs
-
-pub struct Dfs<'a, G>
+pub struct State<'a, G>
     where G: 'a + Graph,
           &'a G: Types<G>
 {
     g: &'a G,
-    discovered: PropVertex<G, bool>,
-    examined: PropEdge<G, bool>,
+    // depth if opened, color if closed
+    depth: PropVertex<G, usize>,
 }
+
+impl<'a, G> State<'a, G>
+    where G: 'a + Graph,
+          &'a G: Types<G>,
+{
+    fn new(g: &'a G) -> Self {
+        State {
+            g: g,
+            depth: g.vertex_prop(WHITE)
+        }
+    }
+
+    fn open(&mut self, v: Vertex<G>) {
+        self.depth[v] = 0;
+    }
+
+    fn mark(&mut self, u: Vertex<G>, v: Vertex<G>) {
+        self.depth[v] = self.depth[u] + 1;
+    }
+
+    fn close(&mut self, v: Vertex<G>) {
+        self.depth[v] = BLACK;
+    }
+
+    fn is_back(&self, v: Vertex<G>, parent: Vertex<G>) -> bool {
+        self.depth[parent] < BLACK && self.depth[v] != self.depth[parent] + 1
+    }
+
+    fn is_discovered(&mut self, v: Vertex<G>) -> bool {
+        self.depth[v] != WHITE
+    }
+}
+
+
+// Dfs
+
+pub struct Dfs<'a, G>(State<'a, G>)
+    where G: 'a + Graph,
+          &'a G: Types<G>;
 
 impl<'a, G> Traverser<'a, G> for Dfs<'a, G>
     where G: 'a + Graph,
           &'a G: Types<G>,
 {
     fn new(g: &'a G) -> Self {
-        Dfs {
-            g: g,
-            discovered: g.vertex_prop(false),
-            examined: g.edge_prop(false),
-        }
+        Dfs(State::new(g))
     }
 
     fn is_discovered(&mut self, v: Vertex<G>) -> bool {
-        self.discovered[v]
+        self.0.is_discovered(v)
     }
 
     fn traverse<V: Visitor<G>>(&mut self, v: Vertex<G>, vis: &mut V) -> bool {
-        let mut stack: Vec<(_, IterInc<'a, _>)> = vec![(v, self.g.inc_edges(v))];
-        self.discovered[v] = true;
-        while let Some((u, mut inc)) = stack.pop() {
+        let s = &mut self.0;
+        let mut stack = Vec::with_capacity(self.0.g.num_edges() / 2);
+        stack.push((v, s.g.inc_edges(v)));
+        s.open(v);
+        'out: while let Some((u, mut inc)) = stack.pop() {
             while let Some(e) = inc.next() {
-                let v = self.g.target(e);
-                if !self.discovered[v] {
+                let v = s.g.target(e);
+                if !s.is_discovered(v) {
                     return_if_false!(vis.visit_tree_edge(e));
-                    self.discovered[v] = true;
-                    self.examined[e] = true;
+                    s.mark(u, v);
                     stack.push((u, inc));
-                    stack.push((v, self.g.inc_edges(v)));
-                    break;
-                } else if !self.examined[e] {
-                    self.examined[e] = true;
+                    stack.push((v, s.g.inc_edges(v)));
+                    continue 'out;
+                } else if s.is_back(u, v) {
                     return_if_false!(vis.visit_back_edge(e));
                 }
             }
+            s.close(u);
         }
         true
     }
@@ -156,48 +188,39 @@ impl<'a, G> Traverser<'a, G> for Dfs<'a, G>
 
 // Bfs
 
-pub struct Bfs<'a, G>
+pub struct Bfs<'a, G>(State<'a, G>)
     where G: 'a + Graph,
-          &'a G: Types<G>
-{
-    g: &'a G,
-    discovered: PropVertex<G, bool>,
-    examined: PropEdge<G, bool>,
-}
+          &'a G: Types<G>;
 
 impl<'a, G> Traverser<'a, G> for Bfs<'a, G>
     where G: 'a + Graph,
           &'a G: Types<G>,
 {
     fn new(g: &'a G) -> Self {
-        Bfs {
-            g: g,
-            discovered: g.vertex_prop(false),
-            examined: g.edge_prop(false),
-        }
+        Bfs(State::new(g))
     }
 
     fn is_discovered(&mut self, v: Vertex<G>) -> bool {
-        self.discovered[v]
+        self.0.is_discovered(v)
     }
 
     fn traverse<V: Visitor<G>>(&mut self, v: Vertex<G>, vis: &mut V) -> bool {
-        let mut queue = VecDeque::new();
+        let mut s = &mut self.0;
+        let mut queue = VecDeque::with_capacity(self.0.g.num_vertices() / 2);
         queue.push_back(v);
-        self.discovered[v] = true;
+        s.open(v);
         while let Some(u) = queue.pop_front() {
-            for e in self.g.inc_edges(u) {
-                let v = self.g.target(e);
-                if !self.discovered[v] {
+            for e in s.g.inc_edges(u) {
+                let v = s.g.target(e);
+                if !s.is_discovered(v) {
                     return_if_false!(vis.visit_tree_edge(e));
-                    self.examined[e] = true;
-                    self.discovered[v] = true;
+                    s.mark(u, v);
                     queue.push_back(v);
-                } else if !self.examined[e] {
-                    self.examined[e] = true;
+                } else if s.is_back(u, v) {
                     return_if_false!(vis.visit_back_edge(e));
                 }
             }
+            s.close(u);
         }
         true
     }
@@ -231,8 +254,11 @@ impl<G> DfsParent for G where G: Graph { }
 mod tests {
     use graph::*;
     use static_::*;
+    use builder::WithBuilder;
     use ds::IteratorExt;
     use traverse::*;
+    use rand::{SeedableRng, StdRng};
+    use test::Bencher;
 
     fn new() -> StaticGraph {
         StaticGraph::new_with_edges(7,
@@ -309,10 +335,11 @@ mod tests {
     fn dfs_start_visitor() {
         let g = new();
         let mut start = vec![];
-        Dfs::run(&g, &mut StartVertexVisitor(|v| {
-            start.push(v);
-            true
-        }));
+        Dfs::run(&g,
+                 &mut StartVertexVisitor(|v| {
+                     start.push(v);
+                     true
+                 }));
         let v = g.vertices().into_vec();
         assert_eq!(vec![v[0], v[4]], start);
     }
@@ -350,7 +377,7 @@ mod tests {
         Bfs::run(&g, &mut vis);
 
         assert_eq!(vec![None, Some(0), Some(0), Some(1), None, Some(4), Some(4)],
-                   vis.parent);
+        vis.parent);
 
         assert_eq!(vec![0, 1, 1, 2, 0, 1, 1], vis.d);
 
@@ -362,10 +389,11 @@ mod tests {
     fn bfs_start_visitor() {
         let g = new();
         let mut start = vec![];
-        Bfs::run(&g, &mut StartVertexVisitor(|v| {
-            start.push(v);
-            true
-        }));
+        Bfs::run(&g,
+                 &mut StartVertexVisitor(|v| {
+                     start.push(v);
+                     true
+                 }));
         let v = g.vertices().into_vec();
         assert_eq!(vec![v[0], v[4]], start);
     }
@@ -394,5 +422,33 @@ mod tests {
                  }));
         let e = g.edges().into_vec();
         assert_eq!(vec![e[2], e[4]], edges);
+    }
+
+    fn bench_traverser<'a, T>(b: &mut Bencher, g: &'a StaticGraph)
+        where T: Traverser<'a, StaticGraph>,
+              {
+                  b.iter(|| {
+                      T::run(&g, &mut TreeEdgeVisitor(|_| true));
+                  });
+              }
+
+    #[bench]
+    fn bench_dfs_complete(b: &mut Bencher) {
+        bench_traverser::<Dfs<_>>(b, &StaticGraph::complete(100));
+    }
+
+    #[bench]
+    fn bench_dfs_tree(b: &mut Bencher) {
+        bench_traverser::<Dfs<_>>(b, &StaticGraph::tree(100, &mut StdRng::from_seed(&[123])));
+    }
+
+    #[bench]
+    fn bench_bfs_complete(b: &mut Bencher) {
+        bench_traverser::<Bfs<_>>(b, &StaticGraph::complete(100));
+    }
+
+    #[bench]
+    fn bench_bfs_tree(b: &mut Bencher) {
+        bench_traverser::<Bfs<_>>(b, &StaticGraph::tree(100, &mut StdRng::from_seed(&[123])));
     }
 }

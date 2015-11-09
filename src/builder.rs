@@ -1,5 +1,8 @@
 use graph::*;
 
+use rand::Rng;
+use rand::distributions::{IndependentSample, Range};
+
 pub trait Builder: Sized {
     type Graph: Basic;
 
@@ -22,6 +25,10 @@ pub trait WithBuilder: Basic {
     fn complete_binary_tree(height: u32) -> Self {
         complete_binary_tree::<Self>(height).finalize()
     }
+
+    fn tree<R: Rng>(n: usize, rng: &mut R) -> Self {
+        tree::<Self, _>(n, rng).finalize()
+    }
 }
 
 pub fn complete<G: WithBuilder>(n: usize) -> G::Builder {
@@ -37,12 +44,39 @@ pub fn complete<G: WithBuilder>(n: usize) -> G::Builder {
     b
 }
 
-fn complete_binary_tree<G: WithBuilder>(height: u32) -> G::Builder {
+pub fn complete_binary_tree<G: WithBuilder>(height: u32) -> G::Builder {
     let num_vertices = 2usize.pow(height + 1) - 1;
     let mut b = G::builder(num_vertices, num_vertices - 1);
     for i in 0..2usize.pow(height) - 1 {
         b.add_edge(i, 2 * i + 1);
         b.add_edge(i, 2 * i + 2);
+    }
+    b
+}
+
+pub fn tree<G, R>(n: usize, rng: &mut R) -> G::Builder
+    where G: WithBuilder,
+          R: Rng,
+{
+    if n == 0 {
+        return G::builder(0, 0);
+    }
+    let range = Range::new(0, n);
+    let mut b = G::builder(n, n - 1);
+    let mut visited = vec![false; n];
+    let mut num_edges = 0;
+    let mut u = range.ind_sample(rng);
+    visited[u] = true;
+    while num_edges + 1 < n {
+        let v = range.ind_sample(rng);
+        if visited[v] {
+            u = v;
+        } else {
+            num_edges += 1;
+            visited[v] = true;
+            b.add_edge(u, v);
+            u = v;
+        }
     }
     b
 }
@@ -57,6 +91,7 @@ mod tests {
     use static_::*;
     use ds::IteratorExt;
     use props::*;
+    use rand::{SeedableRng, StdRng};
 
     #[test]
     fn test_complete() {
@@ -71,6 +106,7 @@ mod tests {
             assert_eq!(e, g.num_edges());
         }
     }
+
     #[test]
     fn test_complete_binary_tree() {
         let g = StaticGraph::complete_binary_tree(0);
@@ -91,6 +127,16 @@ mod tests {
             }
             for v in (g.num_vertices() / 2)..g.num_vertices() {
                 assert_eq!(1, g.degree(v));
+            }
+        }
+    }
+
+    #[test]
+    fn test_tree() {
+        let mut rng = StdRng::from_seed(&[123]);
+        for n in 0..100 {
+            for _ in 0..10 {
+                assert!(StaticGraph::tree(n, &mut rng).is_tree());
             }
         }
     }

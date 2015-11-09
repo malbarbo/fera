@@ -1,5 +1,9 @@
+#![cfg_attr(test, feature(test))]
 
+#[cfg(test)]
+extern crate test;
 extern crate rand;
+
 #[macro_use]
 extern crate ds;
 
@@ -8,18 +12,11 @@ extern crate ds;
 pub mod tests;
 
 pub mod graph;
-
 pub mod subgraph;
-
 pub mod static_;
-
 pub mod builder;
-pub use builder::*;
-
 pub mod choose;
-
 pub mod iter;
-
 pub mod kruskal;
 pub mod path;
 pub mod props;
