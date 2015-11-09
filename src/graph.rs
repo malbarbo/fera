@@ -136,6 +136,11 @@ pub trait WithProps<T: Clone>: Basic {
     fn edge_prop(&self, value: T) -> PropEdge<Self, T>;
 }
 
+#[macro_export]
+macro_rules! items {
+    ($($item:item)*) => ($($item)*);
+}
+
 macro_rules! basic_props1 {
     ($($t1:ty),* ; $($t2:ty),* ) => (
         items! {

@@ -1,19 +1,3 @@
-// https://stackoverflow.com/questions/30291584/macro-for-defining-trait-aliases
-
-#[macro_export]
-macro_rules! items {
-    ($($item:item)*) => ($($item)*);
-}
-
-#[macro_export]
-macro_rules! trait_alias {
-    ($name:ident : $($base:tt)+) => {
-        items! {
-            pub trait $name: $($base)+ { }
-            impl<T> $name for T where T: $($base)+ { }
-        }
-    };
-}
 
 extern crate rand;
 #[macro_use]
