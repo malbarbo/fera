@@ -25,6 +25,7 @@ pub mod unionfind;
 
 pub mod prelude {
     pub use graph::*;
+    pub use subgraph::*;
     pub use builder::WithBuilder;
     pub use static_::*;
     pub use iter::*;

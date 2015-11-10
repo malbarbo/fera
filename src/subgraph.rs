@@ -1,5 +1,6 @@
 use graph::*;
 use choose::Choose;
+use ds::IteratorExt;
 use std::iter::Cloned;
 use std::slice::Iter;
 use rand::Rng;
@@ -114,21 +115,42 @@ impl<'a, G> Choose for Subgraph<'a, G>
 }
 
 
-impl<'a, G> Subgraph<'a, G>
-    where G: 'a + Graph,
-          &'a G: Types<G>,
+pub trait WithSubgraph: Graph
+    where for<'a> &'a Self: Types<Self>
 {
-    // TODO: add subgraph methos on Basic
-    pub fn new<I>(g: &'a G, edges_iter: I) -> Subgraph<'a, G>
-        where I: Iterator<Item = Edge<G>>
+    fn spanning_subgraph<I>(&self, edges_iter: I) -> Subgraph<Self>
+        where I: Iterator<Item = Edge<Self>>
     {
-        let mut vin = g.vertex_prop(false);
+        let vertices = self.vertices().into_vec();
+        let mut edges = vec![];
+        // TODO: why x is necessary?
+        let x: VecEdge<Self> = Vec::with_capacity(3);
+        let mut inc = self.vertex_prop(x);
+        for e in edges_iter {
+            let (u, v) = self.endvertices(e);
+            edges.push(e);
+            inc[u].push(e);
+            inc[v].push(self.reverse(e));
+        }
+
+        Subgraph {
+            g: self,
+            vertices: vertices,
+            edges: edges,
+            inc: inc,
+        }
+    }
+
+    fn edge_induced_subgraph<I>(&self, edges_iter: I) -> Subgraph<Self>
+        where I: Iterator<Item = Edge<Self>>
+    {
+        let mut vin = self.vertex_prop(false);
         let mut vertices = vec![];
         let mut edges = vec![];
-        let x: VecEdge<G> = vec![];
-        let mut inc = g.vertex_prop(x);
+        let x: VecEdge<Self> = Vec::with_capacity(3);
+        let mut inc = self.vertex_prop(x);
         for e in edges_iter {
-            let (u, v) = g.endvertices(e);
+            let (u, v) = self.endvertices(e);
             if !vin[u] {
                 vin[u] = true;
                 vertices.push(u);
@@ -140,16 +162,27 @@ impl<'a, G> Subgraph<'a, G>
 
             edges.push(e);
             inc[u].push(e);
-            inc[v].push(g.reverse(e));
+            inc[v].push(self.reverse(e));
         }
 
         Subgraph {
-            g: g,
+            g: self,
             vertices: vertices,
             edges: edges,
             inc: inc,
         }
     }
+
+    fn induced_subgraph<I>(&self, _vertex_iter: I) -> Subgraph<Self>
+        where I: Iterator<Item = Vertex<Self>>
+    {
+        unimplemented!()
+    }
+
 }
+
+impl<G> WithSubgraph for G
+    where G: Graph,
+          for<'a> &'a G: Types<G> { }
 
 // TODO: write tests
