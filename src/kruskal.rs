@@ -1,5 +1,6 @@
 use graph::*;
 use ds::IteratorExt;
+use ds::collections::Collection;
 use unionfind::WithUnionFind;
 
 #[derive(PartialEq, Eq)]
@@ -43,14 +44,15 @@ pub trait Kruskal: Graph {
         }
     }
 
-    fn kruskal_with_edges_collect<'a, I>(&'a self, edges: I) -> VecEdge<Self>
+    fn kruskal_with_edges_collect_to<'a, I, C>(&'a self, edges: I, mut tree: C) -> C
         where &'a Self: Types<Self>,
-              I: Iterator<Item = Edge<Self>>
+              I: Iterator<Item = Edge<Self>>,
+              C: Collection<Edge<Self>>,
     {
-        let mut tree = vec![];
+        tree.ensure_capacity(self.num_vertices() - 1);
         self.kruskal_with_edges(edges,
                                 &mut |e| {
-                                    tree.push(e);
+                                    tree.add(e);
                                     Accept::Yes
                                 });
         tree
