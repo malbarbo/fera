@@ -24,6 +24,9 @@ impl<F, G> Visitor<G> for F
     }
 }
 
+// TODO: Allow an UnionFind as parameter, so the kruskal algorithm can be
+// executed in more than on step
+
 pub trait Kruskal: Graph {
     fn kruskal_with_edges<'a, I, V>(&'a self, edges: I, visitor: &mut V)
         where &'a Self: Types<Self>,
@@ -49,6 +52,8 @@ pub trait Kruskal: Graph {
               I: Iterator<Item = Edge<Self>>,
               C: Collection<Edge<Self>>,
     {
+        // TODO: Create a CollectorVisitor struct an make it implement Visitor,
+        // so this function can be removed
         tree.ensure_capacity(self.num_vertices() - 1);
         self.kruskal_with_edges(edges,
                                 &mut |e| {
@@ -74,6 +79,7 @@ pub trait Kruskal: Graph {
               Self: WithProps<T>,
               T: 'a + PartialOrd + Clone
     {
+        // TODO: Use CollectorVisitor
         let mut tree = vec![];
         self.kruskal::<T, _>(weight,
                              &mut |e| {

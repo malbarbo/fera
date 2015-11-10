@@ -14,6 +14,7 @@ use rand::Rng;
 #[derive(Copy, Clone, Debug)]
 pub struct StaticEdge(usize);
 
+// TODO: Document the representation of StaticEdge
 impl StaticEdge {
     fn new(e: usize) -> StaticEdge {
         StaticEdge(2 * e + 1)
@@ -76,6 +77,9 @@ impl<T> IndexMut<StaticEdge> for PropStaticEdge<T> {
     }
 }
 
+// TODO: Define StaticVertex struct
+// TODO: Allow the num type of StaticEdge and StaticVertex to be specified.
+// TODO: Define a feature to disable property bounds check for vertex and edge property.
 
 // StaticGraph
 

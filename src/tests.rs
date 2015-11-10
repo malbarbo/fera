@@ -1,6 +1,8 @@
 pub use ds::{Map1, IteratorExt, VecExt};
 pub use iter::IteratorGraphExt;
 
+// TODO: Rewrite tests using Builder
+
 macro_rules! create_case {
     ($B:ident) => {
         $B::new(5, &[(0, 1), (0, 2), (1, 2), (1, 3)])

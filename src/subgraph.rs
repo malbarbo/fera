@@ -5,6 +5,8 @@ use std::iter::Cloned;
 use std::slice::Iter;
 use rand::Rng;
 
+// TODO: Allow a subgraph be reused
+
 #[derive(Clone)]
 pub struct Subgraph<'a, G>
     where G: 'a + Graph,
@@ -176,6 +178,7 @@ pub trait WithSubgraph: Graph
     fn induced_subgraph<I>(&self, _vertex_iter: I) -> Subgraph<Self>
         where I: Iterator<Item = Vertex<Self>>
     {
+        // TODO: implement
         unimplemented!()
     }
 

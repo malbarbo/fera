@@ -69,6 +69,8 @@ macro_rules! break_if_false {
 }
 
 
+// TODO: Allow a Traverser to be reused
+
 // Traversers
 
 pub trait Traverser<'a, G>: Sized

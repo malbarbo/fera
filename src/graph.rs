@@ -16,6 +16,7 @@ impl<G, T> Types<G> for T
     where G: Graph,
           T: IterTypes<G> { }
 
+// TODO: Define traits for all Basic associated types
 
 // Aliases
 
@@ -76,6 +77,8 @@ pub trait IterTypes<G: Basic> {
     type Vertex: Iterator<Item=Vertex<G>>;
     type Edge: Iterator<Item=Edge<G>>;
     type Inc: Iterator<Item=Edge<G>>;
+    // TODO: Define OptionVertex and OptionEdge trait and allow specific implementation.
+    // StaticGraph could use usize::MAX as None, making it faster tem Option<Vertex> enum.
 }
 
 pub trait Basic: Sized {
