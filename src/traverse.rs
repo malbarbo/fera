@@ -236,10 +236,12 @@ pub trait DfsParent: Graph {
     {
         let none: OptionEdge<Self> = None;
         let mut parent = self.vertex_prop(none);
+        let mut num_edges = 0;
         Dfs::run(self,
                  &mut TreeEdgeVisitor(|e| {
                      parent[self.target(e)] = Some(self.reverse(e));
-                     true
+                     num_edges += 1;
+                     num_edges + 1 != self.num_vertices()
                  }));
         parent
     }
