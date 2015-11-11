@@ -9,7 +9,7 @@ pub trait Choose: Basic {
         where R: Rng,
               F: FnMut(Vertex<Self>) -> bool
     {
-        choose(|| Choose::choose_vertex(self, rng), fun)
+        choose(|| self.choose_vertex(rng), fun)
     }
 
     fn choose_edge<R>(&self, rng: &mut R) -> Edge<Self> where R: Rng;
@@ -18,7 +18,7 @@ pub trait Choose: Basic {
         where R: Rng,
               F: FnMut(Edge<Self>) -> bool
     {
-        choose(|| Choose::choose_edge(self, rng), fun)
+        choose(|| self.choose_edge(rng), fun)
     }
 
     fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self> where R: Rng;
@@ -27,9 +27,20 @@ pub trait Choose: Basic {
         where R: Rng,
               F: FnMut(Edge<Self>) -> bool
     {
-        choose(|| Choose::choose_inc_edge(self, rng, v), fun)
+        choose(|| self.choose_inc_edge(rng, v), fun)
     }
 
+    fn choose_neighbor<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Vertex<Self> where R: Rng {
+        self.target(self.choose_inc_edge(rng, v))
+    }
+
+    fn choose_neighbor_if<R, F>(&self, rng: &mut R, v: Vertex<Self>, fun: &mut F) -> Vertex<Self>
+        where R: Rng,
+              F: FnMut(Vertex<Self>) -> bool
+    {
+        let e = self.choose_inc_edge_if(rng, v, &mut |e| fun(self.target(e)));
+        self.target(e)
+    }
 }
 
 fn choose<Y: Copy, G: FnMut() -> Y, F: FnMut(Y) -> bool>(mut gen: G, fun: &mut F) -> Y {
