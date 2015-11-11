@@ -85,8 +85,15 @@ pub trait Traverser<'a, G>: Sized
 
     // TODO: should this return the visitor?
     fn run<V: Visitor<G>>(g: &'a G, vis: &mut V) {
+        Self::run_with_vertices(g, g.vertices(), vis);
+    }
+
+    fn run_with_vertices<I, V>(g: &'a G, vertices: I, vis: &mut V)
+        where I: Iterator<Item = Vertex<G>>,
+              V: Visitor<G>
+    {
         let mut t = Self::new(g);
-        for v in g.vertices() {
+        for v in vertices {
             if !t.is_discovered(v) {
                 break_if_false!(vis.visit_start_vertex(v));
                 break_if_false!(t.traverse(v, vis));
