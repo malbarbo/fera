@@ -1,6 +1,6 @@
-#![cfg_attr(test, feature(test))]
+#![cfg_attr(all(feature = "unstable", test), feature(test))]
 
-#[cfg(test)]
+#[cfg(all(feature = "unstable", test))]
 extern crate test;
 extern crate rand;
 
@@ -27,7 +27,7 @@ pub mod unionfind;
 
 pub mod prelude {
     pub use graph::*;
-    pub use subgraph::*;
+    pub use subgraph::{Subgraph, WithSubgraph};
     pub use builder::WithBuilder;
     pub use static_::*;
     pub use iter::*;

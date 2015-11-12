@@ -265,11 +265,8 @@ impl<G> DfsParent for G where G: Graph { }
 mod tests {
     use graph::*;
     use static_::*;
-    use builder::WithBuilder;
     use ds::IteratorExt;
     use traverse::*;
-    use rand::{SeedableRng, StdRng};
-    use test::Bencher;
 
     fn new() -> StaticGraph {
         StaticGraph::new_with_edges(7,
@@ -434,6 +431,15 @@ mod tests {
         let e = g.edges().into_vec();
         assert_eq!(vec![e[2], e[4]], edges);
     }
+}
+
+#[cfg(all(feature = "unstable", test))]
+mod benchs {
+    use static_::*;
+    use builder::WithBuilder;
+    use traverse::*;
+    use rand::{SeedableRng, StdRng};
+    use test::Bencher;
 
     fn bench_traverser<'a, T>(b: &mut Bencher, g: &'a StaticGraph)
         where T: Traverser<'a, StaticGraph>,
