@@ -120,17 +120,12 @@ impl<'a, G> Choose for Subgraph<'a, G>
 pub trait WithSubgraph: Graph
     where for<'a> &'a Self: Types<Self>
 {
-    fn spanning_subgraph<I>(&self, edges_iter: I) -> Subgraph<Self>
-        where I: Iterator<Item = Edge<Self>>
-    {
+    fn spanning_subgraph(&self, edges: VecEdge<Self>) -> Subgraph<Self> {
+        // TODO: do not copy vertices
         let vertices = self.vertices().into_vec();
-        let mut edges = vec![];
-        // TODO: why x is necessary?
-        let x: VecEdge<Self> = Vec::with_capacity(3);
-        let mut inc = self.vertex_prop(x);
-        for e in edges_iter {
+        let mut inc = self.vertex_prop(Vec::<Edge<Self>>::new());
+        for &e in &edges {
             let (u, v) = self.endvertices(e);
-            edges.push(e);
             inc[u].push(e);
             inc[v].push(self.reverse(e));
         }
@@ -143,15 +138,11 @@ pub trait WithSubgraph: Graph
         }
     }
 
-    fn edge_induced_subgraph<I>(&self, edges_iter: I) -> Subgraph<Self>
-        where I: Iterator<Item = Edge<Self>>
-    {
+    fn edge_induced_subgraph(&self, edges: VecEdge<Self>) -> Subgraph<Self> {
         let mut vin = self.vertex_prop(false);
         let mut vertices = vec![];
-        let mut edges = vec![];
-        let x: VecEdge<Self> = Vec::with_capacity(3);
-        let mut inc = self.vertex_prop(x);
-        for e in edges_iter {
+        let mut inc = self.vertex_prop(Vec::<Edge<Self>>::new());
+        for &e in &edges {
             let (u, v) = self.endvertices(e);
             if !vin[u] {
                 vin[u] = true;
@@ -162,7 +153,6 @@ pub trait WithSubgraph: Graph
                 vertices.push(v);
             }
 
-            edges.push(e);
             inc[u].push(e);
             inc[v].push(self.reverse(e));
         }
@@ -175,17 +165,83 @@ pub trait WithSubgraph: Graph
         }
     }
 
-    fn induced_subgraph<I>(&self, _vertex_iter: I) -> Subgraph<Self>
-        where I: Iterator<Item = Vertex<Self>>
-    {
-        // TODO: implement
-        unimplemented!()
-    }
+    fn induced_subgraph(&self, vertices: VecVertex<Self>) -> Subgraph<Self> {
+        let mut edges = vec![];
+        let mut inc = self.vertex_prop(Vec::<Edge<Self>>::new());
+        for &u in &vertices {
+            for e in self.inc_edges(u) {
+                let v = self.target(e);
+                // TODO: URGENT this running time is terrible, improve
+                if vertices.contains(&v) {
+                    inc[u].push(e);
+                    if !edges.contains(&e) {
+                        edges.push(e);
+                    }
+                }
+            }
+        }
 
+        Subgraph {
+            g: self,
+            vertices: vertices,
+            edges: edges,
+            inc: inc,
+        }
+    }
 }
 
 impl<G> WithSubgraph for G
     where G: Graph,
           for<'a> &'a G: Types<G> { }
 
-// TODO: write tests
+
+// TODO: write benchs and optimize
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use graph::*;
+    use static_::*;
+    use ds::IteratorExt;
+
+    fn new_graph() -> (StaticGraph, StaticEdge, StaticEdge, StaticEdge, StaticEdge) {
+        let g = StaticGraph::new_with_edges(5, &[(0, 1), (0, 2), (1, 2), (3, 4)]);
+        let e = g.edges().into_vec();
+        (g, e[0], e[1], e[2], e[3])
+    }
+
+    #[test]
+    fn test_spanning_subgraph() {
+        let (g, _, e02, e12, _) = new_graph();
+        let s = g.spanning_subgraph(vec![e02, e12]);
+        assert_eq!(vec![0, 1, 2, 3, 4], s.vertices().into_vec());
+        assert_eq!(set![e02, e12], s.edges().into_set());
+        assert_eq!(set![e02], s.inc_edges(0).into_set());
+        assert_eq!(set![e12], s.inc_edges(1).into_set());
+        assert_eq!(set![e02, e12], s.inc_edges(2).into_set());
+        assert_eq!(set![], s.inc_edges(3).into_set());
+        assert_eq!(set![], s.inc_edges(4).into_set());
+    }
+
+    #[test]
+    fn test_edge_induced_subgraph() {
+        let (g, e01, e02, _, _) = new_graph();
+        let s = g.edge_induced_subgraph(vec![e01, e02]);
+        assert_eq!(set![0, 1, 2], s.vertices().into_set());
+        assert_eq!(set![e01, e02], s.edges().into_set());
+        assert_eq!(set![e01, e02], s.inc_edges(0).into_set());
+        assert_eq!(set![e01], s.inc_edges(1).into_set());
+        assert_eq!(set![e02], s.inc_edges(2).into_set());
+    }
+
+    #[test]
+    fn test_induced_subgraph() {
+        let (g, e01, e02, e12, _) = new_graph();
+        let s = g.induced_subgraph(vec![0, 1, 2]);
+        assert_eq!(set![0, 1, 2], s.vertices().into_set());
+        assert_eq!(set![e01, e02, e12], s.edges().into_set());
+        assert_eq!(set![e01, e02], s.inc_edges(0).into_set());
+        assert_eq!(set![e01, e12], s.inc_edges(1).into_set());
+        assert_eq!(set![e02, e12], s.inc_edges(2).into_set());
+    }
+}
