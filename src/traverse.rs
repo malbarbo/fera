@@ -126,7 +126,7 @@ impl<'a, G> State<'a, G>
     fn new(g: &'a G) -> Self {
         State {
             g: g,
-            depth: g.vertex_prop(WHITE)
+            depth: g.vertex_prop(WHITE),
         }
     }
 
@@ -331,12 +331,12 @@ mod tests {
         Dfs::run(&g, &mut vis);
 
         assert_eq!(vec![None, Some(0), Some(1), Some(2), None, Some(4), Some(5)],
-                   vis.parent);
+                   vis.parent.to_vec());
 
-        assert_eq!(vec![0, 1, 2, 3, 0, 1, 2], vis.d);
+        assert_eq!(vec![0, 1, 2, 3, 0, 1, 2], vis.d.to_vec());
 
         assert_eq!(vec![TREE, BACK, TREE, BACK, TREE, TREE, BACK, TREE],
-                   vis.edge_type.0);
+                   vis.edge_type.to_vec());
     }
 
     #[test]
@@ -385,12 +385,12 @@ mod tests {
         Bfs::run(&g, &mut vis);
 
         assert_eq!(vec![None, Some(0), Some(0), Some(1), None, Some(4), Some(4)],
-        vis.parent);
+                   vis.parent.to_vec());
 
-        assert_eq!(vec![0, 1, 1, 2, 0, 1, 1], vis.d);
+        assert_eq!(vec![0, 1, 1, 2, 0, 1, 1], vis.d.to_vec());
 
         assert_eq!(vec![TREE, TREE, BACK, TREE, BACK, TREE, TREE, BACK],
-                   vis.edge_type.0);
+                   vis.edge_type.to_vec());
     }
 
     #[test]
@@ -442,12 +442,12 @@ mod benchs {
     use test::Bencher;
 
     fn bench_traverser<'a, T>(b: &mut Bencher, g: &'a StaticGraph)
-        where T: Traverser<'a, StaticGraph>,
-              {
-                  b.iter(|| {
-                      T::run(&g, &mut TreeEdgeVisitor(|_| true));
-                  });
-              }
+        where T: Traverser<'a, StaticGraph>
+    {
+        b.iter(|| {
+            T::run(&g, &mut TreeEdgeVisitor(|_| true));
+        });
+    }
 
     #[bench]
     fn bench_dfs_complete(b: &mut Bencher) {

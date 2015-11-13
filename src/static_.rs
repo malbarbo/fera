@@ -1,5 +1,5 @@
 use graph::*;
-use ds::IteratorExt;
+use ds::{IteratorExt, VecExt};
 use builder::{Builder, WithBuilder};
 use choose::Choose;
 use std::iter::{Cloned, Map};
@@ -11,7 +11,7 @@ use rand::Rng;
 
 // StaticEdge
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Eq)]
 pub struct StaticEdge(usize);
 
 // TODO: Document the representation of StaticEdge
@@ -39,8 +39,6 @@ impl PartialEq<StaticEdge> for StaticEdge {
     }
 }
 
-impl Eq for StaticEdge { }
-
 impl PartialOrd for StaticEdge {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         self.to_index().partial_cmp(&other.to_index())
@@ -64,6 +62,21 @@ impl Hash for StaticEdge {
 #[derive(Clone, Debug)]
 pub struct PropStaticEdge<T>(pub Vec<T>);
 
+impl<T> PropStaticEdge<T> {
+    fn with_value(v: T, len: usize) -> Self where T: Clone {
+        PropStaticEdge(vec![v; len])
+    }
+}
+
+use std::ops::Deref;
+
+impl<T> Deref for PropStaticEdge<T> {
+    type Target = Vec<T>;
+    fn deref(&self) -> &Vec<T> {
+        &self.0
+    }
+}
+
 impl<T> Index<StaticEdge> for PropStaticEdge<T> {
     type Output = T;
     fn index(&self, index: StaticEdge) -> &Self::Output {
@@ -77,6 +90,9 @@ impl<T> IndexMut<StaticEdge> for PropStaticEdge<T> {
     }
 }
 
+pub type StaticVertex = usize;
+pub type PropStaticVertex<T> = Vec<T>;
+
 // TODO: Define StaticVertex struct
 // TODO: Allow the num type of StaticEdge and StaticVertex to be specified.
 // TODO: Define a feature to disable property bounds check for vertex and edge property.
@@ -86,12 +102,12 @@ impl<T> IndexMut<StaticEdge> for PropStaticEdge<T> {
 #[derive(Clone)]
 pub struct StaticGraph {
     num_vertices: usize,
-    endvertices: Vec<usize>,
+    endvertices: Vec<StaticVertex>,
     inc: Vec<Vec<StaticEdge>>,
 }
 
 impl StaticGraph {
-    pub fn new_with_edges(num_vertices: usize, edges: &[(usize, usize)]) -> StaticGraph {
+    pub fn new_with_edges(num_vertices: usize, edges: &[(StaticVertex, StaticVertex)]) -> StaticGraph {
         let mut builder = StaticGraph::builder(num_vertices, edges.len());
         for &(u, v) in edges {
             builder.add_edge(u, v)
@@ -150,14 +166,14 @@ impl Builder for StaticGraphBuilder {
 
 
 impl<'a> IterTypes<StaticGraph> for &'a StaticGraph {
-    type Vertex = Range<usize>;
-    type Edge = Map<Range<usize>, fn(usize) -> StaticEdge>;
+    type Vertex = Range<StaticVertex>;
+    type Edge = Map<Range<StaticVertex>, fn(StaticVertex) -> StaticEdge>;
     type Inc = Cloned<Iter<'a, StaticEdge>>;
 }
 
 
 impl Basic for StaticGraph {
-    type Vertex = usize;
+    type Vertex = StaticVertex;
     type Edge = StaticEdge;
 
     fn num_vertices(&self) -> usize {
@@ -205,16 +221,16 @@ impl Basic for StaticGraph {
     }
 }
 
-impl<T: Clone> WithProps<T> for StaticGraph {
-    type Vertex = Vec<T>;
+impl<T: 'static + Clone> WithProps<T> for StaticGraph {
+    type Vertex = PropStaticVertex<T>;
     type Edge = PropStaticEdge<T>;
 
     fn vertex_prop(&self, value: T) -> PropVertex<Self, T> {
-        vec![value; self.num_vertices()]
+        PropStaticVertex::with_value(value, self.num_vertices())
     }
 
     fn edge_prop(&self, value: T) -> PropEdge<Self, T> {
-        PropStaticEdge(vec![value; self.num_edges()])
+        PropStaticEdge::with_value(value, self.num_edges())
     }
 }
 
