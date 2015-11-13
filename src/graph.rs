@@ -14,11 +14,30 @@ pub mod traits {
 
     pub trait ToOption<T>: Clone {
         fn to_option(&self) -> Option<T>;
+        fn eq_some(&self, s: T) -> bool;
+        fn is_none(&self) -> bool;
+        fn is_some(&self) -> bool;
     }
 
-    impl<T: Clone> ToOption<T> for Option<T> {
+    impl<T: Clone + PartialEq> ToOption<T> for Option<T> {
+        #[inline(always)]
         fn to_option(&self) -> Option<T> {
             self.clone()
+        }
+
+        #[inline(always)]
+        fn eq_some(&self, s: T) -> bool {
+            *self == Some(s)
+        }
+
+        #[inline(always)]
+        fn is_none(&self) -> bool {
+            self.is_none()
+        }
+
+        #[inline(always)]
+        fn is_some(&self) -> bool {
+            self.is_some()
         }
     }
 }
