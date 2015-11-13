@@ -204,7 +204,13 @@ mod tests {
     use static_::*;
     use ds::IteratorExt;
 
-    fn new_graph() -> (StaticGraph, StaticEdge, StaticEdge, StaticEdge, StaticEdge) {
+    fn new_graph()
+        -> (StaticGraph,
+            Edge<StaticGraph>,
+            Edge<StaticGraph>,
+            Edge<StaticGraph>,
+            Edge<StaticGraph>)
+    {
         let g = StaticGraph::new_with_edges(5, &[(0, 1), (0, 2), (1, 2), (3, 4)]);
         let e = g.edges().into_vec();
         (g, e[0], e[1], e[2], e[3])

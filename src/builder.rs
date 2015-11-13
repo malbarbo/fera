@@ -120,13 +120,14 @@ mod tests {
 
         for h in 2..10 {
             let g = StaticGraph::complete_binary_tree(h);
+            let v = g.vertices().into_vec();
             assert!(g.is_tree());
             assert_eq!(2, g.degree(0));
-            for v in 1..g.num_vertices() / 2 - 1 {
-                assert_eq!(3, g.degree(v));
+            for i in 1..g.num_vertices() / 2 - 1 {
+                assert_eq!(3, g.degree(v[i]));
             }
-            for v in (g.num_vertices() / 2)..g.num_vertices() {
-                assert_eq!(1, g.degree(v));
+            for i in (g.num_vertices() / 2)..g.num_vertices() {
+                assert_eq!(1, g.degree(v[i]));
             }
         }
     }

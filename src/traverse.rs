@@ -300,7 +300,7 @@ mod tests {
     fn new_test_visitor(g: &StaticGraph) -> TestVisitor<StaticGraph> {
         TestVisitor {
             g: g,
-            parent: g.vertex_prop(StaticVertex::none()),
+            parent: g.vertex_prop(StaticGraph::vertex_none()),
             d: g.vertex_prop(0),
             edge_type: g.edge_prop(0),
         }
