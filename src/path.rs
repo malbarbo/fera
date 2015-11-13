@@ -1,4 +1,5 @@
 use graph::*;
+use graph::traits::*;
 use traverse::*;
 
 pub type Path<G> = VecEdge<G>;
@@ -17,7 +18,7 @@ pub trait FindPath: Graph {
         let mut v = v;
         let mut path = vec![];
         // TODO: detect loop
-        while let Some(e) = tree[v] {
+        while let Some(e) = tree[v].to_option() {
             v = self.source(e);
             path.push(e);
             if v == u {
@@ -35,13 +36,12 @@ pub trait FindPath: Graph {
             return None;
         }
         let mut found = false;
-        let none: OptionEdge<Self> = None;
-        let mut tree = self.vertex_prop(none);
+        let mut tree = self.vertex_prop(Self::edge_none());
         Dfs::run_start(self,
                        u,
                        &mut TreeEdgeVisitor(|e| {
                            let t = self.target(e);
-                           tree[t] = Some(e);
+                           tree[t] = e.to_some();
                            found = t == v;
                            !found
                        }));

@@ -1,8 +1,27 @@
 use ds::{IteratorExt, Map1};
 
-use std::hash::Hash;
 use std::ops::IndexMut;
-use std::fmt::Debug;
+
+pub mod traits {
+    use std::fmt::Debug;
+    use std::hash::Hash;
+
+    pub trait Item: Copy + Eq + Hash + Debug {
+        type Option: ToOption<Self>;
+        fn none() -> Self::Option;
+        fn to_some(&self) -> Self::Option;
+    }
+
+    pub trait ToOption<T>: Clone {
+        fn to_option(&self) -> Option<T>;
+    }
+
+    impl<T: Clone> ToOption<T> for Option<T> {
+        fn to_option(&self) -> Option<T> {
+            self.clone()
+        }
+    }
+}
 
 pub trait Graph: Basic + BasicProps { }
 
@@ -17,6 +36,10 @@ impl<G, T> Types<G> for T
           T: IterTypes<G> { }
 
 // TODO: Define traits for all Basic associated types
+// TODO: Define alias IteratorVertex<G> = Iterator<Item = Vertex<G>>;
+// TODO: Define alias IteratorEdge<G> = Iterator<Item = Edge<G>>;
+
+use self::traits::Item;
 
 // Aliases
 
@@ -33,8 +56,8 @@ pub type PropEdge<G, T> = <G as WithProps<T>>::Edge;
 pub type VecVertex<G> = Vec<Vertex<G>>;
 pub type VecEdge<G> = Vec<Edge<G>>;
 
-pub type OptionVertex<G> = Option<Vertex<G>>;
-pub type OptionEdge<G> = Option<Edge<G>>;
+pub type OptionVertex<G> = <<G as Basic>::Vertex as Item>::Option;
+pub type OptionEdge<G> = <<G as Basic>::Edge as Item>::Option;
 
 
 // Basic
@@ -82,8 +105,8 @@ pub trait IterTypes<G: Basic> {
 }
 
 pub trait Basic: Sized {
-    type Vertex: Copy + Eq + Hash + Debug;
-    type Edge: Copy + Eq + Hash + Debug;
+    type Vertex: Item;
+    type Edge: Item;
 
     // Vertices
 
@@ -91,12 +114,19 @@ pub trait Basic: Sized {
 
     fn vertices<'a>(&'a self) -> IterVertex<Self> where &'a Self: IterTypes<Self>;
 
+    fn vertex_none() -> OptionVertex<Self> {
+        Self::Vertex::none()
+    }
 
     // Edges
 
     fn num_edges(&self) -> usize;
 
     fn edges<'a>(&'a self) -> IterEdge<Self> where &'a Self: IterTypes<Self>;
+
+    fn edge_none() -> OptionEdge<Self> {
+        Self::Edge::none()
+    }
 
     fn source(&self, e: Edge<Self>) -> Vertex<Self>;
 
@@ -159,8 +189,8 @@ macro_rules! basic_props1 {
 macro_rules! basic_props2 {
     ($($t1:ty),* ; $($t2:ty),* ) => (
         basic_props1!{
-            $($t1),+ , $(Vec<$t1>),+ , $(Option<$t1>),+ ;
-            $($t2),+ , $(Vec<$t2>),+ , $(Option<$t2>),+
+            $($t1),+ , $(Vec<$t1>),+ ;
+            $($t2),+ , $(Vec<$t2>),+
         }
     )
 }
@@ -168,8 +198,8 @@ macro_rules! basic_props2 {
 macro_rules! basic_props {
     ($($ty:ty),*) => (
         basic_props2!{
-            Vertex<Self>, Edge<Self>, $($ty),+ ;
-            Vertex<G>, Edge<G>, $($ty),+
+            Vertex<Self>, Edge<Self>, OptionVertex<Self>, OptionEdge<Self>, $($ty),+ ;
+            Vertex<G>, Edge<G>, OptionVertex<G>, OptionEdge<G>, $($ty),+
         }
     )
 }

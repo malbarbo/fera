@@ -33,6 +33,18 @@ impl StaticEdge {
     }
 }
 
+impl traits::Item for StaticEdge {
+    type Option = Option<StaticEdge>;
+
+    fn none() -> Option<StaticEdge> {
+        None
+    }
+
+    fn to_some(&self) -> Option<StaticEdge> {
+        Some(*self)
+    }
+}
+
 impl PartialEq<StaticEdge> for StaticEdge {
     fn eq(&self, other: &StaticEdge) -> bool {
         self.to_index() == other.to_index()
@@ -92,6 +104,18 @@ impl<T> IndexMut<StaticEdge> for PropStaticEdge<T> {
 
 pub type StaticVertex = usize;
 pub type PropStaticVertex<T> = Vec<T>;
+
+impl traits::Item for usize {
+    type Option = Option<usize>;
+
+    fn none() -> Option<usize> {
+        None
+    }
+
+    fn to_some(&self) -> Option<usize> {
+        Some(*self)
+    }
+}
 
 // TODO: Define StaticVertex struct
 // TODO: Allow the num type of StaticEdge and StaticVertex to be specified.

@@ -1,4 +1,5 @@
 use graph::*;
+use graph::traits::Item;
 use std::collections::VecDeque;
 
 // Visitor
@@ -243,12 +244,11 @@ pub trait DfsParent: Graph {
     fn dfs_parent<'a>(&'a self) -> PropVertex<Self, OptionEdge<Self>>
         where &'a Self: Types<Self>
     {
-        let none: OptionEdge<Self> = None;
-        let mut parent = self.vertex_prop(none);
+        let mut parent = self.vertex_prop(Self::edge_none());
         let mut num_edges = 0;
         Dfs::run(self,
                  &mut TreeEdgeVisitor(|e| {
-                     parent[self.target(e)] = Some(self.reverse(e));
+                     parent[self.target(e)] = self.reverse(e).to_some();
                      num_edges += 1;
                      num_edges + 1 != self.num_vertices()
                  }));
@@ -264,6 +264,7 @@ impl<G> DfsParent for G where G: Graph { }
 #[cfg(test)]
 mod tests {
     use graph::*;
+    use graph::traits::Item;
     use static_::*;
     use ds::IteratorExt;
     use traverse::*;
@@ -299,7 +300,7 @@ mod tests {
     fn new_test_visitor(g: &StaticGraph) -> TestVisitor<StaticGraph> {
         TestVisitor {
             g: g,
-            parent: g.vertex_prop(None),
+            parent: g.vertex_prop(StaticVertex::none()),
             d: g.vertex_prop(0),
             edge_type: g.edge_prop(0),
         }
@@ -311,7 +312,7 @@ mod tests {
     {
         fn visit_tree_edge(&mut self, e: Edge<G>) -> bool {
             assert_eq!(0, self.edge_type[e]);
-            self.parent[self.g.target(e)] = Some(self.g.source(e));
+            self.parent[self.g.target(e)] = self.g.source(e).to_some();
             self.d[self.g.target(e)] = self.d[self.g.source(e)] + 1;
             self.edge_type[e] = TREE;
             true
