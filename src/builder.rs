@@ -10,6 +10,7 @@ pub trait Builder: Sized {
 
     fn finalize(self) -> Self::Graph;
 
+    // used ond tests
     fn finalize_(self) -> (Self::Graph, VecVertex<Self::Graph>, VecEdge<Self::Graph>);
 }
 
@@ -56,7 +57,7 @@ pub fn complete_binary_tree<G: WithBuilder>(height: u32) -> G::Builder {
 
 pub fn tree<G, R>(n: usize, rng: &mut R) -> G::Builder
     where G: WithBuilder,
-          R: Rng,
+          R: Rng
 {
     if n == 0 {
         return G::builder(0, 0);
@@ -92,6 +93,8 @@ mod tests {
     use ds::IteratorExt;
     use props::*;
     use rand::{SeedableRng, StdRng};
+
+    // TODO: Generalize test to any graph implementation
 
     #[test]
     fn test_complete() {
