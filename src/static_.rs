@@ -15,6 +15,8 @@ use rand::Rng;
 pub type StaticGraph = StaticGraphGeneric<u32, usize>;
 
 pub trait Num: Eq + Copy + Clone + Debug + Hash {
+    // type Range: Iterator<Item = Num>;
+    // fn range(a: usize, b: usize) -> Self::Range;
     fn to_usize(self) -> usize;
     fn from_usize(v: usize) -> Self;
     fn max() -> u64;
@@ -23,14 +25,17 @@ pub trait Num: Eq + Copy + Clone + Debug + Hash {
 macro_rules! impl_num {
     ($t: ident) => (
         impl Num for $t {
+            #[inline(always)]
             fn to_usize(self) -> usize {
                 self as usize
             }
 
+            #[inline(always)]
             fn from_usize(v: usize) -> Self {
                 v as Self
             }
 
+            #[inline(always)]
             fn max() -> u64 {
                 use std;
                 std::$t::MAX as u64
@@ -73,7 +78,7 @@ impl<N: Num> StaticEdge<N> {
 impl<N: Num> traits::Item for StaticEdge<N> {
     type Option = Option<Self>;
 
-    fn none() -> Option<Self> {
+    fn new_none() -> Option<Self> {
         None
     }
 
@@ -113,6 +118,7 @@ pub struct PropStaticEdge<T>(Vec<T>);
 
 impl<T> Deref for PropStaticEdge<T> {
     type Target = Vec<T>;
+
     fn deref(&self) -> &Vec<T> {
         &self.0
     }
@@ -120,6 +126,7 @@ impl<T> Deref for PropStaticEdge<T> {
 
 impl<T, N: Num> Index<StaticEdge<N>> for PropStaticEdge<T> {
     type Output = T;
+
     fn index(&self, index: StaticEdge<N>) -> &Self::Output {
         self.0.index(index.to_index())
     }
@@ -141,6 +148,7 @@ pub struct PropStaticVertex<T>(Vec<T>);
 
 impl<T> Deref for PropStaticVertex<T> {
     type Target = Vec<T>;
+
     fn deref(&self) -> &Vec<T> {
         &self.0
     }
@@ -148,6 +156,7 @@ impl<T> Deref for PropStaticVertex<T> {
 
 impl<T, N: Num> Index<StaticVertex<N>> for PropStaticVertex<T> {
     type Output = T;
+
     fn index(&self, index: StaticVertex<N>) -> &Self::Output {
         self.0.index(Num::to_usize(index))
     }
@@ -162,7 +171,7 @@ impl<T, N: Num> IndexMut<StaticVertex<N>> for PropStaticVertex<T> {
 impl<N: Num> traits::Item for StaticVertex<N> {
     type Option = Option<Self>;
 
-    fn none() -> Option<Self> {
+    fn new_none() -> Option<Self> {
         None
     }
 
@@ -171,8 +180,6 @@ impl<N: Num> traits::Item for StaticVertex<N> {
     }
 }
 
-// TODO: Define StaticVertex struct
-// TODO: Allow the num type of StaticEdge and StaticVertex to be specified.
 // TODO: Define a feature to disable property bounds check for vertex and edge property.
 
 // StaticGraphGeneric

@@ -7,27 +7,22 @@ pub mod traits {
     use std::hash::Hash;
 
     pub trait Item: Copy + Eq + Hash + Debug {
-        type Option: ToOption<Self>;
-        fn none() -> Self::Option;
+        type Option: OptionItem<Self>;
+        fn new_none() -> Self::Option;
         fn to_some(&self) -> Self::Option;
     }
 
-    pub trait ToOption<T>: Clone {
+    pub trait OptionItem<T>: Clone + PartialEq {
         fn to_option(&self) -> Option<T>;
-        fn eq_some(&self, s: T) -> bool;
         fn is_none(&self) -> bool;
         fn is_some(&self) -> bool;
+        fn eq_some(&self, other: T) -> bool;
     }
 
-    impl<T: Clone + PartialEq> ToOption<T> for Option<T> {
+    impl<T: Clone + PartialEq> OptionItem<T> for Option<T> {
         #[inline(always)]
         fn to_option(&self) -> Option<T> {
             self.clone()
-        }
-
-        #[inline(always)]
-        fn eq_some(&self, s: T) -> bool {
-            *self == Some(s)
         }
 
         #[inline(always)]
@@ -38,6 +33,11 @@ pub mod traits {
         #[inline(always)]
         fn is_some(&self) -> bool {
             self.is_some()
+        }
+
+        #[inline(always)]
+        fn eq_some(&self, other: T) -> bool {
+            *self == Some(other)
         }
     }
 }
@@ -119,8 +119,7 @@ pub trait IterTypes<G: Basic> {
     type Vertex: Iterator<Item=Vertex<G>>;
     type Edge: Iterator<Item=Edge<G>>;
     type Inc: Iterator<Item=Edge<G>>;
-    // TODO: Define OptionVertex and OptionEdge trait and allow specific implementation.
-    // StaticGraph could use usize::MAX as None, making it faster tem Option<Vertex> enum.
+    // TODO: StaticGraph could use usize::MAX as None, making it faster than Option<Vertex> enum.
 }
 
 pub trait Basic: Sized {
@@ -134,7 +133,7 @@ pub trait Basic: Sized {
     fn vertices<'a>(&'a self) -> IterVertex<Self> where &'a Self: IterTypes<Self>;
 
     fn vertex_none() -> OptionVertex<Self> {
-        Self::Vertex::none()
+        Self::Vertex::new_none()
     }
 
     // Edges
@@ -144,7 +143,7 @@ pub trait Basic: Sized {
     fn edges<'a>(&'a self) -> IterEdge<Self> where &'a Self: IterTypes<Self>;
 
     fn edge_none() -> OptionEdge<Self> {
-        Self::Edge::none()
+        Self::Edge::new_none()
     }
 
     fn source(&self, e: Edge<Self>) -> Vertex<Self>;
@@ -245,4 +244,6 @@ pub trait Adj: Basic {
     }
 }
 
+
+// TODO: Allow graphs specific implementation
 impl<G> Adj for G where G: Basic { }

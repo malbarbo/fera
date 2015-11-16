@@ -446,27 +446,31 @@ mod benchs {
         where T: Traverser<'a, StaticGraph>
     {
         b.iter(|| {
-            T::run(&g, &mut TreeEdgeVisitor(|_| true));
+            T::run(g, &mut TreeEdgeVisitor(|_| true));
         });
     }
 
     #[bench]
     fn bench_dfs_complete(b: &mut Bencher) {
-        bench_traverser::<Dfs<_>>(b, &StaticGraph::complete(100));
+        let g = StaticGraph::complete(100);
+        bench_traverser::<Dfs<_>>(b, &g);
     }
 
     #[bench]
     fn bench_dfs_tree(b: &mut Bencher) {
-        bench_traverser::<Dfs<_>>(b, &StaticGraph::tree(100, &mut StdRng::from_seed(&[123])));
+        let g = StaticGraph::tree(100, &mut StdRng::from_seed(&[123]));
+        bench_traverser::<Dfs<_>>(b, &g);
     }
 
     #[bench]
     fn bench_bfs_complete(b: &mut Bencher) {
-        bench_traverser::<Bfs<_>>(b, &StaticGraph::complete(100));
+        let g = StaticGraph::complete(100);
+        bench_traverser::<Bfs<_>>(b, &g);
     }
 
     #[bench]
     fn bench_bfs_tree(b: &mut Bencher) {
-        bench_traverser::<Bfs<_>>(b, &StaticGraph::tree(100, &mut StdRng::from_seed(&[123])));
+        let g = StaticGraph::tree(100, &mut StdRng::from_seed(&[123]));
+        bench_traverser::<Bfs<_>>(b, &g);
     }
 }
