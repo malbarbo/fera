@@ -1,6 +1,7 @@
 use graph::*;
-use ds::{Map1, IteratorExt, VecExt};
+use ds::{Map1, IteratorExt};
 
+// TODO: which method here is really util?
 // TODO: write tests
 // TODO: put methods that depends on g in a extension trait on Graph?
 // TODO: turn consumers methods into functions?
@@ -25,14 +26,6 @@ pub trait IteratorGraphExt: Sized {
               Self: Iterator<Item=Edge<G>>,
     {
         self.fold(0.0, |acc, e| acc + w[e])
-    }
-
-    fn sorted_edge<G, T>(self, w: &PropEdge<G, T>) -> VecEdge<G>
-        where G: Graph + WithProps<T>,
-              T: PartialOrd + Clone,
-              Self: Iterator<Item=Edge<G>>,
-    {
-        self.into_vec().sorted_by(|&a, &b| w[a].partial_cmp(&w[b]).expect("partial_cmp failed"))
     }
 
     fn max_edge<G>(self, w: &PropEdge<G, f32>) -> Edge<G>
