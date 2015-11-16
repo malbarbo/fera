@@ -77,3 +77,39 @@ mod tests {
         assert_eq!(vec![e[0], e[1], e[4]], g.find_path(1, 4).unwrap());
     }
 }
+
+#[cfg(all(feature = "unstable", test))]
+mod benchs {
+    use super::*;
+    use static_::*;
+    use graph::*;
+    use builder::WithBuilder;
+    use rand::{SeedableRng, StdRng};
+    use test::Bencher;
+
+    fn bench_find_path_n(b: &mut Bencher, n: usize) {
+        let mut rng = StdRng::from_seed(&[123]);
+        let g = StaticGraph::tree(n, &mut rng);
+        b.iter(|| {
+            for e in g.edges() {
+                let (u, v) = g.endvertices(e);
+                assert!(g.find_path(v, u).is_some());
+            }
+        })
+    }
+
+    #[bench]
+    fn bench_find_path_10(b: &mut Bencher) {
+        bench_find_path_n(b, 10);
+    }
+
+    #[bench]
+    fn bench_find_path_100(b: &mut Bencher) {
+        bench_find_path_n(b, 100);
+    }
+
+    #[bench]
+    fn bench_find_path_1000(b: &mut Bencher) {
+        bench_find_path_n(b, 1000);
+    }
+}
