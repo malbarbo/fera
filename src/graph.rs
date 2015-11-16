@@ -12,6 +12,7 @@ pub mod traits {
         fn to_some(&self) -> Self::Option;
     }
 
+    // TODO: write tests
     pub trait OptionItem<T>: Clone + PartialEq {
         fn to_option(&self) -> Option<T>;
         fn is_none(&self) -> bool;
@@ -119,7 +120,6 @@ pub trait IterTypes<G: Basic> {
     type Vertex: Iterator<Item=Vertex<G>>;
     type Edge: Iterator<Item=Edge<G>>;
     type Inc: Iterator<Item=Edge<G>>;
-    // TODO: StaticGraph could use usize::MAX as None, making it faster than Option<Vertex> enum.
 }
 
 pub trait Basic: Sized {

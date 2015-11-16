@@ -14,17 +14,27 @@ use rand::Rng;
 
 pub type StaticGraph = StaticGraphGeneric<u32, usize>;
 
-pub trait Num: Eq + Copy + Clone + Debug + Hash {
-    // type Range: Iterator<Item = Num>;
-    // fn range(a: usize, b: usize) -> Self::Range;
+pub trait Num: Eq + Copy + Clone + Debug + Hash +
+               traits::OptionItem<StaticVertex<Self>> +
+               traits::OptionItem<StaticEdge<Self>> {
+    type Range: Iterator<Item = Self>;
+    fn range(a: usize, b: usize) -> Self::Range;
     fn to_usize(self) -> usize;
     fn from_usize(v: usize) -> Self;
-    fn max() -> u64;
+    fn is_valid(v: usize) -> bool;
+    fn max() -> Self;
 }
 
 macro_rules! impl_num {
     ($t: ident) => (
         impl Num for $t {
+            type Range = Range<$t>;
+
+            #[inline(always)]
+            fn range(a: usize, b: usize) -> Self::Range {
+                Self::from_usize(a) .. Self::from_usize(b)
+            }
+
             #[inline(always)]
             fn to_usize(self) -> usize {
                 self as usize
@@ -36,9 +46,66 @@ macro_rules! impl_num {
             }
 
             #[inline(always)]
-            fn max() -> u64 {
+            fn is_valid(v: usize) -> bool {
+                (v as u64) < (Self::max() as u64)
+            }
+
+            #[inline(always)]
+            fn max() -> Self {
                 use std;
-                std::$t::MAX as u64
+                std::$t::MAX
+            }
+        }
+
+        impl traits::OptionItem<StaticVertex<$t>> for $t {
+            #[inline(always)]
+            fn to_option(&self) -> Option<Self> {
+                if <$t as traits::OptionItem<StaticVertex<$t>>>::is_none(self) {
+                    None
+                } else {
+                    Some(*self)
+                }
+            }
+
+            #[inline(always)]
+            fn is_none(&self) -> bool {
+                *self == Self::max()
+            }
+
+            #[inline(always)]
+            fn is_some(&self) -> bool {
+                *self != Self::max()
+            }
+
+            #[inline(always)]
+            fn eq_some(&self, other: $t) -> bool {
+                *self == other
+            }
+        }
+
+        impl traits::OptionItem<StaticEdge<$t>> for $t {
+            #[inline(always)]
+            fn to_option(&self) -> Option<StaticEdge<$t>> {
+                if <$t as traits::OptionItem<StaticEdge<$t>>>::is_none(self) {
+                    None
+                } else {
+                    Some(StaticEdge(*self))
+                }
+            }
+
+            #[inline(always)]
+            fn is_none(&self) -> bool {
+                *self == Self::max()
+            }
+
+            #[inline(always)]
+            fn is_some(&self) -> bool {
+                *self != Self::max()
+            }
+
+            #[inline(always)]
+            fn eq_some(&self, other: StaticEdge<$t>) -> bool {
+                *self == other.0
             }
         }
     )
@@ -58,54 +125,64 @@ pub struct StaticEdge<N: Num>(N);
 
 // TODO: Document the representation of StaticEdge
 impl<N: Num> StaticEdge<N> {
+    #[inline(always)]
     fn new(e: usize) -> Self {
         StaticEdge(Num::from_usize(2 * e + 1))
     }
 
+    #[inline(always)]
     fn new_reverse(e: usize) -> Self {
         StaticEdge(Num::from_usize(2 * e))
     }
 
+    #[inline(always)]
     fn to_index(self) -> usize {
         Num::to_usize(self.0) / 2
     }
 
+    #[inline(always)]
     fn reverse(self) -> Self {
         StaticEdge(Num::from_usize(Num::to_usize(self.0) ^ 1))
     }
 }
 
 impl<N: Num> traits::Item for StaticEdge<N> {
-    type Option = Option<Self>;
+    type Option = N;
 
-    fn new_none() -> Option<Self> {
-        None
+    #[inline(always)]
+    fn new_none() -> Self::Option {
+        N::max()
     }
 
-    fn to_some(&self) -> Option<Self> {
-        Some(*self)
+    #[inline(always)]
+    fn to_some(&self) -> Self::Option {
+        self.0
     }
 }
 
 impl<N: Num> PartialEq for StaticEdge<N> {
+    #[inline(always)]
     fn eq(&self, other: &Self) -> bool {
         self.to_index() == other.to_index()
     }
 }
 
 impl<N: Num> PartialOrd for StaticEdge<N> {
+    #[inline(always)]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         self.to_index().partial_cmp(&other.to_index())
     }
 }
 
 impl<N: Num> Ord for StaticEdge<N> {
+    #[inline(always)]
     fn cmp(&self, other: &Self) -> Ordering {
         self.to_index().cmp(&other.to_index())
     }
 }
 
 impl<N: Num> Hash for StaticEdge<N> {
+    #[inline(always)]
     fn hash<H>(&self, state: &mut H)
         where H: Hasher
     {
@@ -127,12 +204,14 @@ impl<T> Deref for PropStaticEdge<T> {
 impl<T, N: Num> Index<StaticEdge<N>> for PropStaticEdge<T> {
     type Output = T;
 
+    #[inline(always)]
     fn index(&self, index: StaticEdge<N>) -> &Self::Output {
         self.0.index(index.to_index())
     }
 }
 
 impl<T, N: Num> IndexMut<StaticEdge<N>> for PropStaticEdge<T> {
+    #[inline(always)]
     fn index_mut(&mut self, index: StaticEdge<N>) -> &mut Self::Output {
         self.0.index_mut(index.to_index())
     }
@@ -157,26 +236,30 @@ impl<T> Deref for PropStaticVertex<T> {
 impl<T, N: Num> Index<StaticVertex<N>> for PropStaticVertex<T> {
     type Output = T;
 
+    #[inline(always)]
     fn index(&self, index: StaticVertex<N>) -> &Self::Output {
         self.0.index(Num::to_usize(index))
     }
 }
 
 impl<T, N: Num> IndexMut<StaticVertex<N>> for PropStaticVertex<T> {
+    #[inline(always)]
     fn index_mut(&mut self, index: StaticVertex<N>) -> &mut Self::Output {
         self.0.index_mut(Num::to_usize(index))
     }
 }
 
 impl<N: Num> traits::Item for StaticVertex<N> {
-    type Option = Option<Self>;
+    type Option = StaticVertex<N>;
 
-    fn new_none() -> Option<Self> {
-        None
+    #[inline(always)]
+    fn new_none() -> Self::Option {
+        N::max()
     }
 
-    fn to_some(&self) -> Option<Self> {
-        Some(*self)
+    #[inline(always)]
+    fn to_some(&self) -> Self::Option {
+        *self
     }
 }
 
@@ -222,7 +305,7 @@ impl<V: Num, E: Num> WithBuilder for StaticGraphGeneric<V, E> {
 
     fn builder(num_vertices: usize, num_edges: usize) -> Self::Builder {
         // TODO: test this assert
-        assert!((num_vertices as u64) < V::max());
+        assert!(V::is_valid(num_vertices));
         StaticGraphGenericBuilder {
             g: StaticGraphGeneric {
                 num_vertices: num_vertices,
@@ -245,13 +328,14 @@ impl<V: Num, E: Num> Builder for StaticGraphGenericBuilder<V, E> {
     }
 
     fn finalize(self) -> Self::Graph {
-        assert!((self.g.endvertices.len() as u64) < E::max());
+        // TODO: test this assert
+        assert!(E::is_valid(self.g.endvertices.len()));
         self.g
     }
 
     fn finalize_(self) -> (Self::Graph, VecVertex<Self::Graph>, VecEdge<Self::Graph>) {
         // TODO: test this assert
-        assert!((self.g.endvertices.len() as u64) < E::max());
+        assert!(E::is_valid(self.g.endvertices.len()));
         let v = self.g.vertices().into_vec();
         let e = self.g.edges().into_vec();
         (self.g, v, e)
@@ -260,7 +344,7 @@ impl<V: Num, E: Num> Builder for StaticGraphGenericBuilder<V, E> {
 
 
 impl<'a, V: 'a +Num, E: 'a + Num> IterTypes<StaticGraphGeneric<V, E>> for &'a StaticGraphGeneric<V, E> {
-    type Vertex = Map<Range<usize>, fn(usize) -> StaticVertex<V>>;
+    type Vertex = V::Range;
     type Edge = Map<Range<usize>, fn(usize) -> StaticEdge<E>>;
     type Inc = Cloned<Iter<'a, StaticEdge<E>>>;
 }
@@ -276,13 +360,15 @@ impl<V: Num, E: Num> Basic for StaticGraphGeneric<V, E> {
     fn vertices<'a>(&'a self) -> IterVertex<Self>
         where &'a (): Sized
     {
-        (0..self.num_vertices).map(Num::from_usize)
+        V::range(0, self.num_vertices)
     }
 
+    #[inline(always)]
     fn source(&self, e: Edge<Self>) -> Vertex<Self> {
         self.endvertices[Num::to_usize(e.0) ^ 1]
     }
 
+    #[inline(always)]
     fn target(&self, e: Edge<Self>) -> Vertex<Self> {
         self.endvertices[Num::to_usize(e.0)]
     }
@@ -294,15 +380,18 @@ impl<V: Num, E: Num> Basic for StaticGraphGeneric<V, E> {
     fn edges<'a>(&'a self) -> IterEdge<Self>
         where &'a (): Sized
     {
+        // TODO: iterate over 1, 3, 5, ...
         (0..self.num_edges()).map(StaticEdge::new)
     }
 
+    #[inline(always)]
     fn reverse(&self, e: Edge<Self>) -> Edge<Self> {
         e.reverse()
     }
 
     // Inc
 
+    #[inline(always)]
     fn degree(&self, v: Vertex<Self>) -> usize {
         self.inc[Num::to_usize(v)].len()
     }
