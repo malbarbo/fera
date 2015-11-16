@@ -1,5 +1,5 @@
 use graph::*;
-use ds::IteratorExt;
+use ds::{VecExt, IteratorExt};
 use ds::collections::Collection;
 use unionfind::WithUnionFind;
 
@@ -25,7 +25,7 @@ impl<F, G> Visitor<G> for F
 }
 
 // TODO: Allow an UnionFind as parameter, so the kruskal algorithm can be
-// executed in more than on step
+// executed in more than one step
 
 pub trait Kruskal: Graph {
     fn kruskal_with_edges<'a, I, V>(&'a self, edges: I, visitor: &mut V)
@@ -33,6 +33,7 @@ pub trait Kruskal: Graph {
               I: Iterator<Item = Edge<Self>>,
               V: Visitor<Self>
     {
+        // TODO: move num_sets to UnionFind
         let mut ds = self.new_unionfind();
         let mut num_sets = self.num_vertices();
         for e in edges {
@@ -50,7 +51,7 @@ pub trait Kruskal: Graph {
     fn kruskal_with_edges_collect_to<'a, I, C>(&'a self, edges: I, mut tree: C) -> C
         where &'a Self: Types<Self>,
               I: Iterator<Item = Edge<Self>>,
-              C: Collection<Edge<Self>>,
+              C: Collection<Edge<Self>>
     {
         // TODO: Create a CollectorVisitor struct an make it implement Visitor,
         // so this function can be removed
@@ -69,8 +70,7 @@ pub trait Kruskal: Graph {
               T: 'a + PartialOrd + Clone,
               V: Visitor<Self>
     {
-        let mut edges = self.edges().into_vec();
-        edges.sort_by(|&a, &b| weight[a].partial_cmp(&weight[b]).expect("partial_cmp failed"));
+        let edges = self.edges().into_vec().sorted_partial_ord_by_key(|v| weight[*v].clone());
         self.kruskal_with_edges(edges.into_iter(), visitor);
     }
 
@@ -117,3 +117,5 @@ mod tests {
         assert_eq!(vec![e[0], e[1], e[2], e[4]], g.kruskal_mst(&weight));
     }
 }
+
+// TODO: write benchmarks and optimize
