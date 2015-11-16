@@ -171,7 +171,7 @@ pub trait WithSubgraph: Graph
         for &u in &vertices {
             for e in self.inc_edges(u) {
                 let v = self.target(e);
-                // TODO: URGENT this running time is terrible, improve
+                // FIXME: this running time is terrible, improve
                 if vertices.contains(&v) {
                     inc[u].push(e);
                     if !edges.contains(&e) {
