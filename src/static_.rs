@@ -105,7 +105,7 @@ macro_rules! impl_num {
 
             #[inline(always)]
             fn eq_some(&self, other: StaticEdge<$t>) -> bool {
-                *self == other.0
+                StaticEdge(*self) == other
             }
         }
     )
