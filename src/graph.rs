@@ -207,8 +207,8 @@ macro_rules! basic_props1 {
 macro_rules! basic_props2 {
     ($($t1:ty),* ; $($t2:ty),* ) => (
         basic_props1!{
-            $($t1),+ , $(Vec<$t1>),+ ;
-            $($t2),+ , $(Vec<$t2>),+
+            $($t1),+ , $(Vec<$t1>),+, $(PropVertex<Self, $t1>),+ ;
+            $($t2),+ , $(Vec<$t2>),+, $(PropVertex<G, $t2>),+
         }
     )
 }
