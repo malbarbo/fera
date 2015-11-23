@@ -10,7 +10,7 @@ pub type UnionFind<G> = ds::unionfind::GenericUnionFind<Vertex<G>,
 
 pub trait WithUnionFind: Graph {
     fn new_unionfind<'a>(&'a self) -> UnionFind<Self>
-        where &'a Self: IterTypes<Self>
+        where &'a Self: Types<Self>
     {
         ds::unionfind::GenericUnionFind::new_with_all(self.vertices(),
                                                       self.vertex_prop(self.vertices()
