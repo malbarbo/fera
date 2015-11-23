@@ -2,9 +2,7 @@ use graph::*;
 use traverse::*;
 
 pub trait Props: Graph {
-    fn is_acyclic<'a>(&'a self) -> bool
-        where &'a Self: Types<Self>
-    {
+    fn is_acyclic(&self) -> bool {
         let mut acyclic = true;
         Dfs::run(self,
                  &mut BackEdgeVisitor(|_| {
@@ -14,9 +12,7 @@ pub trait Props: Graph {
         acyclic
     }
 
-    fn is_connected<'a>(&'a self) -> bool
-        where &'a Self: Types<Self>
-    {
+    fn is_connected(&self) -> bool {
         self.num_vertices() == 0 ||
         {
             let mut count = 0;
@@ -29,9 +25,7 @@ pub trait Props: Graph {
         }
     }
 
-    fn is_tree<'a>(&'a self) -> bool
-        where &'a Self: Types<Self>
-    {
+    fn is_tree(&self) -> bool {
         self.num_vertices() == 0 ||
         {
             self.num_edges() == self.num_vertices() - 1 && self.is_acyclic()

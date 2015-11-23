@@ -28,9 +28,8 @@ impl<F, G> Visitor<G> for F
 // executed in more than one step
 
 pub trait Kruskal: Graph {
-    fn kruskal_with_edges<'a, I, V>(&'a self, edges: I, visitor: &mut V)
-        where &'a Self: Types<Self>,
-              I: Iterator<Item = Edge<Self>>,
+    fn kruskal_with_edges<I, V>(&self, edges: I, visitor: &mut V)
+        where I: Iterator<Item = Edge<Self>>,
               V: Visitor<Self>
     {
         // TODO: move num_sets to UnionFind
@@ -48,9 +47,8 @@ pub trait Kruskal: Graph {
         }
     }
 
-    fn kruskal_with_edges_collect_to<'a, I, C>(&'a self, edges: I, mut tree: C) -> C
-        where &'a Self: Types<Self>,
-              I: Iterator<Item = Edge<Self>>,
+    fn kruskal_with_edges_collect_to<I, C>(&self, edges: I, mut tree: C) -> C
+        where I: Iterator<Item = Edge<Self>>,
               C: Collection<Edge<Self>>
     {
         // TODO: Create a CollectorVisitor struct an make it implement Visitor,
@@ -64,20 +62,18 @@ pub trait Kruskal: Graph {
         tree
     }
 
-    fn kruskal<'a, T, V>(&'a self, weight: &'a PropEdge<Self, T>, visitor: &mut V)
-        where &'a Self: Types<Self>,
-              Self: WithProps<T>,
-              T: 'a + PartialOrd + Clone,
+    fn kruskal<T, V>(&self, weight: &PropEdge<Self, T>, visitor: &mut V)
+        where Self: WithProps<T>,
+              T: PartialOrd + Clone,
               V: Visitor<Self>
     {
         let edges = self.edges().into_vec().sorted_partial_ord_by_key(|v| weight[*v].clone());
         self.kruskal_with_edges(edges.into_iter(), visitor);
     }
 
-    fn kruskal_mst<'a, T>(&'a self, weight: &'a PropEdge<Self, T>) -> VecEdge<Self>
-        where &'a Self: Types<Self>,
-              Self: WithProps<T>,
-              T: 'a + PartialOrd + Clone
+    fn kruskal_mst<T>(&self, weight: &PropEdge<Self, T>) -> VecEdge<Self>
+        where Self: WithProps<T>,
+              T: PartialOrd + Clone
     {
         // TODO: Use CollectorVisitor
         let mut tree = vec![];

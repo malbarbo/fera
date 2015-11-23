@@ -49,12 +49,6 @@ impl<G> Graph for G
     where G: Basic + BasicProps { }
 
 
-pub trait Types<G: Graph>: IterTypes<G> { }
-
-impl<G, T> Types<G> for T
-    where G: Graph,
-          T: IterTypes<G> { }
-
 // TODO: Define traits for all Basic associated types
 // TODO: Define alias IteratorVertex<G> = Iterator<Item = Vertex<G>>;
 // TODO: Define alias IteratorEdge<G> = Iterator<Item = Edge<G>>;
@@ -66,9 +60,9 @@ use self::traits::Item;
 pub type Vertex<G> = <G as Basic>::Vertex;
 pub type Edge<G> = <G as Basic>::Edge;
 
-pub type IterVertex<'a, G> = <&'a G as IterTypes<G>>::Vertex;
-pub type IterEdge<'a, G> = <&'a G as IterTypes<G>>::Edge;
-pub type IterInc<'a, G> = <&'a G as IterTypes<G>>::Inc;
+pub type IterVertex<'a, G> = <G as IterTypes<'a, G>>::Vertex;
+pub type IterEdge<'a, G> = <G as IterTypes<'a, G>>::Edge;
+pub type IterInc<'a, G> = <G as IterTypes<'a, G>>::Inc;
 
 pub type PropVertex<G, T> = <G as WithProps<T>>::Vertex;
 pub type PropEdge<G, T> = <G as WithProps<T>>::Edge;
@@ -82,68 +76,35 @@ pub type OptionEdge<G> = <<G as Basic>::Edge as Item>::Option;
 
 // Basic
 
-// We are implementing lifetime polymorphism using the idea described in
-// https://github.com/rust-lang/rfcs/blob/master/text/0195-associated-items.md#encoding-higher-kinded-types
-//
-// To understand the problem, see
-// https://github.com/rust-lang/rfcs/blob/master/text/0195-associated-items.md#limitations
-//
-// When declaring and implementing methods that return types with lifetime polymorphism some care
-// must be taken.
-//
-// 1 - On declaration, put bounds on methods, not on traits
-//
-//     // This generates an ICE (see https://github.com/rust-lang/rust/issues/23958)
-//     trait Basic where for<'a> &'a Self: IterTypes<G> {
-//           fn vertices<'a>(&'a self) -> IterVertex<Self>;
-//     }
-//
-//     // This works (with item #2)
-//     trait Basic {
-//         fn vertices<'a>(&'a self) -> IterVertex<Self> where &'a Self: IterTypes<G>;
-//     }
-//
-// 2 - On impl do not repeat the bound, use &'a (): Sized instead
-//
-//     // This do not compile (see https://github.com/rust-lang/rust/issues/28046)
-//     impl Basic for StaticGraph {
-//         fn vertices<'a>(&'a self) -> IterVertex<Self> where &'a Self: IterTypes<G>;
-//     }
-//
-//     // This works
-//     impl Basic for StaticGraph {
-//           fn vertices<'a>(&'a self) -> IterVertex<Self> where &'a (): Sized;
-//     }
-
-// To be implemented on &'a G
-pub trait IterTypes<G: Basic> {
+pub trait IterTypes<'a, G: Basic> {
     type Vertex: Iterator<Item=Vertex<G>>;
     type Edge: Iterator<Item=Edge<G>>;
     type Inc: Iterator<Item=Edge<G>>;
 }
 
-pub trait Basic: Sized {
-    type Vertex: Item;
-    type Edge: Item;
+pub trait Basic: Sized where for<'a> Self: IterTypes<'a, Self> {
+    type Vertex: 'static + Item;
+    type Edge: 'static + Item;
 
     // Vertices
 
     fn num_vertices(&self) -> usize;
 
-    fn vertices<'a>(&'a self) -> IterVertex<Self> where &'a Self: IterTypes<Self>;
+    fn vertices(&self) -> IterVertex<Self>;
 
     fn vertex_none() -> OptionVertex<Self> {
-        Self::Vertex::new_none()
+        Vertex::<Self>::new_none()
     }
+
 
     // Edges
 
     fn num_edges(&self) -> usize;
 
-    fn edges<'a>(&'a self) -> IterEdge<Self> where &'a Self: IterTypes<Self>;
+    fn edges(&self) -> IterEdge<Self>;
 
     fn edge_none() -> OptionEdge<Self> {
-        Self::Edge::new_none()
+        Edge::<Self>::new_none()
     }
 
     fn source(&self, e: Edge<Self>) -> Vertex<Self>;
@@ -172,7 +133,7 @@ pub trait Basic: Sized {
 
     fn degree(&self, v: Vertex<Self>) -> usize;
 
-    fn inc_edges<'a>(&'a self, v: Vertex<Self>) -> IterInc<Self> where &'a Self: IterTypes<Self>;
+    fn inc_edges(&self, v: Vertex<Self>) -> IterInc<Self>;
 }
 
 
@@ -235,11 +196,9 @@ basic_props! {
 // Adjacency
 
 pub trait Adj: Basic {
-    fn neighbors<'a>(&'a self,
-                     v: Vertex<Self>)
-                     -> Map1<'a, IterInc<'a, Self>, Self, fn(&'a Self, Edge<Self>) -> Vertex<Self>>
-        where &'a Self: IterTypes<Self>
-    {
+    fn neighbors(&self,
+                 v: Vertex<Self>)
+                 -> Map1<IterInc<Self>, Self, fn(&Self, Edge<Self>) -> Vertex<Self>> {
         self.inc_edges(v).map1(self, Self::target)
     }
 }

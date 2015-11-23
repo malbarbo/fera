@@ -76,7 +76,6 @@ macro_rules! break_if_false {
 
 pub trait Traverser<'a, G>: Sized
     where G: 'a + Graph,
-          &'a G: Types<G>,
 {
     fn new(g: &'a G) -> Self;
 
@@ -113,7 +112,6 @@ const BLACK: usize = std::usize::MAX - 1;
 
 pub struct State<'a, G>
     where G: 'a + Graph,
-          &'a G: Types<G>
 {
     g: &'a G,
     // depth if opened, color if closed
@@ -122,7 +120,6 @@ pub struct State<'a, G>
 
 impl<'a, G> State<'a, G>
     where G: 'a + Graph,
-          &'a G: Types<G>,
 {
     fn new(g: &'a G) -> Self {
         State {
@@ -156,12 +153,10 @@ impl<'a, G> State<'a, G>
 // Dfs
 
 pub struct Dfs<'a, G>(State<'a, G>)
-    where G: 'a + Graph,
-          &'a G: Types<G>;
+    where G: 'a + Graph;
 
 impl<'a, G> Traverser<'a, G> for Dfs<'a, G>
     where G: 'a + Graph,
-          &'a G: Types<G>,
 {
     fn new(g: &'a G) -> Self {
         Dfs(State::new(g))
@@ -199,12 +194,10 @@ impl<'a, G> Traverser<'a, G> for Dfs<'a, G>
 // Bfs
 
 pub struct Bfs<'a, G>(State<'a, G>)
-    where G: 'a + Graph,
-          &'a G: Types<G>;
+    where G: 'a + Graph;
 
 impl<'a, G> Traverser<'a, G> for Bfs<'a, G>
     where G: 'a + Graph,
-          &'a G: Types<G>,
 {
     fn new(g: &'a G) -> Self {
         Bfs(State::new(g))
@@ -241,9 +234,7 @@ impl<'a, G> Traverser<'a, G> for Bfs<'a, G>
 
 // TODO: write test
 pub trait DfsParent: Graph {
-    fn dfs_parent<'a>(&'a self) -> PropVertex<Self, OptionEdge<Self>>
-        where &'a Self: Types<Self>
-    {
+    fn dfs_parent(&self) -> PropVertex<Self, OptionEdge<Self>> {
         let mut parent = self.vertex_prop(Self::edge_none());
         let mut num_edges = 0;
         Dfs::run(self,
@@ -289,7 +280,6 @@ mod tests {
 
     struct TestVisitor<'a, G>
         where G: 'a + Graph,
-              &'a G: Types<G>
     {
         g: &'a G,
         parent: PropVertex<G, OptionVertex<G>>,
@@ -308,7 +298,6 @@ mod tests {
 
     impl<'a, G> Visitor<G> for TestVisitor<'a, G>
         where G: 'a + Graph,
-              &'a G: Types<G>,
     {
         fn visit_tree_edge(&mut self, e: Edge<G>) -> bool {
             assert_eq!(0, self.edge_type[e]);

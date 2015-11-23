@@ -29,9 +29,7 @@ pub trait FindPath: Graph {
         None
     }
 
-    fn find_path<'a>(&'a self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Path<Self>>
-        where &'a Self: Types<Self>
-    {
+    fn find_path(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Path<Self>> {
         if u == v {
             return None;
         }

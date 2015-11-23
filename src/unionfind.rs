@@ -1,22 +1,20 @@
 use graph::*;
 
-use ds;
+use ds::unionfind::GenericUnionFind;
 
-pub type UnionFind<G> = ds::unionfind::GenericUnionFind<Vertex<G>,
-                                                        Vertex<G>,
-                                                        PropVertex<G, Vertex<G>>,
-                                                        PropVertex<G, usize>,
-                                                        usize>;
+pub type UnionFind<G> = GenericUnionFind<Vertex<G>,
+                                         Vertex<G>,
+                                         PropVertex<G, Vertex<G>>,
+                                         PropVertex<G, usize>,
+                                         usize>;
 
 pub trait WithUnionFind: Graph {
-    fn new_unionfind<'a>(&'a self) -> UnionFind<Self>
-        where &'a Self: Types<Self>
-    {
-        ds::unionfind::GenericUnionFind::new_with_all(self.vertices(),
-                                                      self.vertex_prop(self.vertices()
-                                                                           .next()
-                                                                           .unwrap()),
-                                                      self.vertex_prop(0usize))
+    fn new_unionfind(&self) -> UnionFind<Self> {
+        GenericUnionFind::new_with_all(self.vertices(),
+                                       self.vertex_prop(self.vertices()
+                                                            .next()
+                                                            .unwrap()),
+                                       self.vertex_prop(0usize))
     }
 }
 

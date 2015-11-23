@@ -14,7 +14,7 @@ use rand::Rng;
 
 pub type StaticGraph = StaticGraphGeneric<u32, usize>;
 
-pub trait Num: Eq + Copy + Clone + Debug + Hash +
+pub trait Num: 'static + Eq + Copy + Clone + Debug + Hash +
                traits::OptionItem<StaticVertex<Self>> +
                traits::OptionItem<StaticEdge<Self>> {
     type Range: Iterator<Item = Self>;
@@ -343,7 +343,7 @@ impl<V: Num, E: Num> Builder for StaticGraphGenericBuilder<V, E> {
 }
 
 
-impl<'a, V: 'a +Num, E: 'a + Num> IterTypes<StaticGraphGeneric<V, E>> for &'a StaticGraphGeneric<V, E> {
+impl<'a, V: Num, E: Num> IterTypes<'a, StaticGraphGeneric<V, E>> for StaticGraphGeneric<V, E> {
     type Vertex = V::Range;
     type Edge = Map<Range<usize>, fn(usize) -> StaticEdge<E>>;
     type Inc = Cloned<Iter<'a, StaticEdge<E>>>;
@@ -357,9 +357,7 @@ impl<V: Num, E: Num> Basic for StaticGraphGeneric<V, E> {
         self.num_vertices
     }
 
-    fn vertices<'a>(&'a self) -> IterVertex<Self>
-        where &'a (): Sized
-    {
+    fn vertices(&self) -> IterVertex<Self> {
         V::range(0, self.num_vertices)
     }
 
@@ -377,9 +375,7 @@ impl<V: Num, E: Num> Basic for StaticGraphGeneric<V, E> {
         self.endvertices.len() / 2
     }
 
-    fn edges<'a>(&'a self) -> IterEdge<Self>
-        where &'a (): Sized
-    {
+    fn edges(&self) -> IterEdge<Self> {
         // TODO: iterate over 1, 3, 5, ...
         (0..self.num_edges()).map(StaticEdge::new)
     }
@@ -396,9 +392,7 @@ impl<V: Num, E: Num> Basic for StaticGraphGeneric<V, E> {
         self.inc[Num::to_usize(v)].len()
     }
 
-    fn inc_edges<'a>(&'a self, v: Vertex<Self>) -> IterInc<Self>
-        where &'a (): Sized
-    {
+    fn inc_edges(&self, v: Vertex<Self>) -> IterInc<Self> {
         self.inc(v).iter().cloned()
     }
 }

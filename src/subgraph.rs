@@ -13,7 +13,7 @@ use rand::Rng;
 #[derive(Clone)]
 pub struct Subgraph<G, B>
     where G: Graph,
-          B: Borrow<G>,
+          B: Borrow<G>
 {
     g: B,
     vertices: VecVertex<G>,
@@ -21,9 +21,9 @@ pub struct Subgraph<G, B>
     inc: PropVertex<G, VecEdge<G>>,
 }
 
-impl<'a, G, B> IterTypes<Subgraph<G, B>> for &'a Subgraph<G, B>
-    where G: 'a + Graph,
-          B: Borrow<G>
+impl<'a, G, B> IterTypes<'a, Subgraph<G, B>> for Subgraph<G, B>
+    where G: Graph,
+      B: Borrow<G>
 {
     type Vertex = Cloned<Iter<'a, Vertex<G>>>;
     type Edge = Cloned<Iter<'a, Edge<G>>>;
@@ -50,9 +50,7 @@ impl<G, B> Basic for Subgraph<G, B>
         self.vertices.len()
     }
 
-    fn vertices<'a>(&'a self) -> IterVertex<Self>
-        where &'a (): Sized
-    {
+    fn vertices(&self) -> IterVertex<Self> {
         self.vertices.iter().cloned()
     }
 
@@ -68,9 +66,7 @@ impl<G, B> Basic for Subgraph<G, B>
         self.edges.len()
     }
 
-    fn edges<'a>(&'a self) -> IterEdge<Self>
-        where &'a (): Sized
-    {
+    fn edges(&self) -> IterEdge<Self> {
         self.edges.iter().cloned()
     }
 
@@ -84,9 +80,7 @@ impl<G, B> Basic for Subgraph<G, B>
         self.inc[v].len()
     }
 
-    fn inc_edges<'a>(&'a self, v: Vertex<Self>) -> IterInc<Self>
-        where &'a (): Sized
-    {
+    fn inc_edges(&self, v: Vertex<Self>) -> IterInc<Self> {
         self.inc[v].iter().cloned()
     }
 }
@@ -143,7 +137,6 @@ pub trait WithSubgraph<G: Graph, B: Borrow<G>> {
 impl<G, B> WithSubgraph<G, B> for B
     where G: Graph,
           B: Borrow<G>,
-          for<'a> &'a G: Types<G>
 {
     fn spanning_subgraph(self, edges: VecEdge<G>) -> Subgraph<G, B> {
         // TODO: do not copy vertices
