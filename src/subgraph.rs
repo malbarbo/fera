@@ -1,35 +1,47 @@
 use graph::*;
 use choose::Choose;
 use ds::IteratorExt;
+
 use std::iter::Cloned;
 use std::slice::Iter;
+use std::borrow::Borrow;
+
 use rand::Rng;
 
 // TODO: Allow a subgraph be reused
 
 #[derive(Clone)]
-pub struct Subgraph<'a, G>
-    where G: 'a + Graph,
-          &'a G: Types<G>
+pub struct Subgraph<G, B>
+    where G: Graph,
+          B: Borrow<G>,
 {
-    g: &'a G,
+    g: B,
     vertices: VecVertex<G>,
     edges: VecEdge<G>,
     inc: PropVertex<G, VecEdge<G>>,
 }
 
-impl<'a: 'b, 'b, G> IterTypes<Subgraph<'a, G>> for &'b Subgraph<'a, G>
+impl<'a, G, B> IterTypes<Subgraph<G, B>> for &'a Subgraph<G, B>
     where G: 'a + Graph,
-          &'a G: Types<G>,
+          B: Borrow<G>
 {
-    type Vertex = Cloned<Iter<'b, Vertex<G>>>;
-    type Edge = Cloned<Iter<'b, Edge<G>>>;
-    type Inc = Cloned<Iter<'b, Edge<G>>>;
+    type Vertex = Cloned<Iter<'a, Vertex<G>>>;
+    type Edge = Cloned<Iter<'a, Edge<G>>>;
+    type Inc = Cloned<Iter<'a, Edge<G>>>;
 }
 
-impl<'a, G> Basic for Subgraph<'a, G>
-    where G: 'a + Graph,
-          &'a G: Types<G>,
+impl<G, B> Subgraph<G, B>
+    where G: Graph,
+          B: Borrow<G>
+{
+    fn g(&self) -> &G {
+        self.g.borrow()
+    }
+}
+
+impl<G, B> Basic for Subgraph<G, B>
+    where G: Graph,
+          B: Borrow<G>
 {
     type Vertex = Vertex<G>;
     type Edge = Edge<G>;
@@ -38,32 +50,32 @@ impl<'a, G> Basic for Subgraph<'a, G>
         self.vertices.len()
     }
 
-    fn vertices<'b>(&'b self) -> IterVertex<Self>
-        where &'b (): Sized
+    fn vertices<'a>(&'a self) -> IterVertex<Self>
+        where &'a (): Sized
     {
         self.vertices.iter().cloned()
     }
 
     fn source(&self, e: Edge<Self>) -> Vertex<Self> {
-        self.g.source(e)
+        self.g().source(e)
     }
 
     fn target(&self, e: Edge<Self>) -> Vertex<Self> {
-        self.g.target(e)
+        self.g().target(e)
     }
 
     fn num_edges(&self) -> usize {
         self.edges.len()
     }
 
-    fn edges<'b>(&'b self) -> IterEdge<Self>
-        where &'b (): Sized
+    fn edges<'a>(&'a self) -> IterEdge<Self>
+        where &'a (): Sized
     {
         self.edges.iter().cloned()
     }
 
     fn reverse(&self, e: Edge<Self>) -> Edge<Self> {
-        self.g.reverse(e)
+        self.g().reverse(e)
     }
 
     // Inc
@@ -72,36 +84,36 @@ impl<'a, G> Basic for Subgraph<'a, G>
         self.inc[v].len()
     }
 
-    fn inc_edges<'b>(&'b self, v: Vertex<Self>) -> IterInc<Self>
-        where &'b (): Sized
+    fn inc_edges<'a>(&'a self, v: Vertex<Self>) -> IterInc<Self>
+        where &'a (): Sized
     {
         self.inc[v].iter().cloned()
     }
 }
 
 
-impl<'a, T: Clone, G> WithProps<T> for Subgraph<'a, G>
-    where G: 'a + Graph + WithProps<T>,
-          &'a G: Types<G>,
+impl<T: Clone, G, B> WithProps<T> for Subgraph<G, B>
+    where G: Graph + WithProps<T>,
+          B: Borrow<G>,
 {
     type Vertex = PropVertex<G, T>;
     type Edge = PropEdge<G, T>;
 
     fn vertex_prop(&self, value: T) -> PropVertex<Self, T> {
-        self.g.vertex_prop(value)
+        self.g().vertex_prop(value)
     }
 
     fn edge_prop(&self, value: T) -> PropEdge<Self, T> {
-        self.g.edge_prop(value)
+        self.g().edge_prop(value)
     }
 }
 
 
 // Choose
 
-impl<'a, G> Choose for Subgraph<'a, G>
-    where G: 'a + Graph,
-          &'a G: Types<G>,
+impl<G, B> Choose for Subgraph<G, B>
+    where G: Graph,
+          B: Borrow<G>
 {
     fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {
         self.vertices[rng.gen_range(0, self.num_vertices())]
@@ -117,17 +129,35 @@ impl<'a, G> Choose for Subgraph<'a, G>
 }
 
 
-pub trait WithSubgraph: Graph
-    where for<'a> &'a Self: Types<Self>
+// Extensions Traits
+
+pub trait WithSubgraph<G: Graph, B: Borrow<G>> {
+    fn spanning_subgraph(self, edges: VecEdge<G>) -> Subgraph<G, B>;
+
+    fn edge_induced_subgraph(self, edges: VecEdge<G>) -> Subgraph<G, B>;
+
+    fn induced_subgraph(self, vertices: VecVertex<G>) -> Subgraph<G, B>;
+}
+
+
+impl<G, B> WithSubgraph<G, B> for B
+    where G: Graph,
+          B: Borrow<G>,
+          for<'a> &'a G: Types<G>
 {
-    fn spanning_subgraph(&self, edges: VecEdge<Self>) -> Subgraph<Self> {
+    fn spanning_subgraph(self, edges: VecEdge<G>) -> Subgraph<G, B> {
         // TODO: do not copy vertices
-        let vertices = self.vertices().into_vec();
-        let mut inc = self.vertex_prop(Vec::<Edge<Self>>::new());
-        for &e in &edges {
-            let (u, v) = self.endvertices(e);
-            inc[u].push(e);
-            inc[v].push(self.reverse(e));
+        let vertices;
+        let mut inc;
+        {
+            let g: &G = self.borrow();
+            vertices = g.vertices().into_vec();
+            inc = g.vertex_prop(Vec::<Edge<G>>::new());
+            for &e in &edges {
+                let (u, v) = g.endvertices(e);
+                inc[u].push(e);
+                inc[v].push(g.reverse(e));
+            }
         }
 
         Subgraph {
@@ -138,23 +168,29 @@ pub trait WithSubgraph: Graph
         }
     }
 
-    fn edge_induced_subgraph(&self, edges: VecEdge<Self>) -> Subgraph<Self> {
-        let mut vin = self.vertex_prop(false);
-        let mut vertices = vec![];
-        let mut inc = self.vertex_prop(Vec::<Edge<Self>>::new());
-        for &e in &edges {
-            let (u, v) = self.endvertices(e);
-            if !vin[u] {
-                vin[u] = true;
-                vertices.push(u);
-            }
-            if !vin[v] {
-                vin[v] = true;
-                vertices.push(v);
-            }
+    fn edge_induced_subgraph(self, edges: VecEdge<G>) -> Subgraph<G, B> {
+        let mut vin;
+        let mut vertices;
+        let mut inc;
+        {
+            let g: &G = self.borrow();
+            vin = g.vertex_prop(false);
+            vertices = vec![];
+            inc = g.vertex_prop(Vec::<Edge<G>>::new());
+            for &e in &edges {
+                let (u, v) = g.endvertices(e);
+                if !vin[u] {
+                    vin[u] = true;
+                    vertices.push(u);
+                }
+                if !vin[v] {
+                    vin[v] = true;
+                    vertices.push(v);
+                }
 
-            inc[u].push(e);
-            inc[v].push(self.reverse(e));
+                inc[u].push(e);
+                inc[v].push(g.reverse(e));
+            }
         }
 
         Subgraph {
@@ -165,17 +201,22 @@ pub trait WithSubgraph: Graph
         }
     }
 
-    fn induced_subgraph(&self, vertices: VecVertex<Self>) -> Subgraph<Self> {
-        let mut edges = vec![];
-        let mut inc = self.vertex_prop(Vec::<Edge<Self>>::new());
-        for &u in &vertices {
-            for e in self.inc_edges(u) {
-                let v = self.target(e);
-                // FIXME: this running time is terrible, improve
-                if vertices.contains(&v) {
-                    inc[u].push(e);
-                    if !edges.contains(&e) {
-                        edges.push(e);
+    fn induced_subgraph(self, vertices: VecVertex<G>) -> Subgraph<G, B> {
+        let mut edges;
+        let mut inc;
+        {
+            let g: &G = self.borrow();
+            edges = vec![];
+            inc = g.vertex_prop(Vec::<Edge<G>>::new());
+            for &u in &vertices {
+                for e in g.inc_edges(u) {
+                    let v = g.target(e);
+                    // FIXME: this running time is terrible, improve
+                    if vertices.contains(&v) {
+                        inc[u].push(e);
+                        if !edges.contains(&e) {
+                            edges.push(e);
+                        }
                     }
                 }
             }
@@ -189,10 +230,6 @@ pub trait WithSubgraph: Graph
         }
     }
 }
-
-impl<G> WithSubgraph for G
-    where G: Graph,
-          for<'a> &'a G: Types<G> { }
 
 
 // TODO: write benchs and optimize
