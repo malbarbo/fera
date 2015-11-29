@@ -1,4 +1,4 @@
-use ds::{IteratorExt, Map1};
+use ds::{IteratorExt, MapFn1};
 
 use std::ops::IndexMut;
 
@@ -198,7 +198,7 @@ basic_props! {
 pub trait Adj: Basic {
     fn neighbors(&self,
                  v: Vertex<Self>)
-                 -> Map1<IterInc<Self>, Self, fn(&Self, Edge<Self>) -> Vertex<Self>> {
+                 -> MapFn1<IterInc<Self>, Self, Vertex<Self>> {
         self.inc_edges(v).map1(self, Self::target)
     }
 }

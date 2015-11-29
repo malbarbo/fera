@@ -1,4 +1,4 @@
-pub use ds::{Map1, IteratorExt, VecExt};
+pub use ds::{MapFn1, IteratorExt, VecExt};
 pub use iter::IteratorGraphExt;
 
 // TODO: Rewrite tests using Builder
