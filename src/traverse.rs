@@ -168,6 +168,7 @@ impl<'a, G> Traverser<'a, G> for Dfs<'a, G>
 
     fn traverse<V: Visitor<G>>(&mut self, v: Vertex<G>, vis: &mut V) -> bool {
         let s = &mut self.0;
+        // TODO: which initial capacity?
         let mut stack = Vec::with_capacity(self.0.g.num_edges() / 2);
         stack.push((v, s.g.inc_edges(v)));
         s.open(v);
@@ -209,6 +210,7 @@ impl<'a, G> Traverser<'a, G> for Bfs<'a, G>
 
     fn traverse<V: Visitor<G>>(&mut self, v: Vertex<G>, vis: &mut V) -> bool {
         let mut s = &mut self.0;
+        // TODO: which initial capacity?
         let mut queue = VecDeque::with_capacity(self.0.g.num_vertices() / 2);
         queue.push_back(v);
         s.open(v);
