@@ -12,6 +12,7 @@ use std::fmt::Debug;
 
 use rand::Rng;
 
+// TODO: Rename to FastGraph
 pub type StaticGraph = StaticGraphGeneric<u32, usize>;
 
 pub trait Num: 'static + Eq + Copy + Clone + Debug + Hash +
@@ -222,13 +223,15 @@ impl<T, N: Num> IndexMut<StaticEdge<N>> for PropStaticEdge<T> {
 
 pub type StaticVertex<N> = N;
 
-#[derive(Clone, Debug)]
-pub struct PropStaticVertex<T>(Vec<T>);
+pub type XVec<T> = Vec<T>;
+
+#[derive(Clone)]
+pub struct PropStaticVertex<T>(XVec<T>);
 
 impl<T> Deref for PropStaticVertex<T> {
-    type Target = Vec<T>;
+    type Target = XVec<T>;
 
-    fn deref(&self) -> &Vec<T> {
+    fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
@@ -402,7 +405,7 @@ impl<T: 'static + Clone, V: Num, E: Num> WithProps<T> for StaticGraphGeneric<V, 
     type Edge = PropStaticEdge<T>;
 
     fn vertex_prop(&self, value: T) -> PropVertex<Self, T> {
-        PropStaticVertex(Vec::with_value(value, self.num_vertices()))
+        PropStaticVertex(XVec::with_value(value, self.num_vertices()))
     }
 
     fn edge_prop(&self, value: T) -> PropEdge<Self, T> {
@@ -411,7 +414,7 @@ impl<T: 'static + Clone, V: Num, E: Num> WithProps<T> for StaticGraphGeneric<V, 
 }
 
 
-impl<V: Num, E: Num> Choose for StaticGraphGeneric<V, E>  {
+impl<V: Num, E: Num> Choose for StaticGraphGeneric<V, E> {
     fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {
         Num::from_usize(rng.gen_range(0, self.num_vertices()))
     }
