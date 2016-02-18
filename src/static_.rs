@@ -2,9 +2,10 @@ use graph::*;
 use ds::{IteratorExt, VecExt};
 use builder::{Builder, WithBuilder};
 use choose::Choose;
+use vecprop::*;
 
 use std::iter::{Cloned, Map};
-use std::ops::{Deref, Index, IndexMut, Range};
+use std::ops::{Index, Range};
 use std::slice::Iter;
 use std::hash::{Hash, Hasher};
 use std::cmp::Ordering;
@@ -137,13 +138,15 @@ impl<N: Num> StaticEdge<N> {
     }
 
     #[inline(always)]
-    fn to_index(self) -> usize {
-        Num::to_usize(self.0) / 2
-    }
-
-    #[inline(always)]
     fn reverse(self) -> Self {
         StaticEdge(Num::from_usize(Num::to_usize(self.0) ^ 1))
+    }
+}
+
+impl<N: Num> ToIndex for StaticEdge<N> {
+    #[inline(always)]
+    fn to_index(&self) -> usize {
+        Num::to_usize(self.0) / 2
     }
 }
 
@@ -191,64 +194,15 @@ impl<N: Num> Hash for StaticEdge<N> {
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct PropStaticEdge<T>(Vec<T>);
-
-impl<T> Deref for PropStaticEdge<T> {
-    type Target = Vec<T>;
-
-    fn deref(&self) -> &Vec<T> {
-        &self.0
-    }
-}
-
-impl<T, N: Num> Index<StaticEdge<N>> for PropStaticEdge<T> {
-    type Output = T;
-
-    #[inline(always)]
-    fn index(&self, index: StaticEdge<N>) -> &Self::Output {
-        self.0.index(index.to_index())
-    }
-}
-
-impl<T, N: Num> IndexMut<StaticEdge<N>> for PropStaticEdge<T> {
-    #[inline(always)]
-    fn index_mut(&mut self, index: StaticEdge<N>) -> &mut Self::Output {
-        self.0.index_mut(index.to_index())
-    }
-}
-
 
 // Vertex
 
 pub type StaticVertex<N> = N;
 
-pub type XVec<T> = Vec<T>;
-
-#[derive(Clone)]
-pub struct PropStaticVertex<T>(XVec<T>);
-
-impl<T> Deref for PropStaticVertex<T> {
-    type Target = XVec<T>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl<T, N: Num> Index<StaticVertex<N>> for PropStaticVertex<T> {
-    type Output = T;
-
+impl<N: Num> ToIndex for StaticVertex<N> {
     #[inline(always)]
-    fn index(&self, index: StaticVertex<N>) -> &Self::Output {
-        self.0.index(Num::to_usize(index))
-    }
-}
-
-impl<T, N: Num> IndexMut<StaticVertex<N>> for PropStaticVertex<T> {
-    #[inline(always)]
-    fn index_mut(&mut self, index: StaticVertex<N>) -> &mut Self::Output {
-        self.0.index_mut(Num::to_usize(index))
+    fn to_index(&self) -> usize {
+        Num::to_usize(*self)
     }
 }
 
@@ -400,16 +354,16 @@ impl<V: Num, E: Num> Basic for StaticGraphGeneric<V, E> {
     }
 }
 
-impl<T: 'static + Clone, V: Num, E: Num> WithProps<T> for StaticGraphGeneric<V, E> {
-    type Vertex = PropStaticVertex<T>;
-    type Edge = PropStaticEdge<T>;
+impl<T: Clone, V: Num, E: Num> WithProps<T> for StaticGraphGeneric<V, E> {
+    type Vertex = VecProp<T>;
+    type Edge = VecProp<T>;
 
     fn vertex_prop(&self, value: T) -> DefaultPropMutVertex<Self, T> {
-        PropStaticVertex(XVec::with_value(value, self.num_vertices()))
+        VecProp::new(Vec::with_value(value, self.num_vertices()))
     }
 
     fn edge_prop(&self, value: T) -> DefaultPropMutEdge<Self, T> {
-        PropStaticEdge(Vec::with_value(value, self.num_edges()))
+        VecProp::new(Vec::with_value(value, self.num_edges()))
     }
 }
 
@@ -427,6 +381,7 @@ impl<V: Num, E: Num> Choose for StaticGraphGeneric<V, E> {
         self.inc(v)[rng.gen_range(0, self.degree(v))]
     }
 }
+
 
 // Tests
 
