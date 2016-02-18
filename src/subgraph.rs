@@ -18,10 +18,10 @@ pub struct Subgraph<G, B>
     g: B,
     vertices: VecVertex<G>,
     edges: VecEdge<G>,
-    inc: PropVertex<G, VecEdge<G>>,
+    inc: DefaultPropMutVertex<G, VecEdge<G>>,
 }
 
-impl<'a, G, B> IterTypes<'a, Subgraph<G, B>> for Subgraph<G, B>
+impl<'a, G, B> Iterators<'a, Subgraph<G, B>> for Subgraph<G, B>
     where G: Graph,
       B: Borrow<G>
 {
@@ -90,14 +90,14 @@ impl<T: Clone, G, B> WithProps<T> for Subgraph<G, B>
     where G: Graph + WithProps<T>,
           B: Borrow<G>,
 {
-    type Vertex = PropVertex<G, T>;
-    type Edge = PropEdge<G, T>;
+    type Vertex = DefaultPropMutVertex<G, T>;
+    type Edge = DefaultPropMutEdge<G, T>;
 
-    fn vertex_prop(&self, value: T) -> PropVertex<Self, T> {
+    fn vertex_prop(&self, value: T) -> DefaultPropMutVertex<Self, T> {
         self.g().vertex_prop(value)
     }
 
-    fn edge_prop(&self, value: T) -> PropEdge<Self, T> {
+    fn edge_prop(&self, value: T) -> DefaultPropMutEdge<Self, T> {
         self.g().edge_prop(value)
     }
 }

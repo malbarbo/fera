@@ -1,5 +1,4 @@
 use graph::*;
-use graph::traits::Item;
 use std::collections::VecDeque;
 
 // Visitor
@@ -115,7 +114,7 @@ pub struct State<'a, G>
 {
     g: &'a G,
     // depth if opened, color if closed
-    depth: PropVertex<G, usize>,
+    depth: DefaultPropMutVertex<G, usize>,
 }
 
 impl<'a, G> State<'a, G>
@@ -236,7 +235,7 @@ impl<'a, G> Traverser<'a, G> for Bfs<'a, G>
 
 // TODO: write test
 pub trait DfsParent: Graph {
-    fn dfs_parent(&self) -> PropVertex<Self, OptionEdge<Self>> {
+    fn dfs_parent(&self) -> DefaultPropMutVertex<Self, OptionEdge<Self>> {
         let mut parent = self.vertex_prop(Self::edge_none());
         let mut num_edges = 0;
         Dfs::run(self,
@@ -257,7 +256,6 @@ impl<G> DfsParent for G where G: Graph { }
 #[cfg(test)]
 mod tests {
     use graph::*;
-    use graph::traits::*;
     use static_::*;
     use ds::IteratorExt;
     use traverse::*;
@@ -284,9 +282,9 @@ mod tests {
         where G: 'a + Graph,
     {
         g: &'a G,
-        parent: PropVertex<G, OptionVertex<G>>,
-        d: PropVertex<G, usize>,
-        edge_type: PropEdge<G, usize>,
+        parent: DefaultPropMutVertex<G, OptionVertex<G>>,
+        d: DefaultPropMutVertex<G, usize>,
+        edge_type: DefaultPropMutEdge<G, usize>,
     }
 
     fn new_test_visitor(g: &StaticGraph) -> TestVisitor<StaticGraph> {

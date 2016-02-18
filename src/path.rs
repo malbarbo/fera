@@ -1,10 +1,9 @@
 use graph::*;
-use graph::traits::*;
 use traverse::*;
 
 pub type Path<G> = VecEdge<G>;
 
-pub type ParentTree<G> = PropVertex<G, OptionEdge<G>>;
+pub type ParentTree<G> = DefaultPropMutVertex<G, OptionEdge<G>>;
 
 pub trait FindPath: Graph {
     fn find_path_on_parent_tree(&self,

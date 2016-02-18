@@ -16,8 +16,8 @@ use rand::Rng;
 pub type StaticGraph = StaticGraphGeneric<u32, usize>;
 
 pub trait Num: 'static + Eq + Copy + Clone + Debug + Hash +
-               traits::OptionItem<StaticVertex<Self>> +
-               traits::OptionItem<StaticEdge<Self>> {
+               OptionItem<StaticVertex<Self>> +
+               OptionItem<StaticEdge<Self>> {
     type Range: Iterator<Item = Self>;
     fn range(a: usize, b: usize) -> Self::Range;
     fn to_usize(self) -> usize;
@@ -58,10 +58,10 @@ macro_rules! impl_num {
             }
         }
 
-        impl traits::OptionItem<StaticVertex<$t>> for $t {
+        impl OptionItem<StaticVertex<$t>> for $t {
             #[inline(always)]
             fn to_option(&self) -> Option<Self> {
-                if <$t as traits::OptionItem<StaticVertex<$t>>>::is_none(self) {
+                if <$t as OptionItem<StaticVertex<$t>>>::is_none(self) {
                     None
                 } else {
                     Some(*self)
@@ -84,10 +84,10 @@ macro_rules! impl_num {
             }
         }
 
-        impl traits::OptionItem<StaticEdge<$t>> for $t {
+        impl OptionItem<StaticEdge<$t>> for $t {
             #[inline(always)]
             fn to_option(&self) -> Option<StaticEdge<$t>> {
-                if <$t as traits::OptionItem<StaticEdge<$t>>>::is_none(self) {
+                if <$t as OptionItem<StaticEdge<$t>>>::is_none(self) {
                     None
                 } else {
                     Some(StaticEdge(*self))
@@ -147,7 +147,7 @@ impl<N: Num> StaticEdge<N> {
     }
 }
 
-impl<N: Num> traits::Item for StaticEdge<N> {
+impl<N: Num> Item for StaticEdge<N> {
     type Option = N;
 
     #[inline(always)]
@@ -252,7 +252,7 @@ impl<T, N: Num> IndexMut<StaticVertex<N>> for PropStaticVertex<T> {
     }
 }
 
-impl<N: Num> traits::Item for StaticVertex<N> {
+impl<N: Num> Item for StaticVertex<N> {
     type Option = StaticVertex<N>;
 
     #[inline(always)]
@@ -346,7 +346,7 @@ impl<V: Num, E: Num> Builder for StaticGraphGenericBuilder<V, E> {
 }
 
 
-impl<'a, V: Num, E: Num> IterTypes<'a, StaticGraphGeneric<V, E>> for StaticGraphGeneric<V, E> {
+impl<'a, V: Num, E: Num> Iterators<'a, StaticGraphGeneric<V, E>> for StaticGraphGeneric<V, E> {
     type Vertex = V::Range;
     type Edge = Map<Range<usize>, fn(usize) -> StaticEdge<E>>;
     type Inc = Cloned<Iter<'a, StaticEdge<E>>>;
@@ -404,11 +404,11 @@ impl<T: 'static + Clone, V: Num, E: Num> WithProps<T> for StaticGraphGeneric<V, 
     type Vertex = PropStaticVertex<T>;
     type Edge = PropStaticEdge<T>;
 
-    fn vertex_prop(&self, value: T) -> PropVertex<Self, T> {
+    fn vertex_prop(&self, value: T) -> DefaultPropMutVertex<Self, T> {
         PropStaticVertex(XVec::with_value(value, self.num_vertices()))
     }
 
-    fn edge_prop(&self, value: T) -> PropEdge<Self, T> {
+    fn edge_prop(&self, value: T) -> DefaultPropMutEdge<Self, T> {
         PropStaticEdge(Vec::with_value(value, self.num_edges()))
     }
 }

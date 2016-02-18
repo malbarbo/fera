@@ -27,7 +27,6 @@ pub mod unionfind;
 
 pub mod prelude {
     pub use graph::*;
-    pub use graph::traits::*;
     pub use subgraph::{Subgraph, WithSubgraph};
     pub use builder::WithBuilder;
     pub use static_::*;

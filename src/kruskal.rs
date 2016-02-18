@@ -62,7 +62,7 @@ pub trait Kruskal: Graph {
         tree
     }
 
-    fn kruskal<T, V>(&self, weight: &PropEdge<Self, T>, visitor: &mut V)
+    fn kruskal<T, V>(&self, weight: &DefaultPropMutEdge<Self, T>, visitor: &mut V)
         where Self: WithProps<T>,
               T: PartialOrd + Clone,
               V: Visitor<Self>
@@ -71,7 +71,7 @@ pub trait Kruskal: Graph {
         self.kruskal_with_edges(edges.into_iter(), visitor);
     }
 
-    fn kruskal_mst<T>(&self, weight: &PropEdge<Self, T>) -> VecEdge<Self>
+    fn kruskal_mst<T>(&self, weight: &DefaultPropMutEdge<Self, T>) -> VecEdge<Self>
         where Self: WithProps<T>,
               T: PartialOrd + Clone
     {

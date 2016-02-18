@@ -1,71 +1,24 @@
 use ds::{IteratorExt, MapFn1};
 
-use std::ops::IndexMut;
-
-pub mod traits {
-    use std::fmt::Debug;
-    use std::hash::Hash;
-
-    pub trait Item: Copy + Eq + Hash + Debug {
-        type Option: OptionItem<Self>;
-        fn new_none() -> Self::Option;
-        fn to_some(&self) -> Self::Option;
-    }
-
-    // TODO: write tests
-    pub trait OptionItem<T>: Clone + PartialEq {
-        fn to_option(&self) -> Option<T>;
-        fn is_none(&self) -> bool;
-        fn is_some(&self) -> bool;
-        fn eq_some(&self, other: T) -> bool;
-    }
-
-    impl<T: Clone + PartialEq> OptionItem<T> for Option<T> {
-        #[inline(always)]
-        fn to_option(&self) -> Option<T> {
-            self.clone()
-        }
-
-        #[inline(always)]
-        fn is_none(&self) -> bool {
-            self.is_none()
-        }
-
-        #[inline(always)]
-        fn is_some(&self) -> bool {
-            self.is_some()
-        }
-
-        #[inline(always)]
-        fn eq_some(&self, other: T) -> bool {
-            *self == Some(other)
-        }
-    }
-}
-
-pub trait Graph: Basic + BasicProps { }
-
-impl<G> Graph for G
-    where G: Basic + BasicProps { }
-
-
-// TODO: Define traits for all Basic associated types
-// TODO: Define alias IteratorVertex<G> = Iterator<Item = Vertex<G>>;
-// TODO: Define alias IteratorEdge<G> = Iterator<Item = Edge<G>>;
-
-use self::traits::Item;
-
-// Aliases
+use std::fmt::Debug;
+use std::hash::Hash;
+use std::ops::{Index, IndexMut};
 
 pub type Vertex<G> = <G as Basic>::Vertex;
 pub type Edge<G> = <G as Basic>::Edge;
 
-pub type IterVertex<'a, G> = <G as IterTypes<'a, G>>::Vertex;
-pub type IterEdge<'a, G> = <G as IterTypes<'a, G>>::Edge;
-pub type IterInc<'a, G> = <G as IterTypes<'a, G>>::Inc;
+pub type IterVertex<'a, G> = <G as Iterators<'a, G>>::Vertex;
+pub type IterEdge<'a, G> = <G as Iterators<'a, G>>::Edge;
+pub type IterInc<'a, G> = <G as Iterators<'a, G>>::Inc;
 
-pub type PropVertex<G, T> = <G as WithProps<T>>::Vertex;
-pub type PropEdge<G, T> = <G as WithProps<T>>::Edge;
+pub type PropVertex<G, T> = PropItem<Vertex<G>, Output = T>;
+pub type PropEdge<G, T> = PropItem<Edge<G>, Output = T>;
+
+pub type PropMutVertex<G, T> = PropMutItem<Vertex<G>, Output = T>;
+pub type PropMutEdge<G, T> = PropMutItem<Edge<G>, Output = T>;
+
+pub type DefaultPropMutVertex<G, T> = <G as WithProps<T>>::Vertex;
+pub type DefaultPropMutEdge<G, T> = <G as WithProps<T>>::Edge;
 
 pub type VecVertex<G> = Vec<Vertex<G>>;
 pub type VecEdge<G> = Vec<Edge<G>>;
@@ -74,17 +27,19 @@ pub type OptionVertex<G> = <<G as Basic>::Vertex as Item>::Option;
 pub type OptionEdge<G> = <<G as Basic>::Edge as Item>::Option;
 
 
+// Graph
+
+pub trait Graph: Basic + BasicProps {}
+
+impl<G> Graph for G where G: Basic + BasicProps {}
+
+
 // Basic
 
-pub trait IterTypes<'a, G: Basic> {
-    type Vertex: Iterator<Item=Vertex<G>>;
-    type Edge: Iterator<Item=Edge<G>>;
-    type Inc: Iterator<Item=Edge<G>>;
-}
-
-pub trait Basic: Sized where for<'a> Self: IterTypes<'a, Self> {
+pub trait Basic: Sized where for<'a> Self: Iterators<'a, Self> {
     type Vertex: 'static + Item;
     type Edge: 'static + Item;
+
 
     // Vertices
 
@@ -137,15 +92,72 @@ pub trait Basic: Sized where for<'a> Self: IterTypes<'a, Self> {
 }
 
 
+// Item
+
+pub trait Item: Copy + Eq + Hash + Debug {
+    type Option: OptionItem<Self>;
+
+    fn new_none() -> Self::Option;
+    fn to_some(&self) -> Self::Option;
+}
+
+// TODO: write tests
+pub trait OptionItem<T>: Clone + PartialEq {
+    fn to_option(&self) -> Option<T>;
+    fn is_none(&self) -> bool;
+    fn is_some(&self) -> bool;
+    fn eq_some(&self, other: T) -> bool;
+}
+
+impl<T: Clone + PartialEq> OptionItem<T> for Option<T> {
+    #[inline(always)]
+    fn to_option(&self) -> Option<T> {
+        self.clone()
+    }
+
+    #[inline(always)]
+    fn is_none(&self) -> bool {
+        self.is_none()
+    }
+
+    #[inline(always)]
+    fn is_some(&self) -> bool {
+        self.is_some()
+    }
+
+    #[inline(always)]
+    fn eq_some(&self, other: T) -> bool {
+        *self == Some(other)
+    }
+}
+
+
+// Iterators
+
+pub trait Iterators<'a, G: Basic> {
+    type Vertex: Iterator<Item=Vertex<G>>;
+    type Edge: Iterator<Item=Edge<G>>;
+    type Inc: Iterator<Item=Edge<G>>;
+}
+
+
 // Properties
 
+pub trait PropItem<T>: Index<T> + Clone {}
+
+pub trait PropMutItem<T>: PropItem<T> + IndexMut<T> {}
+
+impl<T, A: Index<T> + Clone> PropItem<T> for A {}
+
+impl<T, A: PropItem<T> + IndexMut<T>> PropMutItem<T> for A {}
+
 pub trait WithProps<T: Clone>: Basic {
-    type Vertex: IndexMut<Vertex<Self>, Output=T> + Clone;
-    type Edge: IndexMut<Edge<Self>, Output=T> + Clone;
+    type Vertex: PropMutItem<Vertex<Self>, Output=T>;
+    type Edge: PropMutItem<Edge<Self>, Output=T>;
 
-    fn vertex_prop(&self, value: T) -> PropVertex<Self, T>;
+    fn vertex_prop(&self, value: T) -> DefaultPropMutVertex<Self, T>;
 
-    fn edge_prop(&self, value: T) -> PropEdge<Self, T>;
+    fn edge_prop(&self, value: T) -> DefaultPropMutEdge<Self, T>;
 }
 
 #[macro_export]
@@ -168,8 +180,8 @@ macro_rules! basic_props1 {
 macro_rules! basic_props2 {
     ($($t1:ty),* ; $($t2:ty),* ) => (
         basic_props1!{
-            $($t1),+ , $(Vec<$t1>),+, $(PropVertex<Self, $t1>),+ ;
-            $($t2),+ , $(Vec<$t2>),+, $(PropVertex<G, $t2>),+
+            $($t1),+ , $(Vec<$t1>),+, $(DefaultPropMutVertex<Self, $t1>),+ ;
+            $($t2),+ , $(Vec<$t2>),+, $(DefaultPropMutVertex<G, $t2>),+
         }
     )
 }
@@ -196,13 +208,11 @@ basic_props! {
 // Adjacency
 
 pub trait Adj: Basic {
-    fn neighbors(&self,
-                 v: Vertex<Self>)
-                 -> MapFn1<IterInc<Self>, Self, Vertex<Self>> {
+    fn neighbors(&self, v: Vertex<Self>) -> MapFn1<IterInc<Self>, Self, Vertex<Self>> {
         self.inc_edges(v).map1(self, Self::target)
     }
 }
 
 
 // TODO: Allow graphs specific implementation
-impl<G> Adj for G where G: Basic { }
+impl<G> Adj for G where G: Basic {}

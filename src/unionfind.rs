@@ -4,8 +4,8 @@ use ds::unionfind::GenericUnionFind;
 
 pub type UnionFind<G> = GenericUnionFind<Vertex<G>,
                                          Vertex<G>,
-                                         PropVertex<G, Vertex<G>>,
-                                         PropVertex<G, usize>,
+                                         DefaultPropMutVertex<G, Vertex<G>>,
+                                         DefaultPropMutVertex<G, usize>,
                                          usize>;
 
 pub trait WithUnionFind: Graph {
