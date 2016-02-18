@@ -240,7 +240,7 @@ pub trait DfsParent: Graph {
         let mut num_edges = 0;
         Dfs::run(self,
                  &mut TreeEdgeVisitor(|e| {
-                     parent[self.target(e)] = self.reverse(e).to_some();
+                     parent[self.target(e)] = Self::edge_some(self.reverse(e));
                      num_edges += 1;
                      num_edges + 1 != self.num_vertices()
                  }));
@@ -301,7 +301,7 @@ mod tests {
     {
         fn visit_tree_edge(&mut self, e: Edge<G>) -> bool {
             assert_eq!(0, self.edge_type[e]);
-            self.parent[self.g.target(e)] = self.g.source(e).to_some();
+            self.parent[self.g.target(e)] = G::vertex_some(self.g.source(e));
             self.d[self.g.target(e)] = self.d[self.g.source(e)] + 1;
             self.edge_type[e] = TREE;
             true

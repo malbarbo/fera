@@ -1,5 +1,7 @@
 use std::ops::{Deref, Index, IndexMut};
 
+// TODO: Define a feature to disable bounds check.
+
 pub trait ToIndex {
     fn to_index(&self) -> usize;
 }

@@ -44,7 +44,10 @@ impl<G, B> Basic for Subgraph<G, B>
           B: Borrow<G>
 {
     type Vertex = Vertex<G>;
+    type OptionVertex = OptionVertex<G>;
+
     type Edge = Edge<G>;
+    type OptionEdge = OptionEdge<G>;
 
     fn num_vertices(&self) -> usize {
         self.vertices.len()

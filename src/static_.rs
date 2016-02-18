@@ -61,6 +61,16 @@ macro_rules! impl_num {
 
         impl OptionItem<StaticVertex<$t>> for $t {
             #[inline(always)]
+            fn new_none() -> Self {
+                $t::max()
+            }
+
+            #[inline(always)]
+            fn new_some(x: StaticVertex<$t>) -> Self {
+                x
+            }
+
+            #[inline(always)]
             fn to_option(&self) -> Option<Self> {
                 if <$t as OptionItem<StaticVertex<$t>>>::is_none(self) {
                     None
@@ -68,24 +78,19 @@ macro_rules! impl_num {
                     Some(*self)
                 }
             }
-
-            #[inline(always)]
-            fn is_none(&self) -> bool {
-                *self == Self::max()
-            }
-
-            #[inline(always)]
-            fn is_some(&self) -> bool {
-                *self != Self::max()
-            }
-
-            #[inline(always)]
-            fn eq_some(&self, other: $t) -> bool {
-                *self == other
-            }
         }
 
         impl OptionItem<StaticEdge<$t>> for $t {
+            #[inline(always)]
+            fn new_none() -> Self {
+                $t::max()
+            }
+
+            #[inline(always)]
+            fn new_some(x: StaticEdge<$t>) -> Self {
+                x.0
+            }
+
             #[inline(always)]
             fn to_option(&self) -> Option<StaticEdge<$t>> {
                 if <$t as OptionItem<StaticEdge<$t>>>::is_none(self) {
@@ -93,21 +98,6 @@ macro_rules! impl_num {
                 } else {
                     Some(StaticEdge(*self))
                 }
-            }
-
-            #[inline(always)]
-            fn is_none(&self) -> bool {
-                *self == Self::max()
-            }
-
-            #[inline(always)]
-            fn is_some(&self) -> bool {
-                *self != Self::max()
-            }
-
-            #[inline(always)]
-            fn eq_some(&self, other: StaticEdge<$t>) -> bool {
-                StaticEdge(*self) == other
             }
         }
     )
@@ -124,6 +114,8 @@ impl_num!(usize);
 
 #[derive(Copy, Clone, Debug, Eq)]
 pub struct StaticEdge<N: Num>(N);
+
+impl<N: Num> Item for StaticEdge<N> {}
 
 // TODO: Document the representation of StaticEdge
 impl<N: Num> StaticEdge<N> {
@@ -147,20 +139,6 @@ impl<N: Num> ToIndex for StaticEdge<N> {
     #[inline(always)]
     fn to_index(&self) -> usize {
         Num::to_usize(self.0) / 2
-    }
-}
-
-impl<N: Num> Item for StaticEdge<N> {
-    type Option = N;
-
-    #[inline(always)]
-    fn new_none() -> Self::Option {
-        N::max()
-    }
-
-    #[inline(always)]
-    fn to_some(&self) -> Self::Option {
-        self.0
     }
 }
 
@@ -199,6 +177,8 @@ impl<N: Num> Hash for StaticEdge<N> {
 
 pub type StaticVertex<N> = N;
 
+impl<N: Num> Item for StaticVertex<N> {}
+
 impl<N: Num> ToIndex for StaticVertex<N> {
     #[inline(always)]
     fn to_index(&self) -> usize {
@@ -206,21 +186,6 @@ impl<N: Num> ToIndex for StaticVertex<N> {
     }
 }
 
-impl<N: Num> Item for StaticVertex<N> {
-    type Option = StaticVertex<N>;
-
-    #[inline(always)]
-    fn new_none() -> Self::Option {
-        N::max()
-    }
-
-    #[inline(always)]
-    fn to_some(&self) -> Self::Option {
-        *self
-    }
-}
-
-// TODO: Define a feature to disable property bounds check for vertex and edge property.
 
 // StaticGraphGeneric
 
@@ -299,7 +264,6 @@ impl<V: Num, E: Num> Builder for StaticGraphGenericBuilder<V, E> {
     }
 }
 
-
 impl<'a, V: Num, E: Num> Iterators<'a, StaticGraphGeneric<V, E>> for StaticGraphGeneric<V, E> {
     type Vertex = V::Range;
     type Edge = Map<Range<usize>, fn(usize) -> StaticEdge<E>>;
@@ -308,7 +272,10 @@ impl<'a, V: Num, E: Num> Iterators<'a, StaticGraphGeneric<V, E>> for StaticGraph
 
 impl<V: Num, E: Num> Basic for StaticGraphGeneric<V, E> {
     type Vertex = StaticVertex<V>;
+    type OptionVertex = V;
+
     type Edge = StaticEdge<E>;
+    type OptionEdge = E;
 
     fn num_vertices(&self) -> usize {
         self.num_vertices
@@ -366,7 +333,6 @@ impl<T: Clone, V: Num, E: Num> WithProps<T> for StaticGraphGeneric<V, E> {
         VecProp::new(Vec::with_value(value, self.num_edges()))
     }
 }
-
 
 impl<V: Num, E: Num> Choose for StaticGraphGeneric<V, E> {
     fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {

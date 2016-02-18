@@ -5,26 +5,22 @@ use std::hash::Hash;
 use std::ops::{Index, IndexMut};
 
 pub type Vertex<G> = <G as Basic>::Vertex;
+pub type OptionVertex<G> = <G as Basic>::OptionVertex;
+pub type PropVertex<G, T> = PropItem<Vertex<G>, Output = T>;
+pub type PropMutVertex<G, T> = PropMutItem<Vertex<G>, Output = T>;
+pub type DefaultPropMutVertex<G, T> = <G as WithProps<T>>::Vertex;
+pub type VecVertex<G> = Vec<Vertex<G>>;
+
 pub type Edge<G> = <G as Basic>::Edge;
+pub type OptionEdge<G> = <G as Basic>::OptionEdge;
+pub type PropEdge<G, T> = PropItem<Edge<G>, Output = T>;
+pub type PropMutEdge<G, T> = PropMutItem<Edge<G>, Output = T>;
+pub type DefaultPropMutEdge<G, T> = <G as WithProps<T>>::Edge;
+pub type VecEdge<G> = Vec<Edge<G>>;
 
 pub type IterVertex<'a, G> = <G as Iterators<'a, G>>::Vertex;
 pub type IterEdge<'a, G> = <G as Iterators<'a, G>>::Edge;
 pub type IterInc<'a, G> = <G as Iterators<'a, G>>::Inc;
-
-pub type PropVertex<G, T> = PropItem<Vertex<G>, Output = T>;
-pub type PropEdge<G, T> = PropItem<Edge<G>, Output = T>;
-
-pub type PropMutVertex<G, T> = PropMutItem<Vertex<G>, Output = T>;
-pub type PropMutEdge<G, T> = PropMutItem<Edge<G>, Output = T>;
-
-pub type DefaultPropMutVertex<G, T> = <G as WithProps<T>>::Vertex;
-pub type DefaultPropMutEdge<G, T> = <G as WithProps<T>>::Edge;
-
-pub type VecVertex<G> = Vec<Vertex<G>>;
-pub type VecEdge<G> = Vec<Edge<G>>;
-
-pub type OptionVertex<G> = <<G as Basic>::Vertex as Item>::Option;
-pub type OptionEdge<G> = <<G as Basic>::Edge as Item>::Option;
 
 
 // Graph
@@ -38,7 +34,10 @@ impl<G> Graph for G where G: Basic + BasicProps {}
 
 pub trait Basic: Sized where for<'a> Self: Iterators<'a, Self> {
     type Vertex: 'static + Item;
+    type OptionVertex: 'static + OptionItem<Vertex<Self>>;
+
     type Edge: 'static + Item;
+    type OptionEdge: 'static + OptionItem<Edge<Self>>;
 
 
     // Vertices
@@ -48,7 +47,11 @@ pub trait Basic: Sized where for<'a> Self: Iterators<'a, Self> {
     fn vertices(&self) -> IterVertex<Self>;
 
     fn vertex_none() -> OptionVertex<Self> {
-        Vertex::<Self>::new_none()
+        OptionVertex::<Self>::new_none()
+    }
+
+    fn vertex_some(v: Vertex<Self>) -> OptionVertex<Self> {
+        OptionVertex::<Self>::new_some(v)
     }
 
 
@@ -59,7 +62,11 @@ pub trait Basic: Sized where for<'a> Self: Iterators<'a, Self> {
     fn edges(&self) -> IterEdge<Self>;
 
     fn edge_none() -> OptionEdge<Self> {
-        Edge::<Self>::new_none()
+        OptionEdge::<Self>::new_none()
+    }
+
+    fn edge_some(e: Edge<Self>) -> OptionEdge<Self> {
+        OptionEdge::<Self>::new_some(e)
     }
 
     fn source(&self, e: Edge<Self>) -> Vertex<Self>;
@@ -94,22 +101,41 @@ pub trait Basic: Sized where for<'a> Self: Iterators<'a, Self> {
 
 // Item
 
-pub trait Item: Copy + Eq + Hash + Debug {
-    type Option: OptionItem<Self>;
-
-    fn new_none() -> Self::Option;
-    fn to_some(&self) -> Self::Option;
-}
+pub trait Item: Copy + Eq + Hash + Debug { }
 
 // TODO: write tests
 pub trait OptionItem<T>: Clone + PartialEq {
+    fn new_none() -> Self;
+
+    fn new_some(t: T) -> Self;
+
     fn to_option(&self) -> Option<T>;
-    fn is_none(&self) -> bool;
-    fn is_some(&self) -> bool;
-    fn eq_some(&self, other: T) -> bool;
+
+    #[inline(always)]
+    fn is_none(&self) -> bool {
+        *self == Self::new_none()
+    }
+
+    #[inline(always)]
+    fn is_some(&self) -> bool {
+        !self.is_none()
+    }
+
+    #[inline(always)]
+    fn eq_some(&self, other: T) -> bool {
+        *self == Self::new_some(other)
+    }
 }
 
 impl<T: Clone + PartialEq> OptionItem<T> for Option<T> {
+    fn new_none() -> Self {
+        None
+    }
+
+    fn new_some(t: T) -> Self {
+        Some(t)
+    }
+
     #[inline(always)]
     fn to_option(&self) -> Option<T> {
         self.clone()
@@ -123,11 +149,6 @@ impl<T: Clone + PartialEq> OptionItem<T> for Option<T> {
     #[inline(always)]
     fn is_some(&self) -> bool {
         self.is_some()
-    }
-
-    #[inline(always)]
-    fn eq_some(&self, other: T) -> bool {
-        *self == Some(other)
     }
 }
 

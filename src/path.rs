@@ -38,7 +38,7 @@ pub trait FindPath: Graph {
                        u,
                        &mut TreeEdgeVisitor(|e| {
                            let t = self.target(e);
-                           tree[t] = e.to_some();
+                           tree[t] = Self::edge_some(e);
                            found = t == v;
                            !found
                        }));
