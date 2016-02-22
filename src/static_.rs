@@ -188,18 +188,6 @@ pub struct StaticGraphGeneric<V: Num, E: Num> {
 }
 
 impl<V: Num, E: Num> StaticGraphGeneric<V, E> {
-    pub fn new_with_edges(num_vertices: usize, edges: &[(usize, usize)]) -> Self {
-        let mut builder = StaticGraphGeneric::builder(num_vertices, edges.len());
-        for &(u, v) in edges {
-            builder.add_edge(u, v)
-        }
-        builder.finalize()
-    }
-
-    pub fn new_empty() -> Self {
-        StaticGraphGeneric::new_with_edges(0, &[])
-    }
-
     fn add_edge(&mut self, u: Vertex<Self>, v: Vertex<Self>) {
         self.endvertices.push(u);
         self.endvertices.push(v);

@@ -9,6 +9,20 @@ use rand::distributions::{IndependentSample, Range};
 
 #[macro_export]
 macro_rules! graph {
+    ($T:ty) => (
+        {
+            use builder::{Builder, WithBuilder};
+            <$T as WithBuilder>::builder(0, 0).finalize()
+        }
+    );
+
+    ($T:ty, $n:expr) => (
+        {
+            use builder::{Builder, WithBuilder};
+            <$T as WithBuilder>::builder($n, 0).finalize()
+        }
+    );
+
     ($T:ty, $n:expr, $(($u:expr, $v:expr)),+) => (
         {
             use builder::{Builder, WithBuilder};
