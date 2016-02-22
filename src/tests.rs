@@ -18,7 +18,15 @@ macro_rules! delegate_tests {
 
 macro_rules! graph_basic_tests {
     ($T: ident) => (
-            delegate_tests!{$T, vertices, edges, reverse, opposite, degree, inc_edges}
+            delegate_tests!{$T,
+                            vertices,
+                            option_vertex,
+                            edges,
+                            option_edge,
+                            reverse,
+                            opposite,
+                            degree,
+                            inc_edges}
     )
 }
 
@@ -55,12 +63,38 @@ pub trait GraphTests {
         assert_eq!(vertices, g.vertices().into_vec());
     }
 
+    fn option_vertex() {
+        let (_, vertices, _) = Self::new();
+        assert!(Self::G::vertex_none().is_none());
+        assert_eq!(None, Self::G::vertex_none().to_option());
+        if vertices.is_empty() {
+            return;
+        }
+        let u = vertices[0];
+        assert!(Self::G::vertex_some(u).is_some());
+        assert!(Self::G::vertex_some(u).eq_some(u));
+        assert_eq!(Some(u), Self::G::vertex_some(u).to_option());
+    }
+
     fn edges() {
         let (g, _, edges) = Self::new();
         assert_eq!(edges.len(), g.num_edges());
         assert_eq!(edges, g.edges().into_vec());
         assert_eq!(edges.iter().cloned().endvertices(&g).into_vec(),
                    g.edges().endvertices(&g).into_vec());
+    }
+
+    fn option_edge() {
+        let (_, _, edges) = Self::new();
+        assert!(Self::G::edge_none().is_none());
+        assert_eq!(None, Self::G::edge_none().to_option());
+        if edges.is_empty() {
+            return;
+        }
+        let e = edges[0];
+        assert!(Self::G::edge_some(e).is_some());
+        assert!(Self::G::edge_some(e).eq_some(e));
+        assert_eq!(Some(e), Self::G::edge_some(e).to_option());
     }
 
     fn reverse() {
