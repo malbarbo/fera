@@ -25,6 +25,7 @@ pub mod props;
 pub mod traverse;
 pub mod unionfind;
 pub mod vecprop;
+pub mod hashprop;
 
 pub mod prelude {
     pub use graph::*;

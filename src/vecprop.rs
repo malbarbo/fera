@@ -1,40 +1,57 @@
+use std::fmt::Debug;
 use std::ops::{Deref, Index, IndexMut};
 
 // TODO: Define a feature to disable bounds check.
 
-pub trait ToIndex {
-    fn to_index(&self) -> usize;
+pub trait ToIndex<I>: Clone + Debug {
+    fn to_index(&self, x: I) -> usize;
+}
+
+impl<I: Clone + Debug> ToIndex<I> for fn (I) -> usize {
+    fn to_index(&self, x: I) -> usize {
+        self(x)
+    }
 }
 
 #[derive(Clone, Debug)]
-pub struct VecProp<T>(Vec<T>);
+pub struct VecProp<I, T> {
+    to_index: I,
+    data: Vec<T>,
+}
 
-impl<T> VecProp<T> {
-    pub fn new(v: Vec<T>) -> Self {
-        VecProp(v)
+impl<I, T> VecProp<I, T> {
+    pub fn new(to_index: I, data: Vec<T>) -> Self {
+        VecProp {
+            to_index: to_index,
+            data: data,
+        }
     }
 }
 
-impl<T> Deref for VecProp<T> {
+impl<I, T> Deref for VecProp<I, T> {
     type Target = [T];
 
     fn deref(&self) -> &Self::Target {
-        &*self.0
+        &*self.data
     }
 }
 
-impl<I: ToIndex, T> Index<I> for VecProp<T> {
+impl<K, I, T> Index<K> for VecProp<I, T>
+    where I: ToIndex<K>
+{
     type Output = T;
 
     #[inline(always)]
-    fn index(&self, index: I) -> &Self::Output {
-        self.0.index(index.to_index())
+    fn index(&self, key: K) -> &Self::Output {
+        self.data.index(self.to_index.to_index(key))
     }
 }
 
-impl<I: ToIndex, T> IndexMut<I> for VecProp<T> {
+impl<K, I, T> IndexMut<K> for VecProp<I, T>
+    where I: ToIndex<K>
+{
     #[inline(always)]
-    fn index_mut(&mut self, index: I) -> &mut Self::Output {
-        self.0.index_mut(index.to_index())
+    fn index_mut(&mut self, key: K) -> &mut Self::Output {
+        self.data.index_mut(self.to_index.to_index(key))
     }
 }

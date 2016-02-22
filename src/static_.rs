@@ -133,11 +133,9 @@ impl<N: Num> StaticEdge<N> {
     fn reverse(self) -> Self {
         StaticEdge(Num::from_usize(Num::to_usize(self.0) ^ 1))
     }
-}
 
-impl<N: Num> ToIndex for StaticEdge<N> {
     #[inline(always)]
-    fn to_index(&self) -> usize {
+    fn to_index(self) -> usize {
         Num::to_usize(self.0) / 2
     }
 }
@@ -178,13 +176,6 @@ impl<N: Num> Hash for StaticEdge<N> {
 pub type StaticVertex<N> = N;
 
 impl<N: Num> Item for StaticVertex<N> {}
-
-impl<N: Num> ToIndex for StaticVertex<N> {
-    #[inline(always)]
-    fn to_index(&self) -> usize {
-        Num::to_usize(*self)
-    }
-}
 
 
 // StaticGraphGeneric
@@ -322,15 +313,15 @@ impl<V: Num, E: Num> Basic for StaticGraphGeneric<V, E> {
 }
 
 impl<T: Clone, V: Num, E: Num> WithProps<T> for StaticGraphGeneric<V, E> {
-    type Vertex = VecProp<T>;
-    type Edge = VecProp<T>;
+    type Vertex = VecProp<fn (Vertex<Self>) -> usize, T>;
+    type Edge = VecProp<fn (Edge<Self>) -> usize, T>;
 
     fn vertex_prop(&self, value: T) -> DefaultPropMutVertex<Self, T> {
-        VecProp::new(Vec::with_value(value, self.num_vertices()))
+        VecProp::new(StaticVertex::<V>::to_usize, Vec::with_value(value, self.num_vertices()))
     }
 
     fn edge_prop(&self, value: T) -> DefaultPropMutEdge<Self, T> {
-        VecProp::new(Vec::with_value(value, self.num_edges()))
+        VecProp::new(StaticEdge::<E>::to_index, Vec::with_value(value, self.num_edges()))
     }
 }
 
@@ -353,8 +344,9 @@ impl<V: Num, E: Num> Choose for StaticGraphGeneric<V, E> {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use ds::IteratorExt;
     use graph::*;
-    use static_::*;
     use builder::*;
     use tests::*;
 
@@ -374,22 +366,17 @@ mod tests {
                    g.inc);
     }
 
+    struct Test;
 
-    impl StaticGraph {
-        fn new(num_vertices: usize,
-               edges: &[(usize, usize)])
-               -> (Self, VecVertex<Self>, VecEdge<Self>) {
-            let g = StaticGraph::new_with_edges(num_vertices, edges);
-            let vertices = g.vertices().into_vec();
-            let edges = g.edges().into_vec();
-            (g, vertices, edges)
+    impl GraphTests for Test {
+        type G = StaticGraph;
+
+        fn new() -> (Self::G, VecVertex<Self::G>, VecEdge<Self::G>) {
+            Self::new_with_builder()
         }
     }
 
-    test_basic!{ StaticGraph }
-    test_degree!{ StaticGraph }
-    test_inc!{ StaticGraph }
-    test_adj!{ StaticGraph }
-    test_vertex_prop!{ StaticGraph }
-    test_edge_prop!{ StaticGraph }
+    graph_basic_tests!{Test}
+    graph_prop_tests!{Test}
+    graph_adj_tests!{Test}
 }
