@@ -2,6 +2,9 @@ use graph::*;
 
 use rand::Rng;
 
+// TODO: There is no vertex
+// TODO: There is no edge
+// TODO: There is no inc edge
 pub trait Choose: Basic {
     fn choose_vertex<R>(&self, rng: &mut R) -> Vertex<Self> where R: Rng;
 
