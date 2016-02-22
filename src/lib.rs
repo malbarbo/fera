@@ -11,10 +11,10 @@ extern crate ds;
 #[macro_use]
 pub mod tests;
 
-// TODO: Create a CompleteGraph implementation of Graph
 // TODO: Create a DiGraph trait and implementations
 pub mod graph;
 pub mod subgraph;
+pub mod complete;
 pub mod static_;
 pub mod builder;
 pub mod choose;

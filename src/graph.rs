@@ -103,7 +103,6 @@ pub trait Basic: Sized where for<'a> Self: Iterators<'a, Self> {
 
 pub trait Item: Copy + Eq + Hash + Debug { }
 
-// TODO: write tests
 pub trait OptionItem<T>: Clone + PartialEq {
     fn new_none() -> Self;
 
