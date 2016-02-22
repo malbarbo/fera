@@ -18,27 +18,29 @@ macro_rules! delegate_tests {
 
 macro_rules! graph_basic_tests {
     ($T: ident) => (
-            delegate_tests!{$T,
-                            vertices,
-                            option_vertex,
-                            edges,
-                            option_edge,
-                            reverse,
-                            opposite,
-                            degree,
-                            inc_edges}
+        delegate_tests!{
+            $T,
+            vertices,
+            option_vertex,
+            edges,
+            option_edge,
+            reverse,
+            opposite,
+            degree,
+            inc_edges
+        }
     )
 }
 
 macro_rules! graph_prop_tests {
     ($T: ident) => (
-            delegate_tests!{$T, vertex_prop, edge_prop}
+        delegate_tests!{$T, vertex_prop, edge_prop}
     )
 }
 
 macro_rules! graph_adj_tests {
     ($T: ident) => (
-            delegate_tests!{$T, neighbors}
+        delegate_tests!{$T, neighbors}
     )
 }
 

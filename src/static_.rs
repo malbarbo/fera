@@ -215,8 +215,16 @@ impl<V: Num, E: Num> StaticGraphGeneric<V, E> {
 
 impl<V: Num, E: Num> WithBuilder for StaticGraphGeneric<V, E> {
     type Builder = StaticGraphGenericBuilder<V, E>;
+}
 
-    fn builder(num_vertices: usize, num_edges: usize) -> Self::Builder {
+pub struct StaticGraphGenericBuilder<V: Num, E: Num> {
+    g: StaticGraphGeneric<V, E>,
+}
+
+impl<V: Num, E: Num> Builder for StaticGraphGenericBuilder<V, E> {
+    type Graph = StaticGraphGeneric<V, E>;
+
+    fn new(num_vertices: usize, num_edges: usize) -> Self {
         // TODO: test this assert
         assert!(V::is_valid(num_vertices));
         StaticGraphGenericBuilder {
@@ -227,14 +235,6 @@ impl<V: Num, E: Num> WithBuilder for StaticGraphGeneric<V, E> {
             },
         }
     }
-}
-
-pub struct StaticGraphGenericBuilder<V: Num, E: Num> {
-    g: StaticGraphGeneric<V, E>,
-}
-
-impl<V: Num, E: Num> Builder for StaticGraphGenericBuilder<V, E> {
-    type Graph = StaticGraphGeneric<V, E>;
 
     fn add_edge(&mut self, u: usize, v: usize) {
         self.g.add_edge(Num::from_usize(u), Num::from_usize(v));
@@ -379,4 +379,15 @@ mod tests {
     graph_basic_tests!{Test}
     graph_prop_tests!{Test}
     graph_adj_tests!{Test}
+
+    mod with_builder {
+        use builder::BuilderTests;
+        use static_::*;
+
+        impl BuilderTests for StaticGraph {
+            type G = Self;
+        }
+
+        graph_builder_tests!{StaticGraph}
+    }
 }

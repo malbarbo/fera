@@ -13,10 +13,11 @@ pub mod tests;
 
 // TODO: Create a DiGraph trait and implementations
 pub mod graph;
+#[macro_use]
+pub mod builder;
 pub mod subgraph;
 pub mod complete;
 pub mod static_;
-pub mod builder;
 pub mod choose;
 pub mod iter;
 pub mod kruskal;
