@@ -6,15 +6,11 @@ use std::ops::{Index, IndexMut};
 
 pub type Vertex<G> = <G as Basic>::Vertex;
 pub type OptionVertex<G> = <G as Basic>::OptionVertex;
-pub type PropVertex<G, T> = PropItem<Vertex<G>, Output = T>;
-pub type PropMutVertex<G, T> = PropMutItem<Vertex<G>, Output = T>;
 pub type DefaultPropMutVertex<G, T> = <G as WithProps<T>>::Vertex;
 pub type VecVertex<G> = Vec<Vertex<G>>;
 
 pub type Edge<G> = <G as Basic>::Edge;
 pub type OptionEdge<G> = <G as Basic>::OptionEdge;
-pub type PropEdge<G, T> = PropItem<Edge<G>, Output = T>;
-pub type PropMutEdge<G, T> = PropMutItem<Edge<G>, Output = T>;
 pub type DefaultPropMutEdge<G, T> = <G as WithProps<T>>::Edge;
 pub type VecEdge<G> = Vec<Edge<G>>;
 
@@ -163,17 +159,27 @@ pub trait Iterators<'a, G: Basic> {
 
 // Properties
 
-pub trait PropItem<T>: Index<T> + Clone {}
+pub trait PropVertex<G: Basic, T>: Index<Vertex<G>, Output = T> + Clone {}
 
-pub trait PropMutItem<T>: PropItem<T> + IndexMut<T> {}
+pub trait PropMutVertex<G: Basic, T>: PropVertex<G, T> + IndexMut<Vertex<G>, Output = T> {}
 
-impl<T, A: Index<T> + Clone> PropItem<T> for A {}
+impl<G: Basic, T, A: Index<Vertex<G>, Output = T> + Clone> PropVertex<G, T> for A {}
 
-impl<T, A: PropItem<T> + IndexMut<T>> PropMutItem<T> for A {}
+impl<G: Basic, T, A: PropVertex<G, T> + IndexMut<Vertex<G>, Output = T>> PropMutVertex<G, T> for A {}
+
+
+pub trait PropEdge<G: Basic, T>: Index<Edge<G>, Output = T> + Clone {}
+
+pub trait PropMutEdge<G: Basic, T>: PropEdge<G, T> + IndexMut<Edge<G>, Output = T> {}
+
+impl<G: Basic, T, A: Index<Edge<G>, Output = T> + Clone> PropEdge<G, T> for A {}
+
+impl<G: Basic, T, A: PropEdge<G, T> + IndexMut<Edge<G>, Output = T>> PropMutEdge<G, T> for A {}
+
 
 pub trait WithProps<T: Clone>: Basic {
-    type Vertex: PropMutItem<Vertex<Self>, Output=T>;
-    type Edge: PropMutItem<Edge<Self>, Output=T>;
+    type Vertex: PropMutVertex<Self, T>;
+    type Edge: PropMutEdge<Self, T>;
 
     fn vertex_prop(&self, value: T) -> DefaultPropMutVertex<Self, T>;
 
