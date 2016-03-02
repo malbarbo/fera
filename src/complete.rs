@@ -7,6 +7,7 @@ use std::ops::Range;
 
 use rand::Rng;
 
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub struct CompleteGraph(u32);
 
 impl CompleteGraph {
