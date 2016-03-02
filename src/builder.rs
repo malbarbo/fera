@@ -11,21 +11,21 @@ use rand::distributions::{IndependentSample, Range};
 macro_rules! graph {
     ($T:ty) => (
         {
-            use builder::{Builder, WithBuilder};
+            use $crate::builder::{Builder, WithBuilder};
             <$T as WithBuilder>::builder(0, 0).finalize()
         }
     );
 
     ($T:ty, $n:expr) => (
         {
-            use builder::{Builder, WithBuilder};
+            use $crate::builder::{Builder, WithBuilder};
             <$T as WithBuilder>::builder($n, 0).finalize()
         }
     );
 
     ($T:ty, $n:expr, $(($u:expr, $v:expr)),+) => (
         {
-            use builder::{Builder, WithBuilder};
+            use $crate::builder::{Builder, WithBuilder};
             let mut m = 0;
             $(let _ = $u; m += 1;)+
             let mut b = <$T as WithBuilder>::builder($n, m);
@@ -40,8 +40,8 @@ macro_rules! graph {
 
     ($T:ty, $n:expr, $(($u:expr, $v:expr) -> $p:expr),+) => (
         {
+            use $crate::builder::{Builder, WithBuilder};
             fn default<T: Default>(_: &T) -> T { Default::default() };
-            use builder::{Builder, WithBuilder};
             let mut m = 0;
             $(let _ = $u; m += 1;)+
             let mut b = <$T as WithBuilder>::builder($n, m);
