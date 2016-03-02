@@ -44,8 +44,9 @@ pub trait IteratorGraphExt: Sized {
         max.unwrap()
     }
 
-    fn max_edge_position<G>(self, w: &DefaultPropMutEdge<G, f64>) -> usize
+    fn max_edge_position<G, W>(self, w: &W) -> usize
         where G: Graph,
+              W: PropEdge<G, f64>,
               Self: Iterator<Item=Edge<G>>,
     {
         use std::f64;
