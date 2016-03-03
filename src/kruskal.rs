@@ -68,7 +68,7 @@ pub trait Kruskal: Graph {
               T: PartialOrd + Clone,
               V: Visitor<Self>
     {
-        let edges = self.edges().into_vec().sorted_partial_ord_by_key(|v| weight[*v].clone());
+        let edges = self.edges().into_vec().partial_ord_sorted_by_key(|e| &weight[*e]);
         self.kruskal_with_edges(edges.into_iter(), visitor);
     }
 
