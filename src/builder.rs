@@ -1,6 +1,5 @@
 use graph::*;
 use props::Props;
-use iter::IteratorGraphExt;
 
 use ds::{IteratorExt, VecExt};
 
@@ -195,7 +194,7 @@ pub trait BuilderTests {
         assert_eq!(3, g.num_vertices());
         assert_eq!(2, g.num_edges());
         assert_eq!(set![(v[0], v[1]), (v[0], v[2])],
-                   g.inc_edges(v[0]).endvertices(&g).into_set());
+                   g.inc_edges(v[0]).map(|e| g.endvertices(e)).into_set());
 
         for h in 2..10 {
             let (g, v, _) = complete_binary_tree::<Self::G>(h).finalize_();
