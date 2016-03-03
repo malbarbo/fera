@@ -4,8 +4,8 @@ use ds::unionfind::GenericUnionFind;
 
 pub type UnionFind<G> = GenericUnionFind<Vertex<G>,
                                          Vertex<G>,
-                                         PropVertex<G, Vertex<G>>,
-                                         PropVertex<G, usize>,
+                                         DefaultPropMutVertex<G, Vertex<G>>,
+                                         DefaultPropMutVertex<G, usize>,
                                          usize>;
 
 pub trait WithUnionFind: Graph {
@@ -38,7 +38,7 @@ mod tests {
 
     #[test]
     fn unionfind() {
-        let g = StaticGraph::new_with_edges(5, &[]);
+        let g = graph!(StaticGraph, 5);
         let v = g.vertices().into_vec();
         let mut ds = g.new_unionfind();
         ds.union(v[0], v[2]);

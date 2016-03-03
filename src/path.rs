@@ -1,10 +1,9 @@
 use graph::*;
-use graph::traits::*;
 use traverse::*;
 
 pub type Path<G> = VecEdge<G>;
 
-pub type ParentTree<G> = PropVertex<G, OptionEdge<G>>;
+pub type ParentTree<G> = DefaultPropMutVertex<G, OptionEdge<G>>;
 
 pub trait FindPath: Graph {
     fn find_path_on_parent_tree(&self,
@@ -39,7 +38,7 @@ pub trait FindPath: Graph {
                        u,
                        &mut TreeEdgeVisitor(|e| {
                            let t = self.target(e);
-                           tree[t] = e.to_some();
+                           tree[t] = Self::edge_some(e);
                            found = t == v;
                            !found
                        }));
@@ -63,7 +62,11 @@ mod tests {
 
     #[test]
     fn find_path() {
-        let g = StaticGraph::new_with_edges(6, &[(0, 1), (0, 2), (1, 4), (2, 3), (2, 4)]);
+        let g = graph!(
+            StaticGraph,
+            6,
+            (0, 1), (0, 2), (1, 4), (2, 3), (2, 4)
+        );
         let e = g.edges().into_vec();
 
         assert_eq!(None, g.find_path(0, 0));

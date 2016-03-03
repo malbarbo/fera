@@ -21,14 +21,14 @@ pub trait IteratorGraphExt: Sized {
         self.map1(&g, G::reverse)
     }
 
-    fn sum_edge<G>(self, w: &PropEdge<G, f64>) -> f64
+    fn sum_edge<G>(self, w: &DefaultPropMutEdge<G, f64>) -> f64
         where G: Graph,
               Self: Iterator<Item=Edge<G>>,
     {
         self.fold(0.0, |acc, e| acc + w[e])
     }
 
-    fn max_edge<G>(self, w: &PropEdge<G, f64>) -> Edge<G>
+    fn max_edge<G>(self, w: &DefaultPropMutEdge<G, f64>) -> Edge<G>
         where G: Graph,
               Self: Iterator<Item=Edge<G>>,
     {
@@ -44,7 +44,7 @@ pub trait IteratorGraphExt: Sized {
         max.unwrap()
     }
 
-    fn max_edge_position<G>(self, w: &PropEdge<G, f64>) -> usize
+    fn max_edge_position<G>(self, w: &DefaultPropMutEdge<G, f64>) -> usize
         where G: Graph,
               Self: Iterator<Item=Edge<G>>,
     {

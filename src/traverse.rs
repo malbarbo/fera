@@ -1,5 +1,4 @@
 use graph::*;
-use graph::traits::Item;
 use std::collections::VecDeque;
 
 // Visitor
@@ -115,7 +114,7 @@ pub struct State<'a, G>
 {
     g: &'a G,
     // depth if opened, color if closed
-    depth: PropVertex<G, usize>,
+    depth: DefaultPropMutVertex<G, usize>,
 }
 
 impl<'a, G> State<'a, G>
@@ -236,12 +235,12 @@ impl<'a, G> Traverser<'a, G> for Bfs<'a, G>
 
 // TODO: write test
 pub trait DfsParent: Graph {
-    fn dfs_parent(&self) -> PropVertex<Self, OptionEdge<Self>> {
+    fn dfs_parent(&self) -> DefaultPropMutVertex<Self, OptionEdge<Self>> {
         let mut parent = self.vertex_prop(Self::edge_none());
         let mut num_edges = 0;
         Dfs::run(self,
                  &mut TreeEdgeVisitor(|e| {
-                     parent[self.target(e)] = self.reverse(e).to_some();
+                     parent[self.target(e)] = Self::edge_some(self.reverse(e));
                      num_edges += 1;
                      num_edges + 1 != self.num_vertices()
                  }));
@@ -257,15 +256,16 @@ impl<G> DfsParent for G where G: Graph { }
 #[cfg(test)]
 mod tests {
     use graph::*;
-    use graph::traits::*;
     use static_::*;
     use ds::IteratorExt;
     use traverse::*;
 
     fn new() -> StaticGraph {
-        StaticGraph::new_with_edges(7,
-                                    &[(0, 1), (0, 2), (1, 2), (1, 3), (2, 3), (4, 5), (4, 6),
-                                      (5, 6)])
+        graph!(
+            StaticGraph,
+            7,
+            (0, 1), (0, 2), (1, 2), (1, 3), (2, 3), (4, 5), (4, 6), (5, 6)
+        )
         // u -> e (u, v)
         // 0 -> 0 (0, 1) 1 (0, 2)
         // 1 -> 1 (1, 0) 2 (1, 2) 3 (1, 3)
@@ -284,9 +284,9 @@ mod tests {
         where G: 'a + Graph,
     {
         g: &'a G,
-        parent: PropVertex<G, OptionVertex<G>>,
-        d: PropVertex<G, usize>,
-        edge_type: PropEdge<G, usize>,
+        parent: DefaultPropMutVertex<G, OptionVertex<G>>,
+        d: DefaultPropMutVertex<G, usize>,
+        edge_type: DefaultPropMutEdge<G, usize>,
     }
 
     fn new_test_visitor(g: &StaticGraph) -> TestVisitor<StaticGraph> {
@@ -303,7 +303,7 @@ mod tests {
     {
         fn visit_tree_edge(&mut self, e: Edge<G>) -> bool {
             assert_eq!(0, self.edge_type[e]);
-            self.parent[self.g.target(e)] = self.g.source(e).to_some();
+            self.parent[self.g.target(e)] = G::vertex_some(self.g.source(e));
             self.d[self.g.target(e)] = self.d[self.g.source(e)] + 1;
             self.edge_type[e] = TREE;
             true

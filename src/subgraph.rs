@@ -18,10 +18,10 @@ pub struct Subgraph<G, B>
     g: B,
     vertices: VecVertex<G>,
     edges: VecEdge<G>,
-    inc: PropVertex<G, VecEdge<G>>,
+    inc: DefaultPropMutVertex<G, VecEdge<G>>,
 }
 
-impl<'a, G, B> IterTypes<'a, Subgraph<G, B>> for Subgraph<G, B>
+impl<'a, G, B> Iterators<'a, Subgraph<G, B>> for Subgraph<G, B>
     where G: Graph,
       B: Borrow<G>
 {
@@ -44,7 +44,10 @@ impl<G, B> Basic for Subgraph<G, B>
           B: Borrow<G>
 {
     type Vertex = Vertex<G>;
+    type OptionVertex = OptionVertex<G>;
+
     type Edge = Edge<G>;
+    type OptionEdge = OptionEdge<G>;
 
     fn num_vertices(&self) -> usize {
         self.vertices.len()
@@ -90,14 +93,14 @@ impl<T: Clone, G, B> WithProps<T> for Subgraph<G, B>
     where G: Graph + WithProps<T>,
           B: Borrow<G>,
 {
-    type Vertex = PropVertex<G, T>;
-    type Edge = PropEdge<G, T>;
+    type Vertex = DefaultPropMutVertex<G, T>;
+    type Edge = DefaultPropMutEdge<G, T>;
 
-    fn vertex_prop(&self, value: T) -> PropVertex<Self, T> {
+    fn vertex_prop(&self, value: T) -> DefaultPropMutVertex<Self, T> {
         self.g().vertex_prop(value)
     }
 
-    fn edge_prop(&self, value: T) -> PropEdge<Self, T> {
+    fn edge_prop(&self, value: T) -> DefaultPropMutEdge<Self, T> {
         self.g().edge_prop(value)
     }
 }
@@ -241,7 +244,7 @@ mod tests {
             Edge<StaticGraph>,
             Edge<StaticGraph>)
     {
-        let g = StaticGraph::new_with_edges(5, &[(0, 1), (0, 2), (1, 2), (3, 4)]);
+        let g = graph!(StaticGraph, 5, (0, 1), (0, 2), (1, 2), (3, 4));
         let e = g.edges().into_vec();
         (g, e[0], e[1], e[2], e[3])
     }
