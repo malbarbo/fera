@@ -3,7 +3,6 @@ use builder::*;
 use hashprop::*;
 
 use ds::IteratorExt;
-use iter::IteratorGraphExt;
 
 macro_rules! delegate_tests {
     ($T: ident, $($names: ident),+) => (
@@ -82,8 +81,8 @@ pub trait GraphTests {
         let (g, _, edges) = Self::new();
         assert_eq!(edges.len(), g.num_edges());
         assert_eq!(edges, g.edges().into_vec());
-        assert_eq!(edges.iter().cloned().endvertices(&g).into_vec(),
-                   g.edges().endvertices(&g).into_vec());
+        assert_eq!(edges.iter().map(|e| g.endvertices(*e)).into_vec(),
+                   g.edges().map(|e| g.endvertices(e)).into_vec());
     }
 
     fn option_edge() {

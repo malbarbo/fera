@@ -1,6 +1,5 @@
 use graph::*;
 use props::Props;
-use iter::IteratorGraphExt;
 
 use ds::{IteratorExt, VecExt};
 
@@ -11,21 +10,21 @@ use rand::distributions::{IndependentSample, Range};
 macro_rules! graph {
     ($T:ty) => (
         {
-            use builder::{Builder, WithBuilder};
+            use $crate::builder::{Builder, WithBuilder};
             <$T as WithBuilder>::builder(0, 0).finalize()
         }
     );
 
     ($T:ty, $n:expr) => (
         {
-            use builder::{Builder, WithBuilder};
+            use $crate::builder::{Builder, WithBuilder};
             <$T as WithBuilder>::builder($n, 0).finalize()
         }
     );
 
     ($T:ty, $n:expr, $(($u:expr, $v:expr)),+) => (
         {
-            use builder::{Builder, WithBuilder};
+            use $crate::builder::{Builder, WithBuilder};
             let mut m = 0;
             $(let _ = $u; m += 1;)+
             let mut b = <$T as WithBuilder>::builder($n, m);
@@ -40,8 +39,8 @@ macro_rules! graph {
 
     ($T:ty, $n:expr, $(($u:expr, $v:expr) -> $p:expr),+) => (
         {
+            use $crate::builder::{Builder, WithBuilder};
             fn default<T: Default>(_: &T) -> T { Default::default() };
-            use builder::{Builder, WithBuilder};
             let mut m = 0;
             $(let _ = $u; m += 1;)+
             let mut b = <$T as WithBuilder>::builder($n, m);
@@ -195,7 +194,7 @@ pub trait BuilderTests {
         assert_eq!(3, g.num_vertices());
         assert_eq!(2, g.num_edges());
         assert_eq!(set![(v[0], v[1]), (v[0], v[2])],
-                   g.inc_edges(v[0]).endvertices(&g).into_set());
+                   g.inc_edges(v[0]).map(|e| g.endvertices(e)).into_set());
 
         for h in 2..10 {
             let (g, v, _) = complete_binary_tree::<Self::G>(h).finalize_();
