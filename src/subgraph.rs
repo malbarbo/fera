@@ -105,6 +105,24 @@ impl<T: Clone, G, B> WithProps<T> for Subgraph<G, B>
     }
 }
 
+impl<T: Clone, G, B> PropMutVertexNew<Subgraph<G, B>, T> for DefaultPropMutVertex<G, T>
+    where G: Graph + WithProps<T>,
+          B: Borrow<G>,
+{
+    fn new_prop_vertex(g: &Subgraph<G, B>, value: T) -> Self {
+        DefaultPropMutVertex::<G, T>::new_prop_vertex(g.g(), value)
+    }
+}
+
+impl<T: Clone, G, B> PropMutEdgeNew<Subgraph<G, B>, T> for DefaultPropMutEdge<G, T>
+    where G: Graph + WithProps<T>,
+          B: Borrow<G>,
+{
+    fn new_prop_edge(g: &Subgraph<G, B>, value: T) -> Self {
+        DefaultPropMutEdge::<G, T>::new_prop_edge(g.g(), value)
+    }
+}
+
 
 // Choose
 

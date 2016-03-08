@@ -157,8 +157,35 @@ pub trait Iterators<'a, G: Basic> {
 }
 
 
+// Index
+
+// TODO: Remove Clone bounds from ToIndex
+pub trait ToIndex<K>: Clone {
+    fn to_index(&self, k: K) -> usize;
+}
+
+#[derive(Clone)]
+pub struct FnToIndex<F>(pub F);
+
+impl<K, F: Clone + Fn(K) -> usize> ToIndex<K> for FnToIndex<F> {
+    fn to_index(&self, k: K) -> usize {
+        (self.0)(k)
+    }
+}
+
+pub trait Indices: Basic {
+    type Vertex: ToIndex<Vertex<Self>>;
+    type Edge: ToIndex<Edge<Self>>;
+
+    fn prop_vertex_index(&self) -> VertexIndex<Self>;
+
+    fn prop_edge_index(&self) -> EdgeIndex<Self>;
+}
+
+
 // Properties
 
+// TODO: Remove Clone bounds from PropVertex and EdgeVertex
 pub trait PropVertex<G: Basic, T>: Index<Vertex<G>, Output = T> + Clone {}
 
 pub trait PropMutVertex<G: Basic, T>: PropVertex<G, T> + IndexMut<Vertex<G>, Output = T> {}
@@ -166,6 +193,12 @@ pub trait PropMutVertex<G: Basic, T>: PropVertex<G, T> + IndexMut<Vertex<G>, Out
 impl<G: Basic, T, A: Index<Vertex<G>, Output = T> + Clone> PropVertex<G, T> for A {}
 
 impl<G: Basic, T, A: PropVertex<G, T> + IndexMut<Vertex<G>, Output = T>> PropMutVertex<G, T> for A {}
+
+pub trait PropMutVertexNew<G: Basic, T>: PropMutVertex<G, T> {
+    fn new_prop_vertex(g: &G, value: T) -> Self;
+}
+
+pub type VertexIndex<G> = <G as Indices>::Vertex;
 
 
 pub trait PropEdge<G: Basic, T>: Index<Edge<G>, Output = T> + Clone {}
@@ -176,14 +209,38 @@ impl<G: Basic, T, A: Index<Edge<G>, Output = T> + Clone> PropEdge<G, T> for A {}
 
 impl<G: Basic, T, A: PropEdge<G, T> + IndexMut<Edge<G>, Output = T>> PropMutEdge<G, T> for A {}
 
+pub trait PropMutEdgeNew<G: Basic, T>: PropMutEdge<G, T> {
+    fn new_prop_edge(g: &G, value: T) -> Self;
+}
+
+pub type EdgeIndex<G> = <G as Indices>::Edge;
+
+
+pub fn clone_prop_vertex<G, T, P1, P2>(g: &G, src: &P1) -> P2
+    where G: Graph,
+          T: Default + Clone,
+          P1: PropVertex<G, T>,
+          P2: PropMutVertexNew<G, T>,
+{
+    let mut dst = P2::new_prop_vertex(g, T::default());
+    for v in g.vertices() {
+        dst[v] = src[v].clone();
+    }
+    dst
+}
+
 
 pub trait WithProps<T: Clone>: Basic {
-    type Vertex: PropMutVertex<Self, T>;
-    type Edge: PropMutEdge<Self, T>;
+    type Vertex: PropMutVertexNew<Self, T>;
+    type Edge: PropMutEdgeNew<Self, T>;
 
-    fn vertex_prop(&self, value: T) -> DefaultPropMutVertex<Self, T>;
+    fn vertex_prop(&self, value: T) -> DefaultPropMutVertex<Self, T> {
+        DefaultPropMutVertex::<Self, T>::new_prop_vertex(self, value)
+    }
 
-    fn edge_prop(&self, value: T) -> DefaultPropMutEdge<Self, T>;
+    fn edge_prop(&self, value: T) -> DefaultPropMutEdge<Self, T> {
+        DefaultPropMutEdge::<Self, T>::new_prop_edge(self, value)
+    }
 }
 
 #[macro_export]

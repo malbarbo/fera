@@ -1,5 +1,5 @@
 use graph::*;
-use ds::{IteratorExt, VecExt};
+use ds::IteratorExt;
 use builder::{Builder, WithBuilder};
 use choose::Choose;
 use vecprop::*;
@@ -300,17 +300,22 @@ impl<V: Num, E: Num> Basic for StaticGraphGeneric<V, E> {
     }
 }
 
+impl<V: Num, E: Num> Indices for StaticGraphGeneric<V, E> {
+    type Vertex = FnToIndex<fn(Vertex<StaticGraphGeneric<V, E>>) -> usize>;
+    type Edge = FnToIndex<fn(Edge<StaticGraphGeneric<V, E>>) -> usize>;
+
+    fn prop_vertex_index(&self) -> VertexIndex<Self> {
+        FnToIndex(V::to_usize)
+    }
+
+    fn prop_edge_index(&self) -> EdgeIndex<Self> {
+        FnToIndex(StaticEdge::<E>::to_index)
+    }
+}
+
 impl<T: Clone, V: Num, E: Num> WithProps<T> for StaticGraphGeneric<V, E> {
-    type Vertex = VecProp<fn (Vertex<Self>) -> usize, T>;
-    type Edge = VecProp<fn (Edge<Self>) -> usize, T>;
-
-    fn vertex_prop(&self, value: T) -> DefaultPropMutVertex<Self, T> {
-        VecProp::new(StaticVertex::<V>::to_usize, Vec::with_value(value, self.num_vertices()))
-    }
-
-    fn edge_prop(&self, value: T) -> DefaultPropMutEdge<Self, T> {
-        VecProp::new(StaticEdge::<E>::to_index, Vec::with_value(value, self.num_edges()))
-    }
+    type Vertex = VecPropVertex<Self, T>;
+    type Edge = VecPropEdge<Self, T>;
 }
 
 impl<V: Num, E: Num> Choose for StaticGraphGeneric<V, E> {

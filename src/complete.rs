@@ -1,7 +1,6 @@
 use graph::*;
 use choose::Choose;
 use vecprop::*;
-use ds::VecExt;
 
 use std::ops::Range;
 
@@ -193,21 +192,25 @@ impl Basic for CompleteGraph {
     }
 }
 
-impl<T: Clone> WithProps<T> for CompleteGraph {
-    type Vertex = VecProp<fn (u32) -> usize, T>;
-    type Edge = VecProp<CompleteEdgeToIndex, T>;
+impl Indices for CompleteGraph {
+    type Vertex = FnToIndex<fn (u32) -> usize>;
+    type Edge = CompleteEdgeToIndex;
 
-    fn vertex_prop(&self, value: T) -> DefaultPropMutVertex<Self, T> {
+    fn prop_vertex_index(&self) -> VertexIndex<Self> {
         fn u32_to_usize(x: u32) -> usize {
             x as usize
         }
-        VecProp::new(u32_to_usize, Vec::with_value(value, self.num_vertices()))
+        FnToIndex(u32_to_usize)
     }
 
-    fn edge_prop(&self, value: T) -> DefaultPropMutEdge<Self, T> {
-        VecProp::new(CompleteEdgeToIndex(self.num_vertices() as u32),
-                     Vec::with_value(value, self.num_edges()))
+    fn prop_edge_index(&self) -> EdgeIndex<Self> {
+        CompleteEdgeToIndex(self.num_vertices() as u32)
     }
+}
+
+impl<T: Clone> WithProps<T> for CompleteGraph {
+    type Vertex = VecPropVertex<CompleteGraph, T>;
+    type Edge = VecPropEdge<CompleteGraph, T>;
 }
 
 impl Choose for CompleteGraph {
