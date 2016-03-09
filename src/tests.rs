@@ -167,7 +167,8 @@ pub trait GraphTests {
             p[e] = 10 * i;
         }
         for (i, e) in g.edges().enumerate() {
-            assert_eq!(10 * i, p[e])
+            assert_eq!(10 * i, p[e]);
+            assert_eq!(10 * i, p[g.reverse(e)])
         }
     }
 
