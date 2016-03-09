@@ -15,16 +15,28 @@ impl CompleteGraph {
     }
 }
 
+
 // Edge
 
 #[derive(Clone, Copy, Eq, PartialOrd, Ord, Hash, Debug)]
-pub struct CompleteEdge(u32, u32);
+pub struct CompleteEdge {
+    u: u32,
+    v: u32,
+}
+
+impl CompleteEdge {
+    fn new(u: u32, v: u32) -> CompleteEdge {
+        debug_assert!(u != v);
+
+        CompleteEdge { u: u, v: v }
+    }
+}
 
 impl Item for CompleteEdge {}
 
 impl PartialEq for CompleteEdge {
     fn eq(&self, other: &CompleteEdge) -> bool {
-        (self.0 == other.0 && self.1 == other.1) || (self.0 == other.1 && self.1 == other.0)
+        (self.u == other.u && self.v == other.v) || (self.u == other.v && self.v == other.u)
     }
 }
 
@@ -35,10 +47,10 @@ impl ToIndex<CompleteEdge> for CompleteEdgeToIndex {
     fn to_index(&self, e: CompleteEdge) -> usize {
         // TODO: explain
         let n = self.0 as usize;
-        let (u, v) = (e.0 as usize, e.1 as usize);
+        let (u, v) = (e.u as usize, e.v as usize);
         if u < v {
             u * (n - 1) - (u * u - u) / 2 + v - u - 1
-        } else if v > u {
+        } else if u > v {
             v * (n - 1) - (v * v - v) / 2 + u - v - 1
         } else {
             panic!("u == v")
@@ -69,7 +81,7 @@ impl Iterator for EdgesIter {
         if self.rem == 0 {
             None
         } else {
-            let e = CompleteEdge(self.u, self.v);
+            let e = CompleteEdge::new(self.u, self.v);
             if self.v + 1 >= self.n {
                 self.u += 1;
                 self.v = self.u + 1;
@@ -108,7 +120,7 @@ impl Iterator for IncIter {
             if self.u == self.v {
                 self.v += 1;
             }
-            let e = Some(CompleteEdge(self.u, self.v));
+            let e = Some(CompleteEdge::new(self.u, self.v));
             self.v += 1;
             self.rem -= 1;
             e
@@ -165,15 +177,15 @@ impl Basic for CompleteGraph {
     }
 
     fn source(&self, e: Edge<Self>) -> Vertex<Self> {
-        e.0
+        e.u
     }
 
     fn target(&self, e: Edge<Self>) -> Vertex<Self> {
-        e.1
+        e.v
     }
 
     fn reverse(&self, e: Edge<Self>) -> Edge<Self> {
-        CompleteEdge(e.1, e.0)
+        CompleteEdge::new(e.v, e.u)
     }
 
 
@@ -197,6 +209,7 @@ impl Indices for CompleteGraph {
     type Edge = CompleteEdgeToIndex;
 
     fn prop_vertex_index(&self) -> VertexIndex<Self> {
+        #[inline(always)]
         fn u32_to_usize(x: u32) -> usize {
             x as usize
         }
@@ -221,12 +234,12 @@ impl Choose for CompleteGraph {
     fn choose_edge<R: Rng>(&self, rng: &mut R) -> Edge<Self> {
         let u = self.choose_vertex(rng);
         let v = self.choose_vertex_if(rng, &mut |v| v != u);
-        CompleteEdge(u, v)
+        CompleteEdge::new(u, v)
     }
 
     fn choose_inc_edge<R: Rng>(&self, rng: &mut R, u: Vertex<Self>) -> Edge<Self> {
         let v = self.choose_vertex_if(rng, &mut |v| v != u);
-        CompleteEdge(u, v)
+        CompleteEdge::new(u, v)
     }
 }
 
@@ -240,7 +253,27 @@ mod tests {
     pub use tests::*;
 
     pub fn e(u: u32, v: u32) -> CompleteEdge {
-        CompleteEdge(u, v)
+        CompleteEdge::new(u, v)
+    }
+
+    #[test]
+    fn test_edges() {
+        for n in 1..100 {
+            let g = CompleteGraph(n);
+            let mut r = vec![];
+            for u in 0..n {
+                for v in (u + 1)..n {
+                    r.push((u, v));
+                }
+            }
+            let ind = g.prop_edge_index();
+            for (i, e) in g.edges().enumerate() {
+                assert_eq!(i, ind.to_index(e));
+                assert_eq!(i, ind.to_index(g.reverse(e)));
+                assert_eq!(r[i].0, g.source(e));
+                assert_eq!(r[i].1, g.target(e));
+            }
+        }
     }
 
     mod k0 {
@@ -260,7 +293,6 @@ mod tests {
         graph_prop_tests!{Test}
         graph_adj_tests!{Test}
     }
-
 
     mod k1 {
         use super::*;
