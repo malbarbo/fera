@@ -425,7 +425,7 @@ mod tests {
     }
 }
 
-#[cfg(all(feature = "unstable", test))]
+#[cfg(all(feature = "nightly", test))]
 mod benchs {
     use static_::*;
     use builder::WithBuilder;

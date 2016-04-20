@@ -4,8 +4,8 @@ version = "0.1.0"
 authors = ["Marco A L Barbosa <malbarbo@gmail.com>"]
 
 [features]
-default = ["unstable"]
-unstable = []
+default = []
+nightly = []
 
 [dependencies]
 rand = "0.3"
