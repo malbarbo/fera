@@ -1,24 +1,25 @@
 use graph::*;
 
-use ds::unionfind::GenericUnionFind;
+use fera::unionfind;
 
-pub type UnionFind<G> = GenericUnionFind<Vertex<G>,
-                                         Vertex<G>,
-                                         DefaultPropMutVertex<G, Vertex<G>>,
-                                         DefaultPropMutVertex<G, usize>,
-                                         usize>;
+pub type UnionFind<G> = unionfind::UnionFind<Vertex<G>,
+                                             DefaultPropMutVertex<G, Vertex<G>>,
+                                             DefaultPropMutVertex<G, usize>>;
 
 pub trait WithUnionFind: Graph {
     fn new_unionfind(&self) -> UnionFind<Self> {
-        GenericUnionFind::new_with_all(self.vertices(),
-                                       self.vertex_prop(self.vertices()
-                                                            .next()
-                                                            .unwrap()),
-                                       self.vertex_prop(0usize))
+        let mut ds = UnionFind::<Self>::with_parent_rank(self.vertex_prop(self.vertices()
+                                                                              .next()
+                                                                              .unwrap()),
+                                                         self.vertex_prop(0usize));
+        for v in self.vertices() {
+            ds.make_set(v);
+        }
+        ds
     }
 }
 
-impl<G: Graph> WithUnionFind for G { }
+impl<G: Graph> WithUnionFind for G {}
 
 
 #[cfg(test)]
@@ -26,7 +27,7 @@ mod tests {
     use super::*;
     use graph::*;
     use static_::*;
-    use ds::IteratorExt;
+    use fera::IteratorExt;
 
     fn check_groups(ds: &mut UnionFind<StaticGraph>, groups: &[&[Vertex<StaticGraph>]]) {
         for group in groups.iter() {

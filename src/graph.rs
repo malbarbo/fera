@@ -1,4 +1,4 @@
-use ds::{IteratorExt, MapFn1};
+use fera::{IteratorExt, MapBind1};
 
 use std::fmt::Debug;
 use std::hash::Hash;
@@ -291,8 +291,8 @@ basic_props! {
 // Adjacency
 
 pub trait Adj: Basic {
-    fn neighbors(&self, v: Vertex<Self>) -> MapFn1<IterInc<Self>, Self, Vertex<Self>> {
-        self.inc_edges(v).map1(self, Self::target)
+    fn neighbors(&self, v: Vertex<Self>) -> MapBind1<IterInc<Self>, Self, Vertex<Self>> {
+        self.inc_edges(v).map_bind1(self, Self::target)
     }
 }
 

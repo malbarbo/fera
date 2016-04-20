@@ -1,5 +1,5 @@
 [package]
-name = "graphs"
+name = "fera-graphs"
 version = "0.1.0"
 authors = ["Marco A L Barbosa <malbarbo@gmail.com>"]
 
@@ -9,6 +9,4 @@ unstable = []
 
 [dependencies]
 rand = "0.3"
-
-[dependencies.ds]
-path = "../ds/"
+fera = { path = "../fera/" }

@@ -1,6 +1,7 @@
 use graph::*;
 
-use ds::pvec::*;
+use fera::pvec::*;
+use fera::array::Array;
 
 use std::ops::{Deref, Index, IndexMut};
 

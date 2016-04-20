@@ -2,7 +2,7 @@ use graph::*;
 use builder::*;
 use hashprop::*;
 
-use ds::IteratorExt;
+use fera::IteratorExt;
 
 macro_rules! delegate_tests {
     ($T: ident, $($names: ident),+) => (
@@ -141,7 +141,8 @@ pub trait GraphTests {
             for e in g.inc_edges(u) {
                 assert_eq!(u, g.source(e));
             }
-            assert_eq!(inc[u].iter().cloned().into_set(), g.inc_edges(u).into_set());
+            assert_eq!(inc[u].iter().cloned().into_hash_set(),
+                       g.inc_edges(u).into_hash_set());
         }
     }
 
@@ -183,7 +184,8 @@ pub trait GraphTests {
             adj[v].push(u);
         }
         for u in g.vertices() {
-            assert_eq!(adj[u].iter().cloned().into_set(), g.neighbors(u).into_set());
+            assert_eq!(adj[u].iter().cloned().into_hash_set(),
+                       g.neighbors(u).into_hash_set());
         }
     }
 }

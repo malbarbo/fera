@@ -1,7 +1,7 @@
 use graph::*;
 use props::Props;
 
-use ds::{IteratorExt, VecExt};
+use fera::{IteratorExt, VecExt};
 
 use rand::{Rng, SeedableRng, StdRng};
 use rand::distributions::{IndependentSample, Range};
@@ -181,7 +181,7 @@ pub trait BuilderTests {
             let (g, v, _) = complete::<Self::G>(n).finalize_();
             assert_eq!(n, g.num_vertices());
             assert_eq!(m, g.num_edges());
-            assert_eq!(v.to_set(), g.vertices().into_set());
+            assert_eq!(v.to_hash_set(), g.vertices().into_hash_set());
         }
     }
 
@@ -193,8 +193,8 @@ pub trait BuilderTests {
         let (g, v, _) = complete_binary_tree::<Self::G>(1).finalize_();
         assert_eq!(3, g.num_vertices());
         assert_eq!(2, g.num_edges());
-        assert_eq!(set![(v[0], v[1]), (v[0], v[2])],
-                   g.inc_edges(v[0]).map(|e| g.endvertices(e)).into_set());
+        assert_eq!(hash_set![(v[0], v[1]), (v[0], v[2])],
+                   g.inc_edges(v[0]).map(|e| g.endvertices(e)).into_hash_set());
 
         for h in 2..10 {
             let (g, v, _) = complete_binary_tree::<Self::G>(h).finalize_();

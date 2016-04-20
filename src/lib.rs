@@ -5,7 +5,7 @@ extern crate test;
 extern crate rand;
 
 #[macro_use]
-extern crate ds;
+extern crate fera;
 
 #[cfg(test)]
 #[macro_use]

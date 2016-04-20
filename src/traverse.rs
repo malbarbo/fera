@@ -257,7 +257,7 @@ impl<G> DfsParent for G where G: Graph { }
 mod tests {
     use graph::*;
     use static_::*;
-    use ds::IteratorExt;
+    use fera::IteratorExt;
     use traverse::*;
 
     fn new() -> StaticGraph {

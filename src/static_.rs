@@ -1,5 +1,5 @@
 use graph::*;
-use ds::IteratorExt;
+use fera::IteratorExt;
 use builder::{Builder, WithBuilder};
 use choose::Choose;
 use vecprop::*;
@@ -338,7 +338,7 @@ impl<V: Num, E: Num> Choose for StaticGraphGeneric<V, E> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ds::IteratorExt;
+    use fera::IteratorExt;
     use graph::*;
     use builder::*;
     use tests::*;

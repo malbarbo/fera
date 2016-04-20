@@ -1,6 +1,6 @@
 use graph::*;
 use choose::Choose;
-use ds::IteratorExt;
+use fera::IteratorExt;
 
 use std::iter::Cloned;
 use std::slice::Iter;
@@ -253,7 +253,7 @@ mod tests {
     use super::*;
     use graph::*;
     use static_::*;
-    use ds::IteratorExt;
+    use fera::IteratorExt;
 
     fn new_graph()
         -> (StaticGraph,
@@ -272,33 +272,33 @@ mod tests {
         let (g, _, e02, e12, _) = new_graph();
         let s = g.spanning_subgraph(vec![e02, e12]);
         assert_eq!(vec![0, 1, 2, 3, 4], s.vertices().into_vec());
-        assert_eq!(set![e02, e12], s.edges().into_set());
-        assert_eq!(set![e02], s.inc_edges(0).into_set());
-        assert_eq!(set![e12], s.inc_edges(1).into_set());
-        assert_eq!(set![e02, e12], s.inc_edges(2).into_set());
-        assert_eq!(set![], s.inc_edges(3).into_set());
-        assert_eq!(set![], s.inc_edges(4).into_set());
+        assert_eq!(hash_set![e02, e12], s.edges().into_hash_set());
+        assert_eq!(hash_set![e02], s.inc_edges(0).into_hash_set());
+        assert_eq!(hash_set![e12], s.inc_edges(1).into_hash_set());
+        assert_eq!(hash_set![e02, e12], s.inc_edges(2).into_hash_set());
+        assert_eq!(hash_set![], s.inc_edges(3).into_hash_set());
+        assert_eq!(hash_set![], s.inc_edges(4).into_hash_set());
     }
 
     #[test]
     fn test_edge_induced_subgraph() {
         let (g, e01, e02, _, _) = new_graph();
         let s = g.edge_induced_subgraph(vec![e01, e02]);
-        assert_eq!(set![0, 1, 2], s.vertices().into_set());
-        assert_eq!(set![e01, e02], s.edges().into_set());
-        assert_eq!(set![e01, e02], s.inc_edges(0).into_set());
-        assert_eq!(set![e01], s.inc_edges(1).into_set());
-        assert_eq!(set![e02], s.inc_edges(2).into_set());
+        assert_eq!(hash_set![0, 1, 2], s.vertices().into_hash_set());
+        assert_eq!(hash_set![e01, e02], s.edges().into_hash_set());
+        assert_eq!(hash_set![e01, e02], s.inc_edges(0).into_hash_set());
+        assert_eq!(hash_set![e01], s.inc_edges(1).into_hash_set());
+        assert_eq!(hash_set![e02], s.inc_edges(2).into_hash_set());
     }
 
     #[test]
     fn test_induced_subgraph() {
         let (g, e01, e02, e12, _) = new_graph();
         let s = g.induced_subgraph(vec![0, 1, 2]);
-        assert_eq!(set![0, 1, 2], s.vertices().into_set());
-        assert_eq!(set![e01, e02, e12], s.edges().into_set());
-        assert_eq!(set![e01, e02], s.inc_edges(0).into_set());
-        assert_eq!(set![e01, e12], s.inc_edges(1).into_set());
-        assert_eq!(set![e02, e12], s.inc_edges(2).into_set());
+        assert_eq!(hash_set![0, 1, 2], s.vertices().into_hash_set());
+        assert_eq!(hash_set![e01, e02, e12], s.edges().into_hash_set());
+        assert_eq!(hash_set![e01, e02], s.inc_edges(0).into_hash_set());
+        assert_eq!(hash_set![e01, e12], s.inc_edges(1).into_hash_set());
+        assert_eq!(hash_set![e02, e12], s.inc_edges(2).into_hash_set());
     }
 }

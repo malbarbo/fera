@@ -1,6 +1,6 @@
 use graph::*;
-use ds::{VecExt, IteratorExt};
-use ds::collections::Collection;
+use fera::{VecExt, IteratorExt};
+use fera::collections::Extend1;
 use unionfind::WithUnionFind;
 
 #[derive(PartialEq, Eq)]
@@ -49,14 +49,14 @@ pub trait Kruskal: Graph {
 
     fn kruskal_with_edges_collect_to<I, C>(&self, edges: I, mut tree: C) -> C
         where I: Iterator<Item = Edge<Self>>,
-              C: Collection<Edge<Self>>
+              C: Extend1<Edge<Self>>
     {
         // TODO: Create a CollectorVisitor struct an make it implement Visitor,
         // so this function can be removed
-        tree.ensure_capacity(self.num_vertices() - 1);
+        tree.extend1_reserve(self.num_vertices() - 1);
         self.kruskal_with_edges(edges,
                                 &mut |e| {
-                                    tree.add(e);
+                                    tree.extend1(e);
                                     Accept::Yes
                                 });
         tree
@@ -95,7 +95,7 @@ impl<G> Kruskal for G where G: Graph {}
 mod tests {
     use graph::*;
     use static_::*;
-    use ds::IteratorExt;
+    use fera::IteratorExt;
     use kruskal::*;
 
     #[test]
