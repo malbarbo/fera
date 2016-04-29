@@ -22,8 +22,8 @@ pub struct Subgraph<G, B>
 }
 
 impl<'a, G, B> Iterators<'a, Subgraph<G, B>> for Subgraph<G, B>
-    where G: Graph,
-      B: Borrow<G>
+    where G: 'static + Graph,
+          B: Borrow<G>
 {
     type Vertex = Cloned<Iter<'a, Vertex<G>>>;
     type Edge = Cloned<Iter<'a, Edge<G>>>;
@@ -40,7 +40,7 @@ impl<G, B> Subgraph<G, B>
 }
 
 impl<G, B> Basic for Subgraph<G, B>
-    where G: Graph,
+    where G: 'static + Graph,
           B: Borrow<G>
 {
     type Vertex = Vertex<G>;
@@ -88,10 +88,9 @@ impl<G, B> Basic for Subgraph<G, B>
     }
 }
 
-
 impl<T: Clone, G, B> WithProps<T> for Subgraph<G, B>
-    where G: Graph + WithProps<T>,
-          B: Borrow<G>,
+    where G: 'static + Graph + WithProps<T>,
+          B: Borrow<G>
 {
     type Vertex = DefaultPropMutVertex<G, T>;
     type Edge = DefaultPropMutEdge<G, T>;
@@ -106,8 +105,8 @@ impl<T: Clone, G, B> WithProps<T> for Subgraph<G, B>
 }
 
 impl<T: Clone, G, B> PropMutVertexNew<Subgraph<G, B>, T> for DefaultPropMutVertex<G, T>
-    where G: Graph + WithProps<T>,
-          B: Borrow<G>,
+    where G: 'static + Graph + WithProps<T>,
+          B: Borrow<G>
 {
     fn new_prop_vertex(g: &Subgraph<G, B>, value: T) -> Self {
         DefaultPropMutVertex::<G, T>::new_prop_vertex(g.g(), value)
@@ -115,8 +114,8 @@ impl<T: Clone, G, B> PropMutVertexNew<Subgraph<G, B>, T> for DefaultPropMutVerte
 }
 
 impl<T: Clone, G, B> PropMutEdgeNew<Subgraph<G, B>, T> for DefaultPropMutEdge<G, T>
-    where G: Graph + WithProps<T>,
-          B: Borrow<G>,
+    where G: 'static + Graph + WithProps<T>,
+          B: Borrow<G>
 {
     fn new_prop_edge(g: &Subgraph<G, B>, value: T) -> Self {
         DefaultPropMutEdge::<G, T>::new_prop_edge(g.g(), value)
@@ -127,7 +126,7 @@ impl<T: Clone, G, B> PropMutEdgeNew<Subgraph<G, B>, T> for DefaultPropMutEdge<G,
 // Choose
 
 impl<G, B> Choose for Subgraph<G, B>
-    where G: Graph,
+    where G: 'static + Graph,
           B: Borrow<G>
 {
     fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {
@@ -157,7 +156,7 @@ pub trait WithSubgraph<G: Graph, B: Borrow<G>> {
 
 impl<G, B> WithSubgraph<G, B> for B
     where G: Graph,
-          B: Borrow<G>,
+          B: Borrow<G>
 {
     fn spanning_subgraph(self, edges: VecEdge<G>) -> Subgraph<G, B> {
         // TODO: do not copy vertices
@@ -255,12 +254,9 @@ mod tests {
     use static_::*;
     use fera::IteratorExt;
 
-    fn new_graph()
-        -> (StaticGraph,
-            Edge<StaticGraph>,
-            Edge<StaticGraph>,
-            Edge<StaticGraph>,
-            Edge<StaticGraph>)
+    fn new_graph
+        ()
+        -> (StaticGraph, Edge<StaticGraph>, Edge<StaticGraph>, Edge<StaticGraph>, Edge<StaticGraph>)
     {
         let g = graph!(StaticGraph, 5, (0, 1), (0, 2), (1, 2), (3, 4));
         let e = g.edges().into_vec();

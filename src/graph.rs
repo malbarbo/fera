@@ -30,11 +30,11 @@ impl<G> Graph for G where G: Basic + BasicProps {}
 // Basic
 
 pub trait Basic: Sized where for<'a> Self: Iterators<'a, Self> {
-    type Vertex: 'static + Item;
-    type OptionVertex: 'static + Optional<Vertex<Self>> + Clone;
+    type Vertex: Item;
+    type OptionVertex: Optional<Vertex<Self>> + Clone;
 
-    type Edge: 'static + Item;
-    type OptionEdge: 'static + Optional<Edge<Self>> + Clone;
+    type Edge: Item;
+    type OptionEdge: Optional<Edge<Self>> + Clone;
 
 
     // Vertices
