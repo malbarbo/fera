@@ -1,4 +1,5 @@
 use fera::{IteratorExt, MapBind1};
+pub use fera::optional::Optional;
 
 use std::fmt::Debug;
 use std::hash::Hash;
@@ -30,10 +31,10 @@ impl<G> Graph for G where G: Basic + BasicProps {}
 
 pub trait Basic: Sized where for<'a> Self: Iterators<'a, Self> {
     type Vertex: 'static + Item;
-    type OptionVertex: 'static + OptionItem<Vertex<Self>>;
+    type OptionVertex: 'static + Optional<Vertex<Self>> + Clone;
 
     type Edge: 'static + Item;
-    type OptionEdge: 'static + OptionItem<Edge<Self>>;
+    type OptionEdge: 'static + Optional<Edge<Self>> + Clone;
 
 
     // Vertices
@@ -43,11 +44,11 @@ pub trait Basic: Sized where for<'a> Self: Iterators<'a, Self> {
     fn vertices(&self) -> IterVertex<Self>;
 
     fn vertex_none() -> OptionVertex<Self> {
-        OptionVertex::<Self>::new_none()
+        OptionVertex::<Self>::default()
     }
 
     fn vertex_some(v: Vertex<Self>) -> OptionVertex<Self> {
-        OptionVertex::<Self>::new_some(v)
+        OptionVertex::<Self>::from(v)
     }
 
 
@@ -58,11 +59,11 @@ pub trait Basic: Sized where for<'a> Self: Iterators<'a, Self> {
     fn edges(&self) -> IterEdge<Self>;
 
     fn edge_none() -> OptionEdge<Self> {
-        OptionEdge::<Self>::new_none()
+        OptionEdge::<Self>::default()
     }
 
     fn edge_some(e: Edge<Self>) -> OptionEdge<Self> {
-        OptionEdge::<Self>::new_some(e)
+        OptionEdge::<Self>::from(e)
     }
 
     fn source(&self, e: Edge<Self>) -> Vertex<Self>;
@@ -98,54 +99,6 @@ pub trait Basic: Sized where for<'a> Self: Iterators<'a, Self> {
 // Item
 
 pub trait Item: Copy + Eq + Hash + Debug { }
-
-pub trait OptionItem<T>: Clone + PartialEq {
-    fn new_none() -> Self;
-
-    fn new_some(t: T) -> Self;
-
-    fn to_option(&self) -> Option<T>;
-
-    #[inline(always)]
-    fn is_none(&self) -> bool {
-        *self == Self::new_none()
-    }
-
-    #[inline(always)]
-    fn is_some(&self) -> bool {
-        !self.is_none()
-    }
-
-    #[inline(always)]
-    fn eq_some(&self, other: T) -> bool {
-        *self == Self::new_some(other)
-    }
-}
-
-impl<T: Clone + PartialEq> OptionItem<T> for Option<T> {
-    fn new_none() -> Self {
-        None
-    }
-
-    fn new_some(t: T) -> Self {
-        Some(t)
-    }
-
-    #[inline(always)]
-    fn to_option(&self) -> Option<T> {
-        self.clone()
-    }
-
-    #[inline(always)]
-    fn is_none(&self) -> bool {
-        self.is_none()
-    }
-
-    #[inline(always)]
-    fn is_some(&self) -> bool {
-        self.is_some()
-    }
-}
 
 
 // Iterators

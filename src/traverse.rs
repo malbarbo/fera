@@ -323,7 +323,7 @@ mod tests {
         Dfs::run(&g, &mut vis);
 
         assert_eq!(vec![None, Some(0), Some(1), Some(2), None, Some(4), Some(5)],
-                   vis.parent.to_vec().into_iter().map(|v| v.to_option()).into_vec());
+                   vis.parent.to_vec().into_iter().map(|v| v.into_option()).into_vec());
 
         assert_eq!(vec![0, 1, 2, 3, 0, 1, 2], vis.d.to_vec());
 
@@ -377,7 +377,7 @@ mod tests {
         Bfs::run(&g, &mut vis);
 
         assert_eq!(vec![None, Some(0), Some(0), Some(1), None, Some(4), Some(4)],
-                   vis.parent.to_vec().into_iter().map(|v| v.to_option()).into_vec());
+                   vis.parent.to_vec().into_iter().map(|v| v.into_option()).into_vec());
 
         assert_eq!(vec![0, 1, 1, 2, 0, 1, 1], vis.d.to_vec());
 

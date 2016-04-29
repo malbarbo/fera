@@ -66,15 +66,12 @@ pub trait GraphTests {
 
     fn option_vertex() {
         let (_, vertices, _) = Self::new();
-        assert!(Self::G::vertex_none().is_none());
-        assert_eq!(None, Self::G::vertex_none().to_option());
+        assert_eq!(None, Self::G::vertex_none().into_option());
         if vertices.is_empty() {
             return;
         }
         let u = vertices[0];
-        assert!(Self::G::vertex_some(u).is_some());
-        assert!(Self::G::vertex_some(u).eq_some(u));
-        assert_eq!(Some(u), Self::G::vertex_some(u).to_option());
+        assert_eq!(Some(u), Self::G::vertex_some(u).into_option());
     }
 
     fn edges() {
@@ -87,15 +84,12 @@ pub trait GraphTests {
 
     fn option_edge() {
         let (_, _, edges) = Self::new();
-        assert!(Self::G::edge_none().is_none());
-        assert_eq!(None, Self::G::edge_none().to_option());
+        assert_eq!(None, Self::G::edge_none().into_option());
         if edges.is_empty() {
             return;
         }
         let e = edges[0];
-        assert!(Self::G::edge_some(e).is_some());
-        assert!(Self::G::edge_some(e).eq_some(e));
-        assert_eq!(Some(e), Self::G::edge_some(e).to_option());
+        assert_eq!(Some(e), Self::G::edge_some(e).into_option());
     }
 
     fn reverse() {

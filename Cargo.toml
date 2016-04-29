@@ -8,5 +8,6 @@ default = []
 nightly = []
 
 [dependencies]
+num = "0.1"
 rand = "0.3"
 fera = { path = "../fera/" }

@@ -2,6 +2,8 @@
 
 #[cfg(all(feature = "nightly", test))]
 extern crate test;
+
+extern crate num;
 extern crate rand;
 
 #[macro_use]

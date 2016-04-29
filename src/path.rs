@@ -17,7 +17,7 @@ pub trait FindPath: Graph {
         let mut v = v;
         let mut path = vec![];
         // TODO: detect loop
-        while let Some(e) = tree[v].to_option() {
+        while let Some(&e) = tree[v].to_option_ref() {
             v = self.source(e);
             path.push(e);
             if v == u {

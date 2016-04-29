@@ -2,6 +2,8 @@ use graph::*;
 use choose::Choose;
 use vecprop::*;
 
+use fera::optional::{BuildNone, Optioned, OptionalMax};
+
 use std::ops::Range;
 
 use rand::Rng;
@@ -33,6 +35,15 @@ impl CompleteEdge {
 }
 
 impl Item for CompleteEdge {}
+
+#[derive(Clone, Copy)]
+pub struct CompleteEdgeNone;
+
+impl BuildNone<CompleteEdge> for CompleteEdgeNone {
+    fn none() -> CompleteEdge {
+        CompleteEdge { u: ::std::u32::MAX, v: ::std::u32::MAX }
+    }
+}
 
 impl PartialEq for CompleteEdge {
     fn eq(&self, other: &CompleteEdge) -> bool {
@@ -143,10 +154,10 @@ impl ExactSizeIterator for IncIter {
 
 impl Basic for CompleteGraph {
     type Vertex = u32;
-    type OptionVertex = Option<u32>;
+    type OptionVertex = OptionalMax<u32>;
 
     type Edge = CompleteEdge;
-    type OptionEdge = Option<CompleteEdge>;
+    type OptionEdge = Optioned<CompleteEdge, CompleteEdgeNone>;
 
 
     // Vertices

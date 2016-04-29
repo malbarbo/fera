@@ -1,5 +1,6 @@
 use graph::*;
 use fera::IteratorExt;
+use fera::optional::OptionalMax;
 use builder::{Builder, WithBuilder};
 use choose::Choose;
 use vecprop::*;
@@ -12,13 +13,12 @@ use std::cmp::Ordering;
 use std::fmt::Debug;
 
 use rand::Rng;
+use num::Bounded;
 
 // TODO: Rename to FastGraph
 pub type StaticGraph = StaticGraphGeneric<u32, usize>;
 
-pub trait Num: 'static + Eq + Copy + Clone + Debug + Hash +
-               OptionItem<StaticVertex<Self>> +
-               OptionItem<StaticEdge<Self>> {
+pub trait Num: 'static + Eq + Copy + Clone + Debug + Hash + Bounded {
     type Range: Iterator<Item = Self>;
     fn range(a: usize, b: usize) -> Self::Range;
     fn to_usize(self) -> usize;
@@ -58,48 +58,6 @@ macro_rules! impl_num {
                 std::$t::MAX
             }
         }
-
-        impl OptionItem<StaticVertex<$t>> for $t {
-            #[inline(always)]
-            fn new_none() -> Self {
-                $t::max()
-            }
-
-            #[inline(always)]
-            fn new_some(x: StaticVertex<$t>) -> Self {
-                x
-            }
-
-            #[inline(always)]
-            fn to_option(&self) -> Option<Self> {
-                if <$t as OptionItem<StaticVertex<$t>>>::is_none(self) {
-                    None
-                } else {
-                    Some(*self)
-                }
-            }
-        }
-
-        impl OptionItem<StaticEdge<$t>> for $t {
-            #[inline(always)]
-            fn new_none() -> Self {
-                $t::max()
-            }
-
-            #[inline(always)]
-            fn new_some(x: StaticEdge<$t>) -> Self {
-                x.0
-            }
-
-            #[inline(always)]
-            fn to_option(&self) -> Option<StaticEdge<$t>> {
-                if <$t as OptionItem<StaticEdge<$t>>>::is_none(self) {
-                    None
-                } else {
-                    Some(StaticEdge(*self))
-                }
-            }
-        }
     )
 }
 
@@ -114,6 +72,16 @@ impl_num!(usize);
 
 #[derive(Copy, Clone, Debug, Eq)]
 pub struct StaticEdge<N: Num>(N);
+
+impl<N: Num> Bounded for StaticEdge<N> {
+    fn max_value() -> Self {
+        StaticEdge(N::max_value())
+    }
+
+    fn min_value() -> Self {
+        StaticEdge(N::min_value())
+    }
+}
 
 impl<N: Num> Item for StaticEdge<N> {}
 
@@ -251,10 +219,10 @@ impl<'a, V: Num, E: Num> Iterators<'a, StaticGraphGeneric<V, E>> for StaticGraph
 
 impl<V: Num, E: Num> Basic for StaticGraphGeneric<V, E> {
     type Vertex = StaticVertex<V>;
-    type OptionVertex = V;
+    type OptionVertex = OptionalMax<StaticVertex<V>>;
 
     type Edge = StaticEdge<E>;
-    type OptionEdge = E;
+    type OptionEdge = OptionalMax<StaticEdge<E>>;
 
     fn num_vertices(&self) -> usize {
         self.num_vertices
