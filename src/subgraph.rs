@@ -10,7 +10,6 @@ use rand::Rng;
 
 // TODO: Allow a subgraph be reused
 
-#[derive(Clone)]
 pub struct Subgraph<G, B>
     where G: Graph,
           B: Borrow<G>

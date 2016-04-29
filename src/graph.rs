@@ -29,7 +29,9 @@ impl<G> Graph for G where G: Basic + BasicProps {}
 
 // Basic
 
-pub trait Basic: Sized where for<'a> Self: Iterators<'a, Self> {
+pub trait Basic: Sized
+    where for<'a> Self: Iterators<'a, Self>
+{
     type Vertex: Item;
     type OptionVertex: Optional<Vertex<Self>> + Clone;
 
@@ -98,15 +100,15 @@ pub trait Basic: Sized where for<'a> Self: Iterators<'a, Self> {
 
 // Item
 
-pub trait Item: Copy + Eq + Hash + Debug { }
+pub trait Item: Copy + Eq + Hash + Debug {}
 
 
 // Iterators
 
 pub trait Iterators<'a, G: Basic> {
-    type Vertex: Iterator<Item=Vertex<G>>;
-    type Edge: Iterator<Item=Edge<G>>;
-    type Inc: Iterator<Item=Edge<G>>;
+    type Vertex: Iterator<Item = Vertex<G>>;
+    type Edge: Iterator<Item = Edge<G>>;
+    type Inc: Iterator<Item = Edge<G>>;
 }
 
 
@@ -139,31 +141,35 @@ pub trait Indices: Basic {
 // Properties
 
 // TODO: Remove Clone bounds from PropVertex and EdgeVertex
-pub trait PropVertex<G: Basic, T>: Index<Vertex<G>, Output = T> + Clone {}
+pub trait PropVertex<G: Basic, T>: Index<Vertex<G>, Output = T> {}
 
-pub trait PropMutVertex<G: Basic, T>: PropVertex<G, T> + IndexMut<Vertex<G>, Output = T> {}
+pub trait PropMutVertex<G: Basic, T>
+    : PropVertex<G, T> + IndexMut<Vertex<G>, Output = T> {
+}
 
-impl<G: Basic, T, A: Index<Vertex<G>, Output = T> + Clone> PropVertex<G, T> for A {}
+impl<G: Basic, T, A: Index<Vertex<G>, Output = T>> PropVertex<G, T> for A {}
 
 impl<G: Basic, T, A: PropVertex<G, T> + IndexMut<Vertex<G>, Output = T>> PropMutVertex<G, T> for A {}
 
 pub trait PropMutVertexNew<G: Basic, T>: PropMutVertex<G, T> {
-    fn new_prop_vertex(g: &G, value: T) -> Self;
+    fn new_prop_vertex(g: &G, value: T) -> Self where T: Clone;
 }
 
 pub type VertexIndex<G> = <G as Indices>::Vertex;
 
 
-pub trait PropEdge<G: Basic, T>: Index<Edge<G>, Output = T> + Clone {}
+pub trait PropEdge<G: Basic, T>: Index<Edge<G>, Output = T> {}
 
-pub trait PropMutEdge<G: Basic, T>: PropEdge<G, T> + IndexMut<Edge<G>, Output = T> {}
+pub trait PropMutEdge<G: Basic, T>
+    : PropEdge<G, T> + IndexMut<Edge<G>, Output = T> {
+}
 
-impl<G: Basic, T, A: Index<Edge<G>, Output = T> + Clone> PropEdge<G, T> for A {}
+impl<G: Basic, T, A: Index<Edge<G>, Output = T>> PropEdge<G, T> for A {}
 
 impl<G: Basic, T, A: PropEdge<G, T> + IndexMut<Edge<G>, Output = T>> PropMutEdge<G, T> for A {}
 
 pub trait PropMutEdgeNew<G: Basic, T>: PropMutEdge<G, T> {
-    fn new_prop_edge(g: &G, value: T) -> Self;
+    fn new_prop_edge(g: &G, value: T) -> Self where T: Clone;
 }
 
 pub type EdgeIndex<G> = <G as Indices>::Edge;
@@ -173,7 +179,7 @@ pub fn clone_prop_vertex<G, T, P1, P2>(g: &G, src: &P1) -> P2
     where G: Graph,
           T: Default + Clone,
           P1: PropVertex<G, T>,
-          P2: PropMutVertexNew<G, T>,
+          P2: PropMutVertexNew<G, T>
 {
     let mut dst = P2::new_prop_vertex(g, T::default());
     for v in g.vertices() {
@@ -183,15 +189,19 @@ pub fn clone_prop_vertex<G, T, P1, P2>(g: &G, src: &P1) -> P2
 }
 
 
-pub trait WithProps<T: Clone>: Basic {
+pub trait WithProps<T>: Basic {
     type Vertex: PropMutVertexNew<Self, T>;
     type Edge: PropMutEdgeNew<Self, T>;
 
-    fn vertex_prop(&self, value: T) -> DefaultPropMutVertex<Self, T> {
+    fn vertex_prop(&self, value: T) -> DefaultPropMutVertex<Self, T>
+        where T: Clone
+    {
         DefaultPropMutVertex::<Self, T>::new_prop_vertex(self, value)
     }
 
-    fn edge_prop(&self, value: T) -> DefaultPropMutEdge<Self, T> {
+    fn edge_prop(&self, value: T) -> DefaultPropMutEdge<Self, T>
+        where T: Clone
+    {
         DefaultPropMutEdge::<Self, T>::new_prop_edge(self, value)
     }
 }
