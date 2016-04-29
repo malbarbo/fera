@@ -38,30 +38,53 @@ impl<G, B> Subgraph<G, B>
     }
 }
 
-impl<G, B> Basic for Subgraph<G, B>
+impl<G, B> WithVertex for Subgraph<G, B>
     where G: 'static + Graph,
           B: Borrow<G>
 {
     type Vertex = Vertex<G>;
     type OptionVertex = OptionVertex<G>;
+}
 
+impl<G, B> WithEdge for Subgraph<G, B>
+    where G: 'static + Graph,
+          B: Borrow<G>
+{
     type Edge = Edge<G>;
     type OptionEdge = OptionEdge<G>;
+}
 
-    fn num_vertices(&self) -> usize {
-        self.vertices.len()
-    }
-
-    fn vertices(&self) -> IterVertex<Self> {
-        self.vertices.iter().cloned()
-    }
-
+impl<G, B> WithPair<Edge<Subgraph<G, B>>> for Subgraph<G, B>
+    where G: 'static + Graph,
+          B: Borrow<G>
+{
     fn source(&self, e: Edge<Self>) -> Vertex<Self> {
         self.g().source(e)
     }
 
     fn target(&self, e: Edge<Self>) -> Vertex<Self> {
         self.g().target(e)
+    }
+
+    fn ends(&self, e: Edge<Self>) -> (Vertex<Self>, Vertex<Self>) {
+        self.g().ends(e)
+    }
+
+    fn opposite(&self, u: Vertex<Self>, e: Edge<Self>) -> Vertex<Self> {
+        self.g().opposite(u, e)
+    }
+}
+
+impl<G, B> Basic for Subgraph<G, B>
+    where G: 'static + Graph,
+          B: Borrow<G>
+{
+    fn num_vertices(&self) -> usize {
+        self.vertices.len()
+    }
+
+    fn vertices(&self) -> IterVertex<Self> {
+        self.vertices.iter().cloned()
     }
 
     fn num_edges(&self) -> usize {
@@ -166,7 +189,7 @@ impl<G, B> WithSubgraph<G, B> for B
             vertices = g.vertices().into_vec();
             inc = g.vertex_prop(Vec::<Edge<G>>::new());
             for &e in &edges {
-                let (u, v) = g.endvertices(e);
+                let (u, v) = g.ends(e);
                 inc[u].push(e);
                 inc[v].push(g.reverse(e));
             }
@@ -190,7 +213,7 @@ impl<G, B> WithSubgraph<G, B> for B
             vertices = vec![];
             inc = g.vertex_prop(Vec::<Edge<G>>::new());
             for &e in &edges {
-                let (u, v) = g.endvertices(e);
+                let (u, v) = g.ends(e);
                 if !vin[u] {
                     vin[u] = true;
                     vertices.push(u);

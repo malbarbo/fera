@@ -93,7 +93,7 @@ mod benchs {
         let g = StaticGraph::tree(n, &mut rng);
         b.iter(|| {
             for e in g.edges() {
-                let (u, v) = g.endvertices(e);
+                let (u, v) = g.ends(e);
                 assert!(g.find_path(v, u).is_some());
             }
         })

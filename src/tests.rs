@@ -78,8 +78,8 @@ pub trait GraphTests {
         let (g, _, edges) = Self::new();
         assert_eq!(edges.len(), g.num_edges());
         assert_eq!(edges, g.edges().into_vec());
-        assert_eq!(edges.iter().map(|e| g.endvertices(*e)).into_vec(),
-                   g.edges().map(|e| g.endvertices(e)).into_vec());
+        assert_eq!(edges.iter().map(|e| g.ends(*e)).into_vec(),
+                   g.edges().map(|e| g.ends(e)).into_vec());
     }
 
     fn option_edge() {
@@ -95,16 +95,16 @@ pub trait GraphTests {
     fn reverse() {
         let (g, _, _) = Self::new();
         for e in g.edges() {
-            let (u, v) = g.endvertices(e);
+            let (u, v) = g.ends(e);
             assert_eq!(e, g.reverse(e));
-            assert_eq!((v, u), g.endvertices(g.reverse(e)))
+            assert_eq!((v, u), g.ends(g.reverse(e)))
         }
     }
 
     fn opposite() {
         let (g, _, edges) = Self::new();
         for e in edges {
-            let (u, v) = g.endvertices(e);
+            let (u, v) = g.ends(e);
             assert_eq!(u, g.opposite(v, e));
             assert_eq!(v, g.opposite(u, e));
         }
@@ -114,7 +114,7 @@ pub trait GraphTests {
         let (g, _, edges) = Self::new();
         let mut d = HashProp::new(0usize);
         for e in edges {
-            let (u, v) = g.endvertices(e);
+            let (u, v) = g.ends(e);
             d[u] += 1;
             d[v] += 1;
         }
@@ -127,7 +127,7 @@ pub trait GraphTests {
         let (g, _, edges) = Self::new();
         let mut inc = HashProp::new(VecEdge::<Self::G>::new());
         for e in edges {
-            let (u, v) = g.endvertices(e);
+            let (u, v) = g.ends(e);
             inc[u].push(e);
             inc[v].push(g.reverse(e));
         }
@@ -173,7 +173,7 @@ pub trait GraphTests {
         let (g, _, edges) = Self::new();
         let mut adj = HashProp::new(VecVertex::<Self::G>::new());
         for e in edges {
-            let (u, v) = g.endvertices(e);
+            let (u, v) = g.ends(e);
             adj[u].push(v);
             adj[v].push(u);
         }

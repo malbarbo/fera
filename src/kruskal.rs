@@ -36,7 +36,7 @@ pub trait Kruskal: Graph {
         let mut ds = self.new_unionfind();
         let mut num_sets = self.num_vertices();
         for e in edges {
-            let (u, v) = self.endvertices(e);
+            let (u, v) = self.ends(e);
             if !ds.in_same_set(u, v) && visitor.visit(e) == Accept::Yes {
                 ds.union(u, v);
                 num_sets -= 1;

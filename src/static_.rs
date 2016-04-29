@@ -151,15 +151,15 @@ impl<N: Num> Item for StaticVertex<N> {}
 #[derive(Clone)]
 pub struct StaticGraphGeneric<V: Num, E: Num> {
     num_vertices: usize,
-    endvertices: Vec<StaticVertex<V>>,
+    ends: Vec<StaticVertex<V>>,
     inc: Vec<Vec<StaticEdge<E>>>,
 }
 
 impl<V: Num, E: Num> StaticGraphGeneric<V, E> {
     fn add_edge(&mut self, u: Vertex<Self>, v: Vertex<Self>) {
-        self.endvertices.push(u);
-        self.endvertices.push(v);
-        let e = (self.endvertices.len() - 2) / 2;
+        self.ends.push(u);
+        self.ends.push(v);
+        let e = (self.ends.len() - 2) / 2;
         self.inc[Num::to_usize(u)].push(StaticEdge::new(e));
         self.inc[Num::to_usize(v)].push(StaticEdge::new_reverse(e));
     }
@@ -186,7 +186,7 @@ impl<V: Num, E: Num> Builder for StaticGraphGenericBuilder<V, E> {
         StaticGraphGenericBuilder {
             g: StaticGraphGeneric {
                 num_vertices: num_vertices,
-                endvertices: Vec::with_capacity(2 * num_edges),
+                ends: Vec::with_capacity(2 * num_edges),
                 inc: vec![vec![]; num_vertices],
             },
         }
@@ -198,13 +198,13 @@ impl<V: Num, E: Num> Builder for StaticGraphGenericBuilder<V, E> {
 
     fn finalize(self) -> Self::Graph {
         // TODO: test this assert
-        assert!(E::is_valid(self.g.endvertices.len()));
+        assert!(E::is_valid(self.g.ends.len()));
         self.g
     }
 
     fn finalize_(self) -> (Self::Graph, VecVertex<Self::Graph>, VecEdge<Self::Graph>) {
         // TODO: test this assert
-        assert!(E::is_valid(self.g.endvertices.len()));
+        assert!(E::is_valid(self.g.ends.len()));
         let v = self.g.vertices().into_vec();
         let e = self.g.edges().into_vec();
         (self.g, v, e)
@@ -217,13 +217,29 @@ impl<'a, V: Num, E: Num> Iterators<'a, StaticGraphGeneric<V, E>> for StaticGraph
     type Inc = Cloned<Iter<'a, StaticEdge<E>>>;
 }
 
-impl<V: Num, E: Num> Basic for StaticGraphGeneric<V, E> {
+impl<V: Num, E: Num> WithVertex for StaticGraphGeneric<V, E> {
     type Vertex = StaticVertex<V>;
     type OptionVertex = OptionalMax<StaticVertex<V>>;
+}
 
+impl<V: Num, E: Num> WithEdge for StaticGraphGeneric<V, E> {
     type Edge = StaticEdge<E>;
     type OptionEdge = OptionalMax<StaticEdge<E>>;
+}
 
+impl<V: Num, E: Num> WithPair<StaticEdge<E>> for StaticGraphGeneric<V, E> {
+    #[inline(always)]
+    fn source(&self, e: Edge<Self>) -> Vertex<Self> {
+        self.ends[Num::to_usize(e.0) ^ 1]
+    }
+
+    #[inline(always)]
+    fn target(&self, e: Edge<Self>) -> Vertex<Self> {
+        self.ends[Num::to_usize(e.0)]
+    }
+}
+
+impl<V: Num, E: Num> Basic for StaticGraphGeneric<V, E> {
     fn num_vertices(&self) -> usize {
         self.num_vertices
     }
@@ -232,18 +248,8 @@ impl<V: Num, E: Num> Basic for StaticGraphGeneric<V, E> {
         V::range(0, self.num_vertices)
     }
 
-    #[inline(always)]
-    fn source(&self, e: Edge<Self>) -> Vertex<Self> {
-        self.endvertices[Num::to_usize(e.0) ^ 1]
-    }
-
-    #[inline(always)]
-    fn target(&self, e: Edge<Self>) -> Vertex<Self> {
-        self.endvertices[Num::to_usize(e.0)]
-    }
-
     fn num_edges(&self) -> usize {
-        self.endvertices.len() / 2
+        self.ends.len() / 2
     }
 
     fn edges(&self) -> IterEdge<Self> {
@@ -320,7 +326,7 @@ mod tests {
 
         let g = builder.finalize();
         assert_eq!(3, g.num_vertices);
-        assert_eq!(vec![0, 1, 1, 2], g.endvertices);
+        assert_eq!(vec![0, 1, 1, 2], g.ends);
         assert_eq!(vec![vec![StaticEdge::new(0)],
                         vec![StaticEdge::new_reverse(0), StaticEdge::new(1)],
                         vec![StaticEdge::new_reverse(1)]],

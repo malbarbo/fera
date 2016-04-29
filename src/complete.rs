@@ -152,14 +152,27 @@ impl ExactSizeIterator for IncIter {
 
 // Basic
 
-impl Basic for CompleteGraph {
+impl WithVertex for CompleteGraph {
     type Vertex = u32;
     type OptionVertex = OptionalMax<u32>;
+}
 
+impl WithEdge for CompleteGraph {
     type Edge = CompleteEdge;
     type OptionEdge = Optioned<CompleteEdge, CompleteEdgeNone>;
+}
 
+impl WithPair<CompleteEdge> for CompleteGraph {
+    fn source(&self, e: Edge<Self>) -> Vertex<Self> {
+        e.u
+    }
 
+    fn target(&self, e: Edge<Self>) -> Vertex<Self> {
+        e.v
+    }
+}
+
+impl Basic for CompleteGraph {
     // Vertices
 
     fn num_vertices(&self) -> usize {
@@ -185,14 +198,6 @@ impl Basic for CompleteGraph {
             u: 0,
             v: 1,
         }
-    }
-
-    fn source(&self, e: Edge<Self>) -> Vertex<Self> {
-        e.u
-    }
-
-    fn target(&self, e: Edge<Self>) -> Vertex<Self> {
-        e.v
     }
 
     fn reverse(&self, e: Edge<Self>) -> Edge<Self> {

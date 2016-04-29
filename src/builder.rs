@@ -173,9 +173,9 @@ pub trait BuilderTests {
 
     fn complete() {
         let (g, v, e) = complete::<Self::G>(3).finalize_();
-        assert_eq!((v[0], v[1]), g.endvertices(e[0]));
-        assert_eq!((v[0], v[2]), g.endvertices(e[1]));
-        assert_eq!((v[1], v[2]), g.endvertices(e[2]));
+        assert_eq!((v[0], v[1]), g.ends(e[0]));
+        assert_eq!((v[0], v[2]), g.ends(e[1]));
+        assert_eq!((v[1], v[2]), g.ends(e[2]));
 
         for (n, &m) in (0..5).zip(&[0, 0, 1, 3, 6, 10]) {
             let (g, v, _) = complete::<Self::G>(n).finalize_();
@@ -194,7 +194,7 @@ pub trait BuilderTests {
         assert_eq!(3, g.num_vertices());
         assert_eq!(2, g.num_edges());
         assert_eq!(hash_set![(v[0], v[1]), (v[0], v[2])],
-                   g.inc_edges(v[0]).map(|e| g.endvertices(e)).into_hash_set());
+                   g.inc_edges(v[0]).map(|e| g.ends(e)).into_hash_set());
 
         for h in 2..10 {
             let (g, v, _) = complete_binary_tree::<Self::G>(h).finalize_();

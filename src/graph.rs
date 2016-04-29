@@ -5,13 +5,13 @@ use std::fmt::Debug;
 use std::hash::Hash;
 use std::ops::{Index, IndexMut};
 
-pub type Vertex<G> = <G as Basic>::Vertex;
-pub type OptionVertex<G> = <G as Basic>::OptionVertex;
+pub type Vertex<G> = <G as WithVertex>::Vertex;
+pub type OptionVertex<G> = <G as WithVertex>::OptionVertex;
 pub type DefaultPropMutVertex<G, T> = <G as WithProps<T>>::Vertex;
 pub type VecVertex<G> = Vec<Vertex<G>>;
 
-pub type Edge<G> = <G as Basic>::Edge;
-pub type OptionEdge<G> = <G as Basic>::OptionEdge;
+pub type Edge<G> = <G as WithEdge>::Edge;
+pub type OptionEdge<G> = <G as WithEdge>::OptionEdge;
 pub type DefaultPropMutEdge<G, T> = <G as WithProps<T>>::Edge;
 pub type VecEdge<G> = Vec<Edge<G>>;
 
@@ -28,17 +28,41 @@ impl<G> Graph for G where G: Basic + BasicProps {}
 
 
 // Basic
-
-pub trait Basic: Sized
-    where for<'a> Self: Iterators<'a, Self>
-{
+pub trait WithVertex {
     type Vertex: Item;
     type OptionVertex: Optional<Vertex<Self>> + Clone;
+}
 
+pub trait WithPair<P: Item>: WithVertex {
+    fn source(&self, e: P) -> Vertex<Self>;
+
+    fn target(&self, e: P) -> Vertex<Self>;
+
+    // TODO: rename to ends
+    fn ends(&self, e: P) -> (Vertex<Self>, Vertex<Self>) {
+        (self.source(e), self.target(e))
+    }
+
+    fn opposite(&self, u: Vertex<Self>, e: P) -> Vertex<Self> {
+        let (s, t) = self.ends(e);
+        if u == s {
+            t
+        } else if u == t {
+            s
+        } else {
+            panic!("u is not an endvertex of e");
+        }
+    }
+}
+
+pub trait WithEdge: WithPair<Edge<Self>> {
     type Edge: Item;
     type OptionEdge: Optional<Edge<Self>> + Clone;
+}
 
-
+pub trait Basic: Sized + WithVertex + WithEdge
+    where for<'a> Self: Iterators<'a, Self>
+{
     // Vertices
 
     fn num_vertices(&self) -> usize;
@@ -68,26 +92,7 @@ pub trait Basic: Sized
         OptionEdge::<Self>::from(e)
     }
 
-    fn source(&self, e: Edge<Self>) -> Vertex<Self>;
-
-    fn target(&self, e: Edge<Self>) -> Vertex<Self>;
-
-    fn endvertices(&self, e: Edge<Self>) -> (Vertex<Self>, Vertex<Self>) {
-        (self.source(e), self.target(e))
-    }
-
     fn reverse(&self, e: Edge<Self>) -> Edge<Self>;
-
-    fn opposite(&self, u: Vertex<Self>, e: Edge<Self>) -> Vertex<Self> {
-        let (s, t) = self.endvertices(e);
-        if u == s {
-            t
-        } else if u == t {
-            s
-        } else {
-            panic!("u is not an endvertex of e");
-        }
-    }
 
 
     // Incidence
@@ -114,15 +119,14 @@ pub trait Iterators<'a, G: Basic> {
 
 // Index
 
-// TODO: Remove Clone bounds from ToIndex
-pub trait ToIndex<K>: Clone {
+pub trait ToIndex<K> {
     fn to_index(&self, k: K) -> usize;
 }
 
 #[derive(Clone)]
 pub struct FnToIndex<F>(pub F);
 
-impl<K, F: Clone + Fn(K) -> usize> ToIndex<K> for FnToIndex<F> {
+impl<K, F: Fn(K) -> usize> ToIndex<K> for FnToIndex<F> {
     fn to_index(&self, k: K) -> usize {
         (self.0)(k)
     }
