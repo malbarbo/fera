@@ -20,15 +20,6 @@ pub struct Subgraph<G, B>
     inc: DefaultPropMutVertex<G, VecEdge<G>>,
 }
 
-impl<'a, G, B> Iterators<'a, Subgraph<G, B>> for Subgraph<G, B>
-    where G: 'static + Graph,
-          B: Borrow<G>
-{
-    type Vertex = Cloned<Iter<'a, Vertex<G>>>;
-    type Edge = Cloned<Iter<'a, Edge<G>>>;
-    type Inc = Cloned<Iter<'a, Edge<G>>>;
-}
-
 impl<G, B> Subgraph<G, B>
     where G: Graph,
           B: Borrow<G>
@@ -75,7 +66,23 @@ impl<G, B> WithPair<Edge<Subgraph<G, B>>> for Subgraph<G, B>
     }
 }
 
-impl<G, B> Basic for Subgraph<G, B>
+impl<'a, G, B> VertexIterators<'a, Subgraph<G, B>> for Subgraph<G, B>
+    where G: 'static + Graph,
+          B: Borrow<G>
+{
+    type Vertex = Cloned<Iter<'a, Vertex<G>>>;
+    type Neighbor = ::std::iter::Empty<Vertex<G>>;
+}
+
+impl<'a, G, B> EdgeIterators<'a, Subgraph<G, B>> for Subgraph<G, B>
+    where G: 'static + Graph,
+          B: Borrow<G>
+{
+    type Edge = Cloned<Iter<'a, Edge<G>>>;
+    type IncEdge = Cloned<Iter<'a, Edge<G>>>;
+}
+
+impl<G, B> VertexList for Subgraph<G, B>
     where G: 'static + Graph,
           B: Borrow<G>
 {
@@ -86,7 +93,12 @@ impl<G, B> Basic for Subgraph<G, B>
     fn vertices(&self) -> IterVertex<Self> {
         self.vertices.iter().cloned()
     }
+}
 
+impl<G, B> EdgeList for Subgraph<G, B>
+    where G: 'static + Graph,
+          B: Borrow<G>
+{
     fn num_edges(&self) -> usize {
         self.edges.len()
     }
@@ -98,14 +110,19 @@ impl<G, B> Basic for Subgraph<G, B>
     fn reverse(&self, e: Edge<Self>) -> Edge<Self> {
         self.g().reverse(e)
     }
+}
 
-    // Inc
+impl<G, B> Basic for Subgraph<G, B>
+    where G: 'static + Graph,
+          B: Borrow<G>
+{
+    // IncEdge
 
     fn degree(&self, v: Vertex<Self>) -> usize {
         self.inc[v].len()
     }
 
-    fn inc_edges(&self, v: Vertex<Self>) -> IterInc<Self> {
+    fn inc_edges(&self, v: Vertex<Self>) -> IterIncEdge<Self> {
         self.inc[v].iter().cloned()
     }
 }

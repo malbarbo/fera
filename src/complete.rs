@@ -72,12 +72,6 @@ impl ToIndex<CompleteEdge> for CompleteEdgeToIndex {
 
 // Iterators
 
-impl<'a> Iterators<'a, CompleteGraph> for CompleteGraph {
-    type Vertex = Range<u32>;
-    type Edge = EdgesIter;
-    type Inc = IncIter;
-}
-
 pub struct EdgesIter {
     n: u32,
     rem: usize,
@@ -115,13 +109,13 @@ impl ExactSizeIterator for EdgesIter {
     }
 }
 
-pub struct IncIter {
+pub struct IncEdgeIter {
     rem: usize,
     u: u32,
     v: u32,
 }
 
-impl Iterator for IncIter {
+impl Iterator for IncEdgeIter {
     type Item = CompleteEdge;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -143,7 +137,7 @@ impl Iterator for IncIter {
     }
 }
 
-impl ExactSizeIterator for IncIter {
+impl ExactSizeIterator for IncEdgeIter {
     fn len(&self) -> usize {
         self.rem
     }
@@ -172,9 +166,17 @@ impl WithPair<CompleteEdge> for CompleteGraph {
     }
 }
 
-impl Basic for CompleteGraph {
-    // Vertices
+impl<'a> VertexIterators<'a, CompleteGraph> for CompleteGraph {
+    type Vertex = Range<u32>;
+    type Neighbor = ::std::iter::Empty<u32>;
+}
 
+impl<'a> EdgeIterators<'a, CompleteGraph> for CompleteGraph {
+    type Edge = EdgesIter;
+    type IncEdge = IncEdgeIter;
+}
+
+impl VertexList for CompleteGraph {
     fn num_vertices(&self) -> usize {
         self.0 as usize
     }
@@ -182,10 +184,9 @@ impl Basic for CompleteGraph {
     fn vertices(&self) -> IterVertex<Self> {
         0..self.0
     }
+}
 
-
-    // Edges
-
+impl EdgeList for CompleteGraph {
     fn num_edges(&self) -> usize {
         let n = self.num_vertices();
         (n * n - n) / 2
@@ -203,16 +204,17 @@ impl Basic for CompleteGraph {
     fn reverse(&self, e: Edge<Self>) -> Edge<Self> {
         CompleteEdge::new(e.v, e.u)
     }
+}
 
-
-    // Incidence
+impl Basic for CompleteGraph {
+    // IncEdgeidence
 
     fn degree(&self, _: Vertex<Self>) -> usize {
         self.num_vertices() - 1
     }
 
-    fn inc_edges(&self, v: Vertex<Self>) -> IterInc<Self> {
-        IncIter {
+    fn inc_edges(&self, v: Vertex<Self>) -> IterIncEdge<Self> {
+        IncEdgeIter {
             rem: self.degree(v),
             u: v,
             v: 0,

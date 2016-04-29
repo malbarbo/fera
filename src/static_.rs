@@ -211,12 +211,6 @@ impl<V: Num, E: Num> Builder for StaticGraphGenericBuilder<V, E> {
     }
 }
 
-impl<'a, V: Num, E: Num> Iterators<'a, StaticGraphGeneric<V, E>> for StaticGraphGeneric<V, E> {
-    type Vertex = V::Range;
-    type Edge = Map<Range<usize>, fn(usize) -> StaticEdge<E>>;
-    type Inc = Cloned<Iter<'a, StaticEdge<E>>>;
-}
-
 impl<V: Num, E: Num> WithVertex for StaticGraphGeneric<V, E> {
     type Vertex = StaticVertex<V>;
     type OptionVertex = OptionalMax<StaticVertex<V>>;
@@ -239,7 +233,17 @@ impl<V: Num, E: Num> WithPair<StaticEdge<E>> for StaticGraphGeneric<V, E> {
     }
 }
 
-impl<V: Num, E: Num> Basic for StaticGraphGeneric<V, E> {
+impl<'a, V: Num, E: Num> VertexIterators<'a, StaticGraphGeneric<V, E>> for StaticGraphGeneric<V, E> {
+    type Vertex = V::Range;
+    type Neighbor = ::std::iter::Empty<V>;
+}
+
+impl<'a, V: Num, E: Num> EdgeIterators<'a, StaticGraphGeneric<V, E>> for StaticGraphGeneric<V, E> {
+    type Edge = Map<Range<usize>, fn(usize) -> StaticEdge<E>>;
+    type IncEdge = Cloned<Iter<'a, StaticEdge<E>>>;
+}
+
+impl<V: Num, E: Num> VertexList for StaticGraphGeneric<V, E> {
     fn num_vertices(&self) -> usize {
         self.num_vertices
     }
@@ -247,7 +251,9 @@ impl<V: Num, E: Num> Basic for StaticGraphGeneric<V, E> {
     fn vertices(&self) -> IterVertex<Self> {
         V::range(0, self.num_vertices)
     }
+}
 
+impl<V: Num, E: Num> EdgeList for StaticGraphGeneric<V, E> {
     fn num_edges(&self) -> usize {
         self.ends.len() / 2
     }
@@ -261,15 +267,17 @@ impl<V: Num, E: Num> Basic for StaticGraphGeneric<V, E> {
     fn reverse(&self, e: Edge<Self>) -> Edge<Self> {
         e.reverse()
     }
+}
 
-    // Inc
+impl<V: Num, E: Num> Basic for StaticGraphGeneric<V, E> {
+    // IncEdge
 
     #[inline(always)]
     fn degree(&self, v: Vertex<Self>) -> usize {
         self.inc[Num::to_usize(v)].len()
     }
 
-    fn inc_edges(&self, v: Vertex<Self>) -> IterInc<Self> {
+    fn inc_edges(&self, v: Vertex<Self>) -> IterIncEdge<Self> {
         self.inc(v).iter().cloned()
     }
 }

@@ -7,27 +7,21 @@ use std::ops::{Index, IndexMut};
 
 pub type Vertex<G> = <G as WithVertex>::Vertex;
 pub type OptionVertex<G> = <G as WithVertex>::OptionVertex;
+pub type IterVertex<'a, G> = <G as VertexIterators<'a, G>>::Vertex;
 pub type DefaultPropMutVertex<G, T> = <G as WithProps<T>>::Vertex;
 pub type VecVertex<G> = Vec<Vertex<G>>;
 
 pub type Edge<G> = <G as WithEdge>::Edge;
 pub type OptionEdge<G> = <G as WithEdge>::OptionEdge;
+pub type IterEdge<'a, G> = <G as EdgeIterators<'a, G>>::Edge;
+pub type IterIncEdge<'a, G> = <G as EdgeIterators<'a, G>>::IncEdge;
 pub type DefaultPropMutEdge<G, T> = <G as WithProps<T>>::Edge;
 pub type VecEdge<G> = Vec<Edge<G>>;
-
-pub type IterVertex<'a, G> = <G as Iterators<'a, G>>::Vertex;
-pub type IterEdge<'a, G> = <G as Iterators<'a, G>>::Edge;
-pub type IterInc<'a, G> = <G as Iterators<'a, G>>::Inc;
-
-
-// Graph
 
 pub trait Graph: Basic + BasicProps {}
 
 impl<G> Graph for G where G: Basic + BasicProps {}
 
-
-// Basic
 pub trait WithVertex {
     type Vertex: Item;
     type OptionVertex: Optional<Vertex<Self>> + Clone;
@@ -38,7 +32,6 @@ pub trait WithPair<P: Item>: WithVertex {
 
     fn target(&self, e: P) -> Vertex<Self>;
 
-    // TODO: rename to ends
     fn ends(&self, e: P) -> (Vertex<Self>, Vertex<Self>) {
         (self.source(e), self.target(e))
     }
@@ -60,14 +53,24 @@ pub trait WithEdge: WithPair<Edge<Self>> {
     type OptionEdge: Optional<Edge<Self>> + Clone;
 }
 
-pub trait Basic: Sized + WithVertex + WithEdge
-    where for<'a> Self: Iterators<'a, Self>
+pub trait VertexIterators<'a, G: WithVertex> {
+    type Vertex: Iterator<Item = Vertex<G>>;
+    type Neighbor: Iterator<Item = Vertex<G>>;
+}
+
+pub trait EdgeIterators<'a, G: WithEdge> {
+    type Edge: Iterator<Item = Edge<G>>;
+    type IncEdge: Iterator<Item = Edge<G>>;
+}
+
+pub trait VertexList: Sized + WithVertex
+    where for<'a> Self: VertexIterators<'a, Self>
 {
-    // Vertices
-
-    fn num_vertices(&self) -> usize;
-
     fn vertices(&self) -> IterVertex<Self>;
+
+    fn num_vertices(&self) -> usize {
+        self.vertices().count()
+    }
 
     fn vertex_none() -> OptionVertex<Self> {
         OptionVertex::<Self>::default()
@@ -76,13 +79,18 @@ pub trait Basic: Sized + WithVertex + WithEdge
     fn vertex_some(v: Vertex<Self>) -> OptionVertex<Self> {
         OptionVertex::<Self>::from(v)
     }
+}
 
-
-    // Edges
-
-    fn num_edges(&self) -> usize;
-
+pub trait EdgeList: Sized + WithEdge
+    where for<'a> Self: EdgeIterators<'a, Self>
+{
     fn edges(&self) -> IterEdge<Self>;
+
+    fn num_edges(&self) -> usize {
+        self.edges().count()
+    }
+
+    fn reverse(&self, e: Edge<Self>) -> Edge<Self>;
 
     fn edge_none() -> OptionEdge<Self> {
         OptionEdge::<Self>::default()
@@ -91,19 +99,13 @@ pub trait Basic: Sized + WithVertex + WithEdge
     fn edge_some(e: Edge<Self>) -> OptionEdge<Self> {
         OptionEdge::<Self>::from(e)
     }
-
-    fn reverse(&self, e: Edge<Self>) -> Edge<Self>;
-
-
-    // Incidence
-
-    fn degree(&self, v: Vertex<Self>) -> usize;
-
-    fn inc_edges(&self, v: Vertex<Self>) -> IterInc<Self>;
 }
 
+pub trait Basic: Sized + VertexList + EdgeList {
+    fn degree(&self, v: Vertex<Self>) -> usize;
 
-// Item
+    fn inc_edges(&self, v: Vertex<Self>) -> IterIncEdge<Self>;
+}
 
 pub trait Item: Copy + Eq + Hash + Debug {}
 
@@ -113,7 +115,7 @@ pub trait Item: Copy + Eq + Hash + Debug {}
 pub trait Iterators<'a, G: Basic> {
     type Vertex: Iterator<Item = Vertex<G>>;
     type Edge: Iterator<Item = Edge<G>>;
-    type Inc: Iterator<Item = Edge<G>>;
+    type IncEdge: Iterator<Item = Edge<G>>;
 }
 
 
@@ -258,7 +260,7 @@ basic_props! {
 // Adjacency
 
 pub trait Adj: Basic {
-    fn neighbors(&self, v: Vertex<Self>) -> MapBind1<IterInc<Self>, Self, Vertex<Self>> {
+    fn neighbors(&self, v: Vertex<Self>) -> MapBind1<IterIncEdge<Self>, Self, Vertex<Self>> {
         self.inc_edges(v).map_bind1(self, Self::target)
     }
 }
