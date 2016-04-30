@@ -44,8 +44,8 @@ impl<I: ToIndex<K>, K, D: IndexMut<usize>> IndexMut<K> for VecProp<I, D> {
 pub type VecVertexProp<G, T> = VecProp<VertexIndexProp<G>, Vec<T>>;
 pub type VecEdgeProp<G, T> = VecProp<EdgeIndexProp<G>, Vec<T>>;
 
-impl<G: VertexIndex + VertexList, T: Clone> VertexPropMutNew<G, T> for VecVertexProp<G, T> {
-    fn new_vertex_prop(g: &G, value: T) -> Self {
+impl<G: VertexIndex + VertexList, T> VertexPropMutNew<G, T> for VecVertexProp<G, T> {
+    fn new_vertex_prop(g: &G, value: T) -> Self where T: Clone {
         VecVertexProp::<G, T> {
             to_index: g.vertex_index(),
             data: vec![value; g.num_vertices()],
@@ -53,8 +53,8 @@ impl<G: VertexIndex + VertexList, T: Clone> VertexPropMutNew<G, T> for VecVertex
     }
 }
 
-impl<G: EdgeIndex + EdgeList, T: Clone> EdgePropMutNew<G, T> for VecEdgeProp<G, T> {
-    fn new_edge_prop(g: &G, value: T) -> Self {
+impl<G: EdgeIndex + EdgeList, T> EdgePropMutNew<G, T> for VecEdgeProp<G, T> {
+    fn new_edge_prop(g: &G, value: T) -> Self where T: Clone {
         VecEdgeProp::<G, T> {
             to_index: g.edge_index(),
             data: vec![value; g.num_edges()],

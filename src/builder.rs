@@ -142,7 +142,7 @@ pub fn tree<G, R>(n: usize, rng: &mut R) -> G::Builder
 
 pub trait BuilderTests {
     // TODO: which bounds?
-    type G: Undirected + Incidence + BasicProps + WithBuilder;
+    type G: Undirected + Incidence + BasicVertexProps + BasicEdgeProps + WithBuilder;
 
     fn graph_macro() {
         let g = graph!(

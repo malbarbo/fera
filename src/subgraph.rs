@@ -12,7 +12,7 @@ use rand::Rng;
 // TODO: Allow a subgraph be reused
 
 pub struct Subgraph<G, B>
-    where G: Undirected + BasicProps,
+    where G: Undirected + WithVertexProp<VecEdge<G>>,
           B: Borrow<G>
 {
     g: B,
@@ -22,7 +22,7 @@ pub struct Subgraph<G, B>
 }
 
 impl<G, B> Subgraph<G, B>
-    where G: Undirected + BasicProps,
+    where G: Undirected + WithVertexProp<VecEdge<G>>,
           B: Borrow<G>
 {
     fn g(&self) -> &G {
@@ -31,7 +31,7 @@ impl<G, B> Subgraph<G, B>
 }
 
 impl<G, B> WithVertex for Subgraph<G, B>
-    where G: 'static + Undirected + BasicProps,
+    where G: 'static + Undirected + WithVertexProp<VecEdge<G>>,
           B: Borrow<G>
 {
     type Vertex = Vertex<G>;
@@ -41,7 +41,7 @@ impl<G, B> WithVertex for Subgraph<G, B>
 }
 
 impl<G, B> WithEdge for Subgraph<G, B>
-    where G: 'static + Undirected + BasicProps,
+    where G: 'static + Undirected + WithVertexProp<VecEdge<G>> + WithEdge,
           B: Borrow<G>
 {
     type Edge = Edge<G>;
@@ -51,7 +51,7 @@ impl<G, B> WithEdge for Subgraph<G, B>
 }
 
 impl<G, B> WithPair<Edge<Subgraph<G, B>>> for Subgraph<G, B>
-    where G: 'static + Undirected + BasicProps,
+    where G: 'static + Undirected + WithVertexProp<VecEdge<G>>,
           B: Borrow<G>
 {
     fn source(&self, e: Edge<Self>) -> Vertex<Self> {
@@ -72,7 +72,7 @@ impl<G, B> WithPair<Edge<Subgraph<G, B>>> for Subgraph<G, B>
 }
 
 impl<'a, G, B> VertexTypes<'a, Subgraph<G, B>> for Subgraph<G, B>
-    where G: 'static + Undirected + BasicProps,
+    where G: 'static + Undirected + WithVertexProp<VecEdge<G>>,
           B: Borrow<G>
 {
     type VertexIter = Cloned<Iter<'a, Vertex<G>>>;
@@ -80,7 +80,7 @@ impl<'a, G, B> VertexTypes<'a, Subgraph<G, B>> for Subgraph<G, B>
 }
 
 impl<G, B> VertexList for Subgraph<G, B>
-    where G: 'static + Undirected + BasicProps,
+    where G: 'static + Undirected + WithVertexProp<VecEdge<G>>,
           B: Borrow<G>
 {
     fn num_vertices(&self) -> usize {
@@ -93,7 +93,7 @@ impl<G, B> VertexList for Subgraph<G, B>
 }
 
 impl<'a, G, B> EdgeTypes<'a, Subgraph<G, B>> for Subgraph<G, B>
-    where G: 'static + Undirected + BasicProps,
+    where G: 'static + Undirected + WithVertexProp<VecEdge<G>>,
           B: Borrow<G>
 {
     type EdgeIter = Cloned<Iter<'a, Edge<G>>>;
@@ -101,7 +101,7 @@ impl<'a, G, B> EdgeTypes<'a, Subgraph<G, B>> for Subgraph<G, B>
 }
 
 impl<G, B> EdgeList for Subgraph<G, B>
-    where G: 'static + Undirected + BasicProps,
+    where G: 'static + Undirected + WithVertexProp<VecEdge<G>>,
           B: Borrow<G>
 {
     fn num_edges(&self) -> usize {
@@ -117,13 +117,13 @@ impl<G, B> EdgeList for Subgraph<G, B>
     }
 }
 impl<G, B> Undirected for Subgraph<G, B>
-    where G: 'static + Undirected + BasicProps,
+    where G: 'static + Undirected + WithVertexProp<VecEdge<G>>,
           B: Borrow<G>
 {
 }
 
 impl<G, B> Adjacency for Subgraph<G, B>
-    where G: 'static + Undirected + BasicProps,
+    where G: 'static + Undirected + WithVertexProp<VecEdge<G>>,
           B: Borrow<G>
 {
     fn neighbors(&self, v: Vertex<Self>) -> NeighborIter<Self> {
@@ -136,7 +136,7 @@ impl<G, B> Adjacency for Subgraph<G, B>
 }
 
 impl<G, B> Incidence for Subgraph<G, B>
-    where G: 'static + Undirected + BasicProps,
+    where G: 'static + Undirected + WithVertexProp<VecEdge<G>>,
           B: Borrow<G>
 {
     fn inc_edges(&self, v: Vertex<Self>) -> IncEdgeIter<Self> {
@@ -144,16 +144,22 @@ impl<G, B> Incidence for Subgraph<G, B>
     }
 }
 
-impl<T: Clone, G, B> WithProps<T> for Subgraph<G, B>
-    where G: 'static + BasicProps + WithProps<T>,
+impl<T: Clone, G, B> WithVertexProp<T> for Subgraph<G, B>
+    where G: 'static + Undirected + WithVertexProp<VecEdge<G>> + WithVertexProp<T>,
           B: Borrow<G>
 {
     type VertexProp = DefaultVertexPropMut<G, T>;
-    type EdgeProp = DefaultEdgePropMut<G, T>;
 
     fn vertex_prop(&self, value: T) -> DefaultVertexPropMut<Self, T> {
         self.g().vertex_prop(value)
     }
+}
+
+impl<T: Clone, G, B> WithEdgeProp<T> for Subgraph<G, B>
+    where G: 'static + Undirected + WithVertexProp<VecEdge<G>> + WithEdgeProp<T>,
+          B: Borrow<G>
+{
+    type EdgeProp = DefaultEdgePropMut<G, T>;
 
     fn edge_prop(&self, value: T) -> DefaultEdgePropMut<Self, T> {
         self.g().edge_prop(value)
@@ -161,7 +167,7 @@ impl<T: Clone, G, B> WithProps<T> for Subgraph<G, B>
 }
 
 impl<T: Clone, G, B> VertexPropMutNew<Subgraph<G, B>, T> for DefaultVertexPropMut<G, T>
-    where G: 'static + BasicProps + WithProps<T>,
+    where G: 'static + Undirected + WithVertexProp<VecEdge<G>> + WithVertexProp<T>,
           B: Borrow<G>
 {
     fn new_vertex_prop(g: &Subgraph<G, B>, value: T) -> Self {
@@ -170,7 +176,7 @@ impl<T: Clone, G, B> VertexPropMutNew<Subgraph<G, B>, T> for DefaultVertexPropMu
 }
 
 impl<T: Clone, G, B> EdgePropMutNew<Subgraph<G, B>, T> for DefaultEdgePropMut<G, T>
-    where G: 'static + BasicProps + WithProps<T>,
+    where G: 'static + Undirected + WithVertexProp<VecEdge<G>> + WithEdgeProp<T>,
           B: Borrow<G>
 {
     fn new_edge_prop(g: &Subgraph<G, B>, value: T) -> Self {
@@ -182,7 +188,7 @@ impl<T: Clone, G, B> EdgePropMutNew<Subgraph<G, B>, T> for DefaultEdgePropMut<G,
 // Choose
 
 impl<G, B> Choose for Subgraph<G, B>
-    where G: 'static + Undirected + BasicProps,
+    where G: 'static + Undirected + WithVertexProp<VecEdge<G>>,
           B: Borrow<G>
 {
     fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {
@@ -201,7 +207,7 @@ impl<G, B> Choose for Subgraph<G, B>
 
 // Extensions Traits
 
-pub trait WithSubgraph<G: Undirected + BasicProps, B: Borrow<G>> {
+pub trait WithSubgraph<G: Undirected + WithVertexProp<VecEdge<G>>, B: Borrow<G>> {
     fn spanning_subgraph(self, edges: VecEdge<G>) -> Subgraph<G, B>;
 
     fn edge_induced_subgraph(self, edges: VecEdge<G>) -> Subgraph<G, B>;
@@ -211,7 +217,7 @@ pub trait WithSubgraph<G: Undirected + BasicProps, B: Borrow<G>> {
 
 
 impl<G, B> WithSubgraph<G, B> for B
-    where G: Undirected + BasicProps,
+    where G: Undirected + WithVertexProp<bool> + WithVertexProp<VecEdge<G>>,
           B: Borrow<G>
 {
     fn spanning_subgraph(self, edges: VecEdge<G>) -> Subgraph<G, B> {

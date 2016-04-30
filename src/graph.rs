@@ -9,7 +9,7 @@ pub type OptionVertex<G> = <G as WithVertex>::OptionVertex;
 pub type VertexIndexProp<G> = <G as WithVertex>::VertexIndexProp;
 pub type VertexIter<'a, G> = <G as VertexTypes<'a, G>>::VertexIter;
 pub type NeighborIter<'a, G> = <G as VertexTypes<'a, G>>::NeighborIter;
-pub type DefaultVertexPropMut<G, T> = <G as WithProps<T>>::VertexProp;
+pub type DefaultVertexPropMut<G, T> = <G as WithVertexProp<T>>::VertexProp;
 pub type VecVertex<G> = Vec<Vertex<G>>;
 
 pub type Edge<G> = <G as WithEdge>::Edge;
@@ -17,7 +17,7 @@ pub type OptionEdge<G> = <G as WithEdge>::OptionEdge;
 pub type EdgeIndexProp<G> = <G as WithEdge>::EdgeIndexProp;
 pub type EdgeIter<'a, G> = <G as EdgeTypes<'a, G>>::EdgeIter;
 pub type IncEdgeIter<'a, G> = <G as EdgeTypes<'a, G>>::IncEdgeIter;
-pub type DefaultEdgePropMut<G, T> = <G as WithProps<T>>::EdgeProp;
+pub type DefaultEdgePropMut<G, T> = <G as WithEdgeProp<T>>::EdgeProp;
 pub type VecEdge<G> = Vec<Edge<G>>;
 
 
@@ -201,15 +201,18 @@ pub trait EdgePropMutNew<G, T>: EdgePropMut<G, T>
     fn new_edge_prop(g: &G, value: T) -> Self where T: Clone;
 }
 
-pub trait WithProps<T>: Undirected {
+pub trait WithVertexProp<T>: WithVertex {
     type VertexProp: VertexPropMutNew<Self, T>;
-    type EdgeProp: EdgePropMutNew<Self, T>;
 
     fn vertex_prop(&self, value: T) -> DefaultVertexPropMut<Self, T>
         where T: Clone
     {
         DefaultVertexPropMut::<Self, T>::new_vertex_prop(self, value)
     }
+}
+
+pub trait WithEdgeProp<T>: WithEdge {
+    type EdgeProp: EdgePropMutNew<Self, T>;
 
     fn edge_prop(&self, value: T) -> DefaultEdgePropMut<Self, T>
         where T: Clone
@@ -224,33 +227,33 @@ macro_rules! items {
 }
 
 macro_rules! basic_props1 {
-    ($($t1:ty),* ; $($t2:ty),* ) => (
+    ($($v:ty),* ; $($e:ty),*) => (
         items! {
-            pub trait BasicProps:
-                $(WithProps<$t1> +)* { }
+            pub trait BasicVertexProps:
+                $(WithVertexProp<$v> +)* { }
 
-            impl<G> BasicProps for G where G:
-                $(WithProps<$t2> +)* { }
+            pub trait BasicEdgeProps:
+                $(WithEdgeProp<$e> +)* { }
         }
-        )
+    )
 }
 
 macro_rules! basic_props2 {
-    ($($t1:ty),* ; $($t2:ty),* ) => (
-        basic_props1!{
-            $($t1),+ , $(Vec<$t1>),+, $(DefaultVertexPropMut<Self, $t1>),+ ;
-            $($t2),+ , $(Vec<$t2>),+, $(DefaultVertexPropMut<G, $t2>),+
+    ($($v:ty),* ; $($e:ty),* ) => (
+        basic_props1! {
+            $($v),+ , $(Vec<$v>),+, $(DefaultVertexPropMut<Self, $v>),+ ;
+            $($e),+ , $(Vec<$e>),+, $(DefaultVertexPropMut<Self, $e>),+
         }
-        )
+    )
 }
 
 macro_rules! basic_props {
     ($($ty:ty),*) => (
-        basic_props2!{
-            Vertex<Self>, Edge<Self>, OptionVertex<Self>, OptionEdge<Self>, $($ty),+ ;
-            Vertex<G>, Edge<G>, OptionVertex<G>, OptionEdge<G>, $($ty),+
+        basic_props1! {
+            Vertex<Self>, OptionVertex<Self>, $($ty),+ ;
+            Edge<Self>, OptionEdge<Self>, $($ty),+
         }
-        )
+    )
 }
 
 basic_props! {

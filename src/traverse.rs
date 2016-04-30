@@ -74,7 +74,7 @@ macro_rules! break_if_false {
 // Traversers
 
 pub trait Traverser<'a, G>: Sized
-    where G: 'a + Undirected,
+    where G: 'a + Undirected
 {
     fn new(g: &'a G) -> Self;
 
@@ -110,7 +110,7 @@ const WHITE: usize = std::usize::MAX;
 const BLACK: usize = std::usize::MAX - 1;
 
 pub struct State<'a, G>
-    where G: 'a + Undirected + BasicProps,
+    where G: 'a + Undirected + WithVertexProp<usize>
 {
     g: &'a G,
     // depth if opened, color if closed
@@ -118,7 +118,7 @@ pub struct State<'a, G>
 }
 
 impl<'a, G> State<'a, G>
-    where G: 'a + Undirected + BasicProps,
+    where G: 'a + Undirected + WithVertexProp<usize>
 {
     fn new(g: &'a G) -> Self {
         State {
@@ -151,11 +151,10 @@ impl<'a, G> State<'a, G>
 
 // Dfs
 
-pub struct Dfs<'a, G>(State<'a, G>)
-    where G: 'a + Undirected + BasicProps;
+pub struct Dfs<'a, G>(State<'a, G>) where G: 'a + Undirected + WithVertexProp<usize>;
 
 impl<'a, G> Traverser<'a, G> for Dfs<'a, G>
-    where G: 'a + Undirected + Incidence + BasicProps,
+    where G: 'a + Undirected + Incidence + WithVertexProp<usize>
 {
     fn new(g: &'a G) -> Self {
         Dfs(State::new(g))
@@ -193,11 +192,10 @@ impl<'a, G> Traverser<'a, G> for Dfs<'a, G>
 
 // Bfs
 
-pub struct Bfs<'a, G>(State<'a, G>)
-    where G: 'a + Undirected + BasicProps;
+pub struct Bfs<'a, G>(State<'a, G>) where G: 'a + Undirected + WithVertexProp<usize>;
 
 impl<'a, G> Traverser<'a, G> for Bfs<'a, G>
-    where G: 'a + Undirected + Incidence + BasicProps,
+    where G: 'a + Undirected + Incidence + WithVertexProp<usize>
 {
     fn new(g: &'a G) -> Self {
         Bfs(State::new(g))
@@ -234,7 +232,9 @@ impl<'a, G> Traverser<'a, G> for Bfs<'a, G>
 // Dfs parent
 
 // TODO: write test
-pub trait DfsParent: Undirected + Incidence + BasicProps {
+pub trait DfsParent
+    : Undirected + Incidence + WithVertexProp<usize> + WithVertexProp<OptionEdge<Self>>
+    {
     fn dfs_parent(&self) -> DefaultVertexPropMut<Self, OptionEdge<Self>> {
         let mut parent = self.vertex_prop(Self::edge_none());
         let mut num_edges = 0;
@@ -248,7 +248,10 @@ pub trait DfsParent: Undirected + Incidence + BasicProps {
     }
 }
 
-impl<G> DfsParent for G where G: Undirected + Incidence + BasicProps { }
+impl<G> DfsParent for G
+    where G: Undirected + Incidence + WithVertexProp<usize> + WithVertexProp<OptionEdge<G>>
+{
+}
 
 
 // Tests
@@ -261,11 +264,16 @@ mod tests {
     use traverse::*;
 
     fn new() -> StaticGraph {
-        graph!(
-            StaticGraph,
-            7,
-            (0, 1), (0, 2), (1, 2), (1, 3), (2, 3), (4, 5), (4, 6), (5, 6)
-        )
+        graph!(StaticGraph,
+               7,
+               (0, 1),
+               (0, 2),
+               (1, 2),
+               (1, 3),
+               (2, 3),
+               (4, 5),
+               (4, 6),
+               (5, 6))
         // u -> e (u, v)
         // 0 -> 0 (0, 1) 1 (0, 2)
         // 1 -> 1 (1, 0) 2 (1, 2) 3 (1, 3)
@@ -281,7 +289,7 @@ mod tests {
     const BACK: usize = 2;
 
     struct TestVisitor<'a, G>
-        where G: 'a + Undirected + BasicProps,
+        where G: 'a + Undirected + BasicVertexProps + BasicEdgeProps
     {
         g: &'a G,
         parent: DefaultVertexPropMut<G, OptionVertex<G>>,
@@ -299,8 +307,8 @@ mod tests {
     }
 
     impl<'a, G> Visitor<G> for TestVisitor<'a, G>
-        where G: 'a + Undirected + BasicProps,
-    {
+        where G: 'a + Undirected + BasicVertexProps + BasicEdgeProps
+{
         fn visit_tree_edge(&mut self, e: Edge<G>) -> bool {
             assert_eq!(0, self.edge_type[e]);
             self.parent[self.g.target(e)] = G::vertex_some(self.g.source(e));

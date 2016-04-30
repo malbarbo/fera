@@ -27,7 +27,7 @@ impl<F, G> Visitor<G> for F
 // TODO: Allow an UnionFind as parameter, so the kruskal algorithm can be
 // executed in more than one step
 
-pub trait Kruskal: Undirected + BasicProps {
+pub trait Kruskal: Undirected + BasicVertexProps + BasicEdgeProps {
     fn kruskal_with_edges<I, V>(&self, edges: I, visitor: &mut V)
         where I: Iterator<Item = Edge<Self>>,
               V: Visitor<Self>
@@ -63,8 +63,7 @@ pub trait Kruskal: Undirected + BasicProps {
     }
 
     fn kruskal<T, W, V>(&self, weight: &W, visitor: &mut V)
-        where Self: WithProps<T>,
-              W: EdgeProp<Self, T>,
+        where W: EdgeProp<Self, T>,
               T: PartialOrd + Clone,
               V: Visitor<Self>
     {
@@ -73,8 +72,7 @@ pub trait Kruskal: Undirected + BasicProps {
     }
 
     fn kruskal_mst<T, W>(&self, weight: &W) -> VecEdge<Self>
-        where Self: WithProps<T>,
-              W: EdgeProp<Self, T>,
+        where W: EdgeProp<Self, T>,
               T: PartialOrd + Clone
     {
         // TODO: Use CollectorVisitor
@@ -88,7 +86,7 @@ pub trait Kruskal: Undirected + BasicProps {
     }
 }
 
-impl<G> Kruskal for G where G: Undirected + BasicProps {}
+impl<G> Kruskal for G where G: Undirected + BasicVertexProps + BasicEdgeProps {}
 
 
 #[cfg(test)]

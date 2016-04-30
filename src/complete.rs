@@ -247,8 +247,11 @@ impl EdgeIndex for CompleteGraph {
     }
 }
 
-impl<T: Clone> WithProps<T> for CompleteGraph {
+impl<T: Clone> WithVertexProp<T> for CompleteGraph {
     type VertexProp = VecVertexProp<CompleteGraph, T>;
+}
+
+impl<T: Clone> WithEdgeProp<T> for CompleteGraph {
     type EdgeProp = VecEdgeProp<CompleteGraph, T>;
 }
 

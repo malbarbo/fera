@@ -6,7 +6,7 @@ pub type UnionFind<G> = unionfind::UnionFind<Vertex<G>,
                                              DefaultVertexPropMut<G, Vertex<G>>,
                                              DefaultVertexPropMut<G, usize>>;
 
-pub trait WithUnionFind: Undirected + BasicProps {
+pub trait WithUnionFind: Undirected + BasicVertexProps {
     fn new_unionfind(&self) -> UnionFind<Self> {
         let mut ds = UnionFind::<Self>::with_parent_rank(self.vertex_prop(self.vertices()
                                                                               .next()
@@ -19,7 +19,7 @@ pub trait WithUnionFind: Undirected + BasicProps {
     }
 }
 
-impl<G> WithUnionFind for G where G: Undirected + BasicProps {}
+impl<G> WithUnionFind for G where G: Undirected + BasicVertexProps {}
 
 
 #[cfg(test)]

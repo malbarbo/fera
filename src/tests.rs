@@ -145,7 +145,7 @@ pub trait GraphTests {
     }
 
     fn vertex_prop()
-        where Self::G: BasicProps
+        where Self::G: WithVertexProp<usize>
     {
         let (g, _, _) = Self::new();
         let mut p = g.vertex_prop(0usize);
@@ -158,7 +158,7 @@ pub trait GraphTests {
     }
 
     fn edge_prop()
-        where Self::G: BasicProps
+        where Self::G: WithEdgeProp<usize>
     {
         let (g, _, _) = Self::new();
         let mut p = g.edge_prop(0usize);

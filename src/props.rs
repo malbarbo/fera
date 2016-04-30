@@ -1,7 +1,7 @@
 use graph::*;
 use traverse::*;
 
-pub trait Props: Undirected + Incidence + BasicProps {
+pub trait Props: Undirected + Incidence + BasicVertexProps {
     fn is_acyclic(&self) -> bool {
         let mut acyclic = true;
         Dfs::run(self,
@@ -34,7 +34,7 @@ pub trait Props: Undirected + Incidence + BasicProps {
 }
 
 impl<G> Props for G
-    where G: Undirected + Incidence + BasicProps { }
+    where G: Undirected + Incidence + BasicVertexProps { }
 
 #[cfg(test)]
 mod tests {
