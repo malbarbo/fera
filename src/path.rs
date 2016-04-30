@@ -5,7 +5,7 @@ pub type Path<G> = VecEdge<G>;
 
 pub type ParentTree<G> = DefaultPropMutVertex<G, OptionEdge<G>>;
 
-pub trait FindPath: Graph {
+pub trait FindPath: Undirected + IncEdges + BasicProps {
     fn find_path_on_parent_tree(&self,
                                 tree: &ParentTree<Self>,
                                 u: Vertex<Self>,
@@ -51,7 +51,7 @@ pub trait FindPath: Graph {
 }
 
 impl<G> FindPath for G
-    where G: Graph { }
+    where G: Undirected + IncEdges + BasicProps { }
 
 #[cfg(test)]
 mod tests {

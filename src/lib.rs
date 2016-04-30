@@ -17,6 +17,7 @@ pub mod tests;
 pub mod graph;
 #[macro_use]
 pub mod builder;
+
 pub mod subgraph;
 pub mod complete;
 pub mod static_;

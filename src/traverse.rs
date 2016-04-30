@@ -4,7 +4,7 @@ use std::collections::VecDeque;
 // Visitor
 
 pub trait Visitor<G>
-    where G: Graph
+    where G: Undirected
 {
     fn visit_start_vertex(&mut self, _v: Vertex<G>) -> bool {
         true
@@ -24,7 +24,7 @@ pub struct TreeEdgeVisitor<F>(pub F);
 pub struct BackEdgeVisitor<F>(pub F);
 
 impl<G, F> Visitor<G> for StartVertexVisitor<F>
-    where G: Graph,
+    where G: Undirected,
           F: FnMut(Vertex<G>) -> bool
 {
     fn visit_start_vertex(&mut self, v: Vertex<G>) -> bool {
@@ -33,7 +33,7 @@ impl<G, F> Visitor<G> for StartVertexVisitor<F>
 }
 
 impl<G, F> Visitor<G> for TreeEdgeVisitor<F>
-    where G: Graph,
+    where G: Undirected,
           F: FnMut(Edge<G>) -> bool
 {
     fn visit_tree_edge(&mut self, e: Edge<G>) -> bool {
@@ -42,7 +42,7 @@ impl<G, F> Visitor<G> for TreeEdgeVisitor<F>
 }
 
 impl<G, F> Visitor<G> for BackEdgeVisitor<F>
-    where G: Graph,
+    where G: Undirected,
           F: FnMut(Edge<G>) -> bool
 {
     fn visit_back_edge(&mut self, e: Edge<G>) -> bool {
@@ -74,7 +74,7 @@ macro_rules! break_if_false {
 // Traversers
 
 pub trait Traverser<'a, G>: Sized
-    where G: 'a + Graph,
+    where G: 'a + Undirected,
 {
     fn new(g: &'a G) -> Self;
 
@@ -110,7 +110,7 @@ const WHITE: usize = std::usize::MAX;
 const BLACK: usize = std::usize::MAX - 1;
 
 pub struct State<'a, G>
-    where G: 'a + Graph,
+    where G: 'a + Undirected + BasicProps,
 {
     g: &'a G,
     // depth if opened, color if closed
@@ -118,7 +118,7 @@ pub struct State<'a, G>
 }
 
 impl<'a, G> State<'a, G>
-    where G: 'a + Graph,
+    where G: 'a + Undirected + BasicProps,
 {
     fn new(g: &'a G) -> Self {
         State {
@@ -152,10 +152,10 @@ impl<'a, G> State<'a, G>
 // Dfs
 
 pub struct Dfs<'a, G>(State<'a, G>)
-    where G: 'a + Graph;
+    where G: 'a + Undirected + BasicProps;
 
 impl<'a, G> Traverser<'a, G> for Dfs<'a, G>
-    where G: 'a + Graph,
+    where G: 'a + Undirected + IncEdges + BasicProps,
 {
     fn new(g: &'a G) -> Self {
         Dfs(State::new(g))
@@ -194,10 +194,10 @@ impl<'a, G> Traverser<'a, G> for Dfs<'a, G>
 // Bfs
 
 pub struct Bfs<'a, G>(State<'a, G>)
-    where G: 'a + Graph;
+    where G: 'a + Undirected + BasicProps;
 
 impl<'a, G> Traverser<'a, G> for Bfs<'a, G>
-    where G: 'a + Graph,
+    where G: 'a + Undirected + IncEdges + BasicProps,
 {
     fn new(g: &'a G) -> Self {
         Bfs(State::new(g))
@@ -234,7 +234,7 @@ impl<'a, G> Traverser<'a, G> for Bfs<'a, G>
 // Dfs parent
 
 // TODO: write test
-pub trait DfsParent: Graph {
+pub trait DfsParent: Undirected + IncEdges + BasicProps {
     fn dfs_parent(&self) -> DefaultPropMutVertex<Self, OptionEdge<Self>> {
         let mut parent = self.vertex_prop(Self::edge_none());
         let mut num_edges = 0;
@@ -248,7 +248,7 @@ pub trait DfsParent: Graph {
     }
 }
 
-impl<G> DfsParent for G where G: Graph { }
+impl<G> DfsParent for G where G: Undirected + IncEdges + BasicProps { }
 
 
 // Tests
@@ -281,7 +281,7 @@ mod tests {
     const BACK: usize = 2;
 
     struct TestVisitor<'a, G>
-        where G: 'a + Graph,
+        where G: 'a + Undirected + BasicProps,
     {
         g: &'a G,
         parent: DefaultPropMutVertex<G, OptionVertex<G>>,
@@ -299,7 +299,7 @@ mod tests {
     }
 
     impl<'a, G> Visitor<G> for TestVisitor<'a, G>
-        where G: 'a + Graph,
+        where G: 'a + Undirected + BasicProps,
     {
         fn visit_tree_edge(&mut self, e: Edge<G>) -> bool {
             assert_eq!(0, self.edge_type[e]);

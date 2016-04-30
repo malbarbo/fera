@@ -5,7 +5,7 @@ use rand::Rng;
 // TODO: There is no vertex
 // TODO: There is no edge
 // TODO: There is no inc edge
-pub trait Choose: Basic {
+pub trait Choose: Undirected {
     fn choose_vertex<R>(&self, rng: &mut R) -> Vertex<Self> where R: Rng;
 
     fn choose_vertex_if<R, F>(&self, rng: &mut R, fun: &mut F) -> Vertex<Self>

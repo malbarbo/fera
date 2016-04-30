@@ -1,5 +1,5 @@
 use graph::*;
-use props::Props;
+use props::*;
 
 use fera::{IteratorExt, VecExt};
 
@@ -59,7 +59,7 @@ macro_rules! graph {
 }
 
 pub trait Builder {
-    type Graph: Basic;
+    type Graph: Undirected;
 
     fn new(num_vertices: usize, num_edges: usize) -> Self;
 
@@ -70,8 +70,8 @@ pub trait Builder {
     fn finalize_(self) -> (Self::Graph, VecVertex<Self::Graph>, VecEdge<Self::Graph>);
 }
 
-pub trait WithBuilder: Basic {
-    type Builder: Builder<Graph=Self>;
+pub trait WithBuilder: Undirected {
+    type Builder: Builder<Graph = Self>;
 
     fn builder(num_vertices: usize, num_edges: usize) -> Self::Builder {
         Self::Builder::new(num_vertices, num_edges)
@@ -141,8 +141,8 @@ pub fn tree<G, R>(n: usize, rng: &mut R) -> G::Builder
 // Tests
 
 pub trait BuilderTests {
-    // TODO: remove Graph bounds
-    type G: Graph + WithBuilder;
+    // TODO: which bounds?
+    type G: Undirected + IncEdges + BasicProps + WithBuilder;
 
     fn graph_macro() {
         let g = graph!(

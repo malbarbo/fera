@@ -1,4 +1,3 @@
-use fera::{IteratorExt, MapBind1};
 pub use fera::optional::Optional;
 
 use std::fmt::Debug;
@@ -8,6 +7,7 @@ use std::ops::{Index, IndexMut};
 pub type Vertex<G> = <G as WithVertex>::Vertex;
 pub type OptionVertex<G> = <G as WithVertex>::OptionVertex;
 pub type IterVertex<'a, G> = <G as VertexIterators<'a, G>>::Vertex;
+pub type IterNeighbor<'a, G> = <G as VertexIterators<'a, G>>::Neighbor;
 pub type DefaultPropMutVertex<G, T> = <G as WithProps<T>>::Vertex;
 pub type VecVertex<G> = Vec<Vertex<G>>;
 
@@ -17,10 +17,6 @@ pub type IterEdge<'a, G> = <G as EdgeIterators<'a, G>>::Edge;
 pub type IterIncEdge<'a, G> = <G as EdgeIterators<'a, G>>::IncEdge;
 pub type DefaultPropMutEdge<G, T> = <G as WithProps<T>>::Edge;
 pub type VecEdge<G> = Vec<Edge<G>>;
-
-pub trait Graph: Basic + BasicProps {}
-
-impl<G> Graph for G where G: Basic + BasicProps {}
 
 pub trait WithVertex {
     type Vertex: Item;
@@ -72,10 +68,12 @@ pub trait VertexList: Sized + WithVertex
         self.vertices().count()
     }
 
+    // TODO: is this necessary?
     fn vertex_none() -> OptionVertex<Self> {
         OptionVertex::<Self>::default()
     }
 
+    // TODO: is this necessary?
     fn vertex_some(v: Vertex<Self>) -> OptionVertex<Self> {
         OptionVertex::<Self>::from(v)
     }
@@ -92,32 +90,32 @@ pub trait EdgeList: Sized + WithEdge
 
     fn reverse(&self, e: Edge<Self>) -> Edge<Self>;
 
+    // TODO: is this necessary?
     fn edge_none() -> OptionEdge<Self> {
         OptionEdge::<Self>::default()
     }
 
+    // TODO: is this necessary?
     fn edge_some(e: Edge<Self>) -> OptionEdge<Self> {
         OptionEdge::<Self>::from(e)
     }
 }
 
-pub trait Basic: Sized + VertexList + EdgeList {
-    fn degree(&self, v: Vertex<Self>) -> usize;
+pub trait Undirected: VertexList + EdgeList {}
 
+pub trait Neighbors: VertexList {
+    fn neighbors(&self, v: Vertex<Self>) -> IterNeighbor<Self>;
+
+    fn degree(&self, v: Vertex<Self>) -> usize {
+        self.neighbors(v).count()
+    }
+}
+
+pub trait IncEdges: Undirected + Neighbors {
     fn inc_edges(&self, v: Vertex<Self>) -> IterIncEdge<Self>;
 }
 
 pub trait Item: Copy + Eq + Hash + Debug {}
-
-
-// Iterators
-
-pub trait Iterators<'a, G: Basic> {
-    type Vertex: Iterator<Item = Vertex<G>>;
-    type Edge: Iterator<Item = Edge<G>>;
-    type IncEdge: Iterator<Item = Edge<G>>;
-}
-
 
 // Index
 
@@ -128,13 +126,15 @@ pub trait ToIndex<K> {
 #[derive(Clone)]
 pub struct FnToIndex<F>(pub F);
 
-impl<K, F: Fn(K) -> usize> ToIndex<K> for FnToIndex<F> {
+impl<K, F> ToIndex<K> for FnToIndex<F>
+    where F: Fn(K) -> usize
+{
     fn to_index(&self, k: K) -> usize {
         (self.0)(k)
     }
 }
 
-pub trait Indices: Basic {
+pub trait Indices: VertexList + EdgeList {
     type Vertex: ToIndex<Vertex<Self>>;
     type Edge: ToIndex<Edge<Self>>;
 
@@ -147,55 +147,64 @@ pub trait Indices: Basic {
 // Properties
 
 // TODO: Remove Clone bounds from PropVertex and EdgeVertex
-pub trait PropVertex<G: Basic, T>: Index<Vertex<G>, Output = T> {}
+pub trait PropVertex<G, T>: Index<Vertex<G>, Output = T> where G: VertexList {}
 
-pub trait PropMutVertex<G: Basic, T>
-    : PropVertex<G, T> + IndexMut<Vertex<G>, Output = T> {
+pub trait PropMutVertex<G, T>
+    : PropVertex<G, T> + IndexMut<Vertex<G>, Output = T>
+    where G: VertexList
+{
 }
 
-impl<G: Basic, T, A: Index<Vertex<G>, Output = T>> PropVertex<G, T> for A {}
+impl<G, T, A> PropVertex<G, T> for A
+    where G: VertexList,
+          A: Index<Vertex<G>, Output = T>
+{
+}
 
-impl<G: Basic, T, A: PropVertex<G, T> + IndexMut<Vertex<G>, Output = T>> PropMutVertex<G, T> for A {}
+impl<G, T, A> PropMutVertex<G, T> for A
+    where G: VertexList,
+          A: PropVertex<G, T> + IndexMut<Vertex<G>, Output = T>
+{
+}
 
-pub trait PropMutVertexNew<G: Basic, T>: PropMutVertex<G, T> {
+pub trait PropMutVertexNew<G, T>: PropMutVertex<G, T>
+    where G: VertexList
+{
     fn new_prop_vertex(g: &G, value: T) -> Self where T: Clone;
 }
 
 pub type VertexIndex<G> = <G as Indices>::Vertex;
 
 
-pub trait PropEdge<G: Basic, T>: Index<Edge<G>, Output = T> {}
+pub trait PropEdge<G, T>: Index<Edge<G>, Output = T> where G: EdgeList {}
 
-pub trait PropMutEdge<G: Basic, T>
-    : PropEdge<G, T> + IndexMut<Edge<G>, Output = T> {
+pub trait PropMutEdge<G, T>: PropEdge<G, T> + IndexMut<Edge<G>, Output = T>
+    where G: EdgeList
+{
 }
 
-impl<G: Basic, T, A: Index<Edge<G>, Output = T>> PropEdge<G, T> for A {}
+impl<G, T, A> PropEdge<G, T> for A
+    where G: EdgeList,
+          A: Index<Edge<G>, Output = T>
+{
+}
 
-impl<G: Basic, T, A: PropEdge<G, T> + IndexMut<Edge<G>, Output = T>> PropMutEdge<G, T> for A {}
+impl<G, T, A> PropMutEdge<G, T> for A
+    where G: EdgeList,
+          A: PropEdge<G, T> + IndexMut<Edge<G>, Output = T>
+{
+}
 
-pub trait PropMutEdgeNew<G: Basic, T>: PropMutEdge<G, T> {
+pub trait PropMutEdgeNew<G, T>: PropMutEdge<G, T>
+    where G: EdgeList
+{
     fn new_prop_edge(g: &G, value: T) -> Self where T: Clone;
 }
 
 pub type EdgeIndex<G> = <G as Indices>::Edge;
 
 
-pub fn clone_prop_vertex<G, T, P1, P2>(g: &G, src: &P1) -> P2
-    where G: Graph,
-          T: Default + Clone,
-          P1: PropVertex<G, T>,
-          P2: PropMutVertexNew<G, T>
-{
-    let mut dst = P2::new_prop_vertex(g, T::default());
-    for v in g.vertices() {
-        dst[v] = src[v].clone();
-    }
-    dst
-}
-
-
-pub trait WithProps<T>: Basic {
+pub trait WithProps<T>: Undirected {
     type Vertex: PropMutVertexNew<Self, T>;
     type Edge: PropMutEdgeNew<Self, T>;
 
@@ -226,7 +235,7 @@ macro_rules! basic_props1 {
             impl<G> BasicProps for G where G:
                 $(WithProps<$t2> +)* { }
         }
-    )
+        )
 }
 
 macro_rules! basic_props2 {
@@ -255,16 +264,3 @@ basic_props! {
     f32, f64,
     String
 }
-
-
-// Adjacency
-
-pub trait Adj: Basic {
-    fn neighbors(&self, v: Vertex<Self>) -> MapBind1<IterIncEdge<Self>, Self, Vertex<Self>> {
-        self.inc_edges(v).map_bind1(self, Self::target)
-    }
-}
-
-
-// TODO: Allow graphs specific implementation
-impl<G> Adj for G where G: Basic {}

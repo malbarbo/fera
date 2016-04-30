@@ -2,6 +2,7 @@ use graph::*;
 use choose::Choose;
 use vecprop::*;
 
+use fera::{IteratorExt, MapBind1};
 use fera::optional::{BuildNone, Optioned, OptionalMax};
 
 use std::ops::Range;
@@ -143,8 +144,7 @@ impl ExactSizeIterator for IncEdgeIter {
     }
 }
 
-
-// Basic
+// Graph implementation
 
 impl WithVertex for CompleteGraph {
     type Vertex = u32;
@@ -168,7 +168,8 @@ impl WithPair<CompleteEdge> for CompleteGraph {
 
 impl<'a> VertexIterators<'a, CompleteGraph> for CompleteGraph {
     type Vertex = Range<u32>;
-    type Neighbor = ::std::iter::Empty<u32>;
+    // TODO: write another iterator
+    type Neighbor = MapBind1<'a, IterIncEdge<'a, Self>, Self, Vertex<Self>>;
 }
 
 impl<'a> EdgeIterators<'a, CompleteGraph> for CompleteGraph {
@@ -206,13 +207,19 @@ impl EdgeList for CompleteGraph {
     }
 }
 
-impl Basic for CompleteGraph {
-    // IncEdgeidence
+impl Undirected for CompleteGraph {}
+
+impl Neighbors for CompleteGraph {
+    fn neighbors(&self, v: Vertex<Self>) -> IterNeighbor<Self> {
+        self.inc_edges(v).map_bind1(self, Self::target)
+    }
 
     fn degree(&self, _: Vertex<Self>) -> usize {
         self.num_vertices() - 1
     }
+}
 
+impl IncEdges for CompleteGraph {
     fn inc_edges(&self, v: Vertex<Self>) -> IterIncEdge<Self> {
         IncEdgeIter {
             rem: self.degree(v),

@@ -1,5 +1,5 @@
 use graph::*;
-use fera::IteratorExt;
+use fera::{IteratorExt, MapBind1};
 use fera::optional::OptionalMax;
 use builder::{Builder, WithBuilder};
 use choose::Choose;
@@ -24,7 +24,6 @@ pub trait Num: 'static + Eq + Copy + Clone + Debug + Hash + Bounded {
     fn to_usize(self) -> usize;
     fn from_usize(v: usize) -> Self;
     fn is_valid(v: usize) -> bool;
-    fn max() -> Self;
 }
 
 macro_rules! impl_num {
@@ -49,13 +48,7 @@ macro_rules! impl_num {
 
             #[inline(always)]
             fn is_valid(v: usize) -> bool {
-                (v as u64) < (Self::max() as u64)
-            }
-
-            #[inline(always)]
-            fn max() -> Self {
-                use std;
-                std::$t::MAX
+                (v as u64) < (Self::max_value() as u64)
             }
         }
     )
@@ -211,6 +204,9 @@ impl<V: Num, E: Num> Builder for StaticGraphGenericBuilder<V, E> {
     }
 }
 
+
+// Graph implementation
+
 impl<V: Num, E: Num> WithVertex for StaticGraphGeneric<V, E> {
     type Vertex = StaticVertex<V>;
     type OptionVertex = OptionalMax<StaticVertex<V>>;
@@ -235,7 +231,7 @@ impl<V: Num, E: Num> WithPair<StaticEdge<E>> for StaticGraphGeneric<V, E> {
 
 impl<'a, V: Num, E: Num> VertexIterators<'a, StaticGraphGeneric<V, E>> for StaticGraphGeneric<V, E> {
     type Vertex = V::Range;
-    type Neighbor = ::std::iter::Empty<V>;
+    type Neighbor = MapBind1<'a, IterIncEdge<'a, Self>, Self, Vertex<Self>>;
 }
 
 impl<'a, V: Num, E: Num> EdgeIterators<'a, StaticGraphGeneric<V, E>> for StaticGraphGeneric<V, E> {
@@ -269,14 +265,21 @@ impl<V: Num, E: Num> EdgeList for StaticGraphGeneric<V, E> {
     }
 }
 
-impl<V: Num, E: Num> Basic for StaticGraphGeneric<V, E> {
-    // IncEdge
+impl<V: Num, E: Num> Undirected for StaticGraphGeneric<V, E> { }
+
+impl<V: Num, E: Num> Neighbors for StaticGraphGeneric<V, E> {
+    #[inline(always)]
+    fn neighbors(&self, v: Vertex<Self>) -> IterNeighbor<Self> {
+        self.inc_edges(v).map_bind1(self, Self::target)
+    }
 
     #[inline(always)]
     fn degree(&self, v: Vertex<Self>) -> usize {
         self.inc[Num::to_usize(v)].len()
     }
+}
 
+impl<V: Num, E: Num> IncEdges for StaticGraphGeneric<V, E> {
     fn inc_edges(&self, v: Vertex<Self>) -> IterIncEdge<Self> {
         self.inc(v).iter().cloned()
     }

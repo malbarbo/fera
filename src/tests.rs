@@ -44,7 +44,7 @@ macro_rules! graph_adj_tests {
 }
 
 pub trait GraphTests {
-    type G: Basic;
+    type G: Undirected;
 
     fn new() -> (Self::G, VecVertex<Self::G>, VecEdge<Self::G>);
 
@@ -110,7 +110,9 @@ pub trait GraphTests {
         }
     }
 
-    fn degree() {
+    fn degree()
+        where Self::G: Neighbors
+    {
         let (g, _, edges) = Self::new();
         let mut d = HashProp::new(0usize);
         for e in edges {
@@ -123,7 +125,9 @@ pub trait GraphTests {
         }
     }
 
-    fn inc_edges() {
+    fn inc_edges()
+        where Self::G: IncEdges
+    {
         let (g, _, edges) = Self::new();
         let mut inc = HashProp::new(VecEdge::<Self::G>::new());
         for e in edges {
@@ -168,7 +172,7 @@ pub trait GraphTests {
     }
 
     fn neighbors()
-        where Self::G: Adj
+        where Self::G: Neighbors
     {
         let (g, _, edges) = Self::new();
         let mut adj = HashProp::new(VecVertex::<Self::G>::new());
