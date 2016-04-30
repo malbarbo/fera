@@ -111,7 +111,7 @@ pub trait GraphTests {
     }
 
     fn degree()
-        where Self::G: Neighbors
+        where Self::G: Adjacency
     {
         let (g, _, edges) = Self::new();
         let mut d = HashProp::new(0usize);
@@ -126,7 +126,7 @@ pub trait GraphTests {
     }
 
     fn inc_edges()
-        where Self::G: IncEdges
+        where Self::G: Incidence
     {
         let (g, _, edges) = Self::new();
         let mut inc = HashProp::new(VecEdge::<Self::G>::new());
@@ -172,7 +172,7 @@ pub trait GraphTests {
     }
 
     fn neighbors()
-        where Self::G: Neighbors
+        where Self::G: Adjacency
     {
         let (g, _, edges) = Self::new();
         let mut adj = HashProp::new(VecVertex::<Self::G>::new());

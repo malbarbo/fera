@@ -3,9 +3,9 @@ use traverse::*;
 
 pub type Path<G> = VecEdge<G>;
 
-pub type ParentTree<G> = DefaultPropMutVertex<G, OptionEdge<G>>;
+pub type ParentTree<G> = DefaultVertexPropMut<G, OptionEdge<G>>;
 
-pub trait FindPath: Undirected + IncEdges + BasicProps {
+pub trait FindPath: Undirected + Incidence + BasicProps {
     fn find_path_on_parent_tree(&self,
                                 tree: &ParentTree<Self>,
                                 u: Vertex<Self>,
@@ -51,7 +51,7 @@ pub trait FindPath: Undirected + IncEdges + BasicProps {
 }
 
 impl<G> FindPath for G
-    where G: Undirected + IncEdges + BasicProps { }
+    where G: Undirected + Incidence + BasicProps { }
 
 #[cfg(test)]
 mod tests {

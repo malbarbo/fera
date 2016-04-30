@@ -114,7 +114,7 @@ pub struct State<'a, G>
 {
     g: &'a G,
     // depth if opened, color if closed
-    depth: DefaultPropMutVertex<G, usize>,
+    depth: DefaultVertexPropMut<G, usize>,
 }
 
 impl<'a, G> State<'a, G>
@@ -155,7 +155,7 @@ pub struct Dfs<'a, G>(State<'a, G>)
     where G: 'a + Undirected + BasicProps;
 
 impl<'a, G> Traverser<'a, G> for Dfs<'a, G>
-    where G: 'a + Undirected + IncEdges + BasicProps,
+    where G: 'a + Undirected + Incidence + BasicProps,
 {
     fn new(g: &'a G) -> Self {
         Dfs(State::new(g))
@@ -197,7 +197,7 @@ pub struct Bfs<'a, G>(State<'a, G>)
     where G: 'a + Undirected + BasicProps;
 
 impl<'a, G> Traverser<'a, G> for Bfs<'a, G>
-    where G: 'a + Undirected + IncEdges + BasicProps,
+    where G: 'a + Undirected + Incidence + BasicProps,
 {
     fn new(g: &'a G) -> Self {
         Bfs(State::new(g))
@@ -234,8 +234,8 @@ impl<'a, G> Traverser<'a, G> for Bfs<'a, G>
 // Dfs parent
 
 // TODO: write test
-pub trait DfsParent: Undirected + IncEdges + BasicProps {
-    fn dfs_parent(&self) -> DefaultPropMutVertex<Self, OptionEdge<Self>> {
+pub trait DfsParent: Undirected + Incidence + BasicProps {
+    fn dfs_parent(&self) -> DefaultVertexPropMut<Self, OptionEdge<Self>> {
         let mut parent = self.vertex_prop(Self::edge_none());
         let mut num_edges = 0;
         Dfs::run(self,
@@ -248,7 +248,7 @@ pub trait DfsParent: Undirected + IncEdges + BasicProps {
     }
 }
 
-impl<G> DfsParent for G where G: Undirected + IncEdges + BasicProps { }
+impl<G> DfsParent for G where G: Undirected + Incidence + BasicProps { }
 
 
 // Tests
@@ -284,9 +284,9 @@ mod tests {
         where G: 'a + Undirected + BasicProps,
     {
         g: &'a G,
-        parent: DefaultPropMutVertex<G, OptionVertex<G>>,
-        d: DefaultPropMutVertex<G, usize>,
-        edge_type: DefaultPropMutEdge<G, usize>,
+        parent: DefaultVertexPropMut<G, OptionVertex<G>>,
+        d: DefaultVertexPropMut<G, usize>,
+        edge_type: DefaultEdgePropMut<G, usize>,
     }
 
     fn new_test_visitor(g: &StaticGraph) -> TestVisitor<StaticGraph> {

@@ -64,7 +64,7 @@ pub trait Kruskal: Undirected + BasicProps {
 
     fn kruskal<T, W, V>(&self, weight: &W, visitor: &mut V)
         where Self: WithProps<T>,
-              W: PropEdge<Self, T>,
+              W: EdgeProp<Self, T>,
               T: PartialOrd + Clone,
               V: Visitor<Self>
     {
@@ -74,7 +74,7 @@ pub trait Kruskal: Undirected + BasicProps {
 
     fn kruskal_mst<T, W>(&self, weight: &W) -> VecEdge<Self>
         where Self: WithProps<T>,
-              W: PropEdge<Self, T>,
+              W: EdgeProp<Self, T>,
               T: PartialOrd + Clone
     {
         // TODO: Use CollectorVisitor

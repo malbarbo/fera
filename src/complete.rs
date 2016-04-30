@@ -110,13 +110,13 @@ impl ExactSizeIterator for EdgesIter {
     }
 }
 
-pub struct IncEdgeIter {
+pub struct IncCompleteEdgeIter {
     rem: usize,
     u: u32,
     v: u32,
 }
 
-impl Iterator for IncEdgeIter {
+impl Iterator for IncCompleteEdgeIter {
     type Item = CompleteEdge;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -138,7 +138,7 @@ impl Iterator for IncEdgeIter {
     }
 }
 
-impl ExactSizeIterator for IncEdgeIter {
+impl ExactSizeIterator for IncCompleteEdgeIter {
     fn len(&self) -> usize {
         self.rem
     }
@@ -149,11 +149,13 @@ impl ExactSizeIterator for IncEdgeIter {
 impl WithVertex for CompleteGraph {
     type Vertex = u32;
     type OptionVertex = OptionalMax<u32>;
+    type VertexIndexProp = FnToIndex<fn (u32) -> usize>;
 }
 
 impl WithEdge for CompleteGraph {
     type Edge = CompleteEdge;
     type OptionEdge = Optioned<CompleteEdge, CompleteEdgeNone>;
+    type EdgeIndexProp = CompleteEdgeToIndex;
 }
 
 impl WithPair<CompleteEdge> for CompleteGraph {
@@ -166,15 +168,15 @@ impl WithPair<CompleteEdge> for CompleteGraph {
     }
 }
 
-impl<'a> VertexIterators<'a, CompleteGraph> for CompleteGraph {
-    type Vertex = Range<u32>;
+impl<'a> VertexTypes<'a, CompleteGraph> for CompleteGraph {
+    type VertexIter = Range<u32>;
     // TODO: write another iterator
-    type Neighbor = MapBind1<'a, IterIncEdge<'a, Self>, Self, Vertex<Self>>;
+    type NeighborIter = MapBind1<'a, IncEdgeIter<'a, Self>, Self, Vertex<Self>>;
 }
 
-impl<'a> EdgeIterators<'a, CompleteGraph> for CompleteGraph {
-    type Edge = EdgesIter;
-    type IncEdge = IncEdgeIter;
+impl<'a> EdgeTypes<'a, CompleteGraph> for CompleteGraph {
+    type EdgeIter = EdgesIter;
+    type IncEdgeIter = IncCompleteEdgeIter;
 }
 
 impl VertexList for CompleteGraph {
@@ -182,7 +184,7 @@ impl VertexList for CompleteGraph {
         self.0 as usize
     }
 
-    fn vertices(&self) -> IterVertex<Self> {
+    fn vertices(&self) -> VertexIter<Self> {
         0..self.0
     }
 }
@@ -193,7 +195,7 @@ impl EdgeList for CompleteGraph {
         (n * n - n) / 2
     }
 
-    fn edges(&self) -> IterEdge<Self> {
+    fn edges(&self) -> EdgeIter<Self> {
         EdgesIter {
             n: self.num_vertices() as u32,
             rem: self.num_edges(),
@@ -209,8 +211,8 @@ impl EdgeList for CompleteGraph {
 
 impl Undirected for CompleteGraph {}
 
-impl Neighbors for CompleteGraph {
-    fn neighbors(&self, v: Vertex<Self>) -> IterNeighbor<Self> {
+impl Adjacency for CompleteGraph {
+    fn neighbors(&self, v: Vertex<Self>) -> NeighborIter<Self> {
         self.inc_edges(v).map_bind1(self, Self::target)
     }
 
@@ -219,9 +221,9 @@ impl Neighbors for CompleteGraph {
     }
 }
 
-impl IncEdges for CompleteGraph {
-    fn inc_edges(&self, v: Vertex<Self>) -> IterIncEdge<Self> {
-        IncEdgeIter {
+impl Incidence for CompleteGraph {
+    fn inc_edges(&self, v: Vertex<Self>) -> IncEdgeIter<Self> {
+        IncCompleteEdgeIter {
             rem: self.degree(v),
             u: v,
             v: 0,
@@ -229,26 +231,25 @@ impl IncEdges for CompleteGraph {
     }
 }
 
-impl Indices for CompleteGraph {
-    type Vertex = FnToIndex<fn (u32) -> usize>;
-    type Edge = CompleteEdgeToIndex;
-
-    fn prop_vertex_index(&self) -> VertexIndex<Self> {
+impl VertexIndex for CompleteGraph {
+    fn vertex_index(&self) -> VertexIndexProp<Self> {
         #[inline(always)]
         fn u32_to_usize(x: u32) -> usize {
             x as usize
         }
         FnToIndex(u32_to_usize)
     }
+}
 
-    fn prop_edge_index(&self) -> EdgeIndex<Self> {
+impl EdgeIndex for CompleteGraph {
+    fn edge_index(&self) -> EdgeIndexProp<Self> {
         CompleteEdgeToIndex(self.num_vertices() as u32)
     }
 }
 
 impl<T: Clone> WithProps<T> for CompleteGraph {
-    type Vertex = VecPropVertex<CompleteGraph, T>;
-    type Edge = VecPropEdge<CompleteGraph, T>;
+    type VertexProp = VecVertexProp<CompleteGraph, T>;
+    type EdgeProp = VecEdgeProp<CompleteGraph, T>;
 }
 
 impl Choose for CompleteGraph {
@@ -291,7 +292,7 @@ mod tests {
                     r.push((u, v));
                 }
             }
-            let ind = g.prop_edge_index();
+            let ind = g.edge_index();
             for (i, e) in g.edges().enumerate() {
                 assert_eq!(i, ind.to_index(e));
                 assert_eq!(i, ind.to_index(g.reverse(e)));

@@ -41,22 +41,22 @@ impl<I: ToIndex<K>, K, D: IndexMut<usize>> IndexMut<K> for VecProp<I, D> {
 
 // Vec
 
-pub type VecPropVertex<G, T> = VecProp<VertexIndex<G>, Vec<T>>;
-pub type VecPropEdge<G, T> = VecProp<EdgeIndex<G>, Vec<T>>;
+pub type VecVertexProp<G, T> = VecProp<VertexIndexProp<G>, Vec<T>>;
+pub type VecEdgeProp<G, T> = VecProp<EdgeIndexProp<G>, Vec<T>>;
 
-impl<G: Indices, T: Clone> PropMutVertexNew<G, T> for VecPropVertex<G, T> {
-    fn new_prop_vertex(g: &G, value: T) -> Self {
-        VecPropVertex::<G, T> {
-            to_index: g.prop_vertex_index(),
+impl<G: VertexIndex + VertexList, T: Clone> VertexPropMutNew<G, T> for VecVertexProp<G, T> {
+    fn new_vertex_prop(g: &G, value: T) -> Self {
+        VecVertexProp::<G, T> {
+            to_index: g.vertex_index(),
             data: vec![value; g.num_vertices()],
         }
     }
 }
 
-impl<G: Indices, T: Clone> PropMutEdgeNew<G, T> for VecPropEdge<G, T> {
-    fn new_prop_edge(g: &G, value: T) -> Self {
-        VecPropEdge::<G, T> {
-            to_index: g.prop_edge_index(),
+impl<G: EdgeIndex + EdgeList, T: Clone> EdgePropMutNew<G, T> for VecEdgeProp<G, T> {
+    fn new_edge_prop(g: &G, value: T) -> Self {
+        VecEdgeProp::<G, T> {
+            to_index: g.edge_index(),
             data: vec![value; g.num_edges()],
         }
     }
@@ -65,14 +65,18 @@ impl<G: Indices, T: Clone> PropMutEdgeNew<G, T> for VecPropEdge<G, T> {
 
 // PVec
 
-macro_rules! def_pvec_prop_vertex {
+macro_rules! def_pvec_vertex_prop {
     ($alias:ident, $vec:ident) => (
-        pub type $alias<G, T> = VecProp<VertexIndex<G>, $vec<T>>;
+        pub type $alias<G, T> = VecProp<VertexIndexProp<G>, $vec<T>>;
 
-        impl<G: Indices, T: 'static + Clone> PropMutVertexNew<G, T> for VecProp<VertexIndex<G>, $vec<T>> {
-            fn new_prop_vertex(g: &G, value: T) -> Self {
+        impl<G, T> VertexPropMutNew<G, T> for VecProp<VertexIndexProp<G>, $vec<T>>
+            where G: VertexIndex + VertexList,
+                  T: 'static + Clone
+        {
+
+            fn new_vertex_prop(g: &G, value: T) -> Self {
                 VecProp {
-                    to_index: g.prop_vertex_index(),
+                    to_index: g.vertex_index(),
                     data: $vec::with_value(value, g.num_vertices()),
                 }
             }
@@ -80,21 +84,24 @@ macro_rules! def_pvec_prop_vertex {
     )
 }
 
-def_pvec_prop_vertex!(PVecPropVertex, PVec);
-def_pvec_prop_vertex!(PVec0PropVertex, PVec0);
-def_pvec_prop_vertex!(PVec1PropVertex, PVec1);
-def_pvec_prop_vertex!(PVec2PropVertex, PVec2);
-def_pvec_prop_vertex!(PVec3PropVertex, PVec3);
-def_pvec_prop_vertex!(PVec4PropVertex, PVec4);
+def_pvec_vertex_prop!(PVecVertexProp, PVec);
+def_pvec_vertex_prop!(PVec0VertexProp, PVec0);
+def_pvec_vertex_prop!(PVec1VertexProp, PVec1);
+def_pvec_vertex_prop!(PVec2VertexProp, PVec2);
+def_pvec_vertex_prop!(PVec3VertexProp, PVec3);
+def_pvec_vertex_prop!(PVec4VertexProp, PVec4);
 
-macro_rules! def_pvec_prop_edge {
+macro_rules! def_pvec_edge_prop {
     ($alias:ident, $vec:ident) => (
-        pub type $alias<G, T> = VecProp<EdgeIndex<G>, $vec<T>>;
+        pub type $alias<G, T> = VecProp<EdgeIndexProp<G>, $vec<T>>;
 
-        impl<G: Indices, T: 'static + Clone> PropMutEdgeNew<G, T> for VecProp<EdgeIndex<G>, $vec<T>> {
-            fn new_prop_edge(g: &G, value: T) -> Self {
+        impl<G, T: 'static> EdgePropMutNew<G, T> for VecProp<EdgeIndexProp<G>, $vec<T>>
+            where G: EdgeIndex + EdgeList,
+                  T: 'static + Clone
+        {
+            fn new_edge_prop(g: &G, value: T) -> Self {
                 VecProp {
-                    to_index: g.prop_edge_index(),
+                    to_index: g.edge_index(),
                     data: $vec::with_value(value, g.num_edges()),
                 }
             }
@@ -102,9 +109,9 @@ macro_rules! def_pvec_prop_edge {
     )
 }
 
-def_pvec_prop_edge!(PVecPropEdge, PVec);
-def_pvec_prop_edge!(PVec0PropEdge, PVec0);
-def_pvec_prop_edge!(PVec1PropEdge, PVec1);
-def_pvec_prop_edge!(PVec2PropEdge, PVec2);
-def_pvec_prop_edge!(PVec3PropEdge, PVec3);
-def_pvec_prop_edge!(PVec4PropEdge, PVec4);
+def_pvec_edge_prop!(PVecEdgeProp, PVec);
+def_pvec_edge_prop!(PVec0EdgeProp, PVec0);
+def_pvec_edge_prop!(PVec1EdgeProp, PVec1);
+def_pvec_edge_prop!(PVec2EdgeProp, PVec2);
+def_pvec_edge_prop!(PVec3EdgeProp, PVec3);
+def_pvec_edge_prop!(PVec4EdgeProp, PVec4);

@@ -18,7 +18,7 @@ pub struct Subgraph<G, B>
     g: B,
     vertices: VecVertex<G>,
     edges: VecEdge<G>,
-    inc: DefaultPropMutVertex<G, VecEdge<G>>,
+    inc: DefaultVertexPropMut<G, VecEdge<G>>,
 }
 
 impl<G, B> Subgraph<G, B>
@@ -36,6 +36,8 @@ impl<G, B> WithVertex for Subgraph<G, B>
 {
     type Vertex = Vertex<G>;
     type OptionVertex = OptionVertex<G>;
+    // FIXME: this is not rigth
+    type VertexIndexProp = VertexIndexProp<G>;
 }
 
 impl<G, B> WithEdge for Subgraph<G, B>
@@ -44,6 +46,8 @@ impl<G, B> WithEdge for Subgraph<G, B>
 {
     type Edge = Edge<G>;
     type OptionEdge = OptionEdge<G>;
+    // FIXME: this is not rigth
+    type EdgeIndexProp = EdgeIndexProp<G>;
 }
 
 impl<G, B> WithPair<Edge<Subgraph<G, B>>> for Subgraph<G, B>
@@ -67,12 +71,12 @@ impl<G, B> WithPair<Edge<Subgraph<G, B>>> for Subgraph<G, B>
     }
 }
 
-impl<'a, G, B> VertexIterators<'a, Subgraph<G, B>> for Subgraph<G, B>
+impl<'a, G, B> VertexTypes<'a, Subgraph<G, B>> for Subgraph<G, B>
     where G: 'static + Undirected + BasicProps,
           B: Borrow<G>
 {
-    type Vertex = Cloned<Iter<'a, Vertex<G>>>;
-    type Neighbor = MapBind1<'a, IterIncEdge<'a, Self>, G, Vertex<Self>>;
+    type VertexIter = Cloned<Iter<'a, Vertex<G>>>;
+    type NeighborIter = MapBind1<'a, IncEdgeIter<'a, Self>, G, Vertex<Self>>;
 }
 
 impl<G, B> VertexList for Subgraph<G, B>
@@ -83,17 +87,17 @@ impl<G, B> VertexList for Subgraph<G, B>
         self.vertices.len()
     }
 
-    fn vertices(&self) -> IterVertex<Self> {
+    fn vertices(&self) -> VertexIter<Self> {
         self.vertices.iter().cloned()
     }
 }
 
-impl<'a, G, B> EdgeIterators<'a, Subgraph<G, B>> for Subgraph<G, B>
+impl<'a, G, B> EdgeTypes<'a, Subgraph<G, B>> for Subgraph<G, B>
     where G: 'static + Undirected + BasicProps,
           B: Borrow<G>
 {
-    type Edge = Cloned<Iter<'a, Edge<G>>>;
-    type IncEdge = Cloned<Iter<'a, Edge<G>>>;
+    type EdgeIter = Cloned<Iter<'a, Edge<G>>>;
+    type IncEdgeIter = Cloned<Iter<'a, Edge<G>>>;
 }
 
 impl<G, B> EdgeList for Subgraph<G, B>
@@ -104,7 +108,7 @@ impl<G, B> EdgeList for Subgraph<G, B>
         self.edges.len()
     }
 
-    fn edges(&self) -> IterEdge<Self> {
+    fn edges(&self) -> EdgeIter<Self> {
         self.edges.iter().cloned()
     }
 
@@ -118,11 +122,11 @@ impl<G, B> Undirected for Subgraph<G, B>
 {
 }
 
-impl<G, B> Neighbors for Subgraph<G, B>
+impl<G, B> Adjacency for Subgraph<G, B>
     where G: 'static + Undirected + BasicProps,
           B: Borrow<G>
 {
-    fn neighbors(&self, v: Vertex<Self>) -> IterNeighbor<Self> {
+    fn neighbors(&self, v: Vertex<Self>) -> NeighborIter<Self> {
         self.inc_edges(v).map_bind1(self.g(), G::target)
     }
 
@@ -131,11 +135,11 @@ impl<G, B> Neighbors for Subgraph<G, B>
     }
 }
 
-impl<G, B> IncEdges for Subgraph<G, B>
+impl<G, B> Incidence for Subgraph<G, B>
     where G: 'static + Undirected + BasicProps,
           B: Borrow<G>
 {
-    fn inc_edges(&self, v: Vertex<Self>) -> IterIncEdge<Self> {
+    fn inc_edges(&self, v: Vertex<Self>) -> IncEdgeIter<Self> {
         self.inc[v].iter().cloned()
     }
 }
@@ -144,33 +148,33 @@ impl<T: Clone, G, B> WithProps<T> for Subgraph<G, B>
     where G: 'static + BasicProps + WithProps<T>,
           B: Borrow<G>
 {
-    type Vertex = DefaultPropMutVertex<G, T>;
-    type Edge = DefaultPropMutEdge<G, T>;
+    type VertexProp = DefaultVertexPropMut<G, T>;
+    type EdgeProp = DefaultEdgePropMut<G, T>;
 
-    fn vertex_prop(&self, value: T) -> DefaultPropMutVertex<Self, T> {
+    fn vertex_prop(&self, value: T) -> DefaultVertexPropMut<Self, T> {
         self.g().vertex_prop(value)
     }
 
-    fn edge_prop(&self, value: T) -> DefaultPropMutEdge<Self, T> {
+    fn edge_prop(&self, value: T) -> DefaultEdgePropMut<Self, T> {
         self.g().edge_prop(value)
     }
 }
 
-impl<T: Clone, G, B> PropMutVertexNew<Subgraph<G, B>, T> for DefaultPropMutVertex<G, T>
+impl<T: Clone, G, B> VertexPropMutNew<Subgraph<G, B>, T> for DefaultVertexPropMut<G, T>
     where G: 'static + BasicProps + WithProps<T>,
           B: Borrow<G>
 {
-    fn new_prop_vertex(g: &Subgraph<G, B>, value: T) -> Self {
-        DefaultPropMutVertex::<G, T>::new_prop_vertex(g.g(), value)
+    fn new_vertex_prop(g: &Subgraph<G, B>, value: T) -> Self {
+        DefaultVertexPropMut::<G, T>::new_vertex_prop(g.g(), value)
     }
 }
 
-impl<T: Clone, G, B> PropMutEdgeNew<Subgraph<G, B>, T> for DefaultPropMutEdge<G, T>
+impl<T: Clone, G, B> EdgePropMutNew<Subgraph<G, B>, T> for DefaultEdgePropMut<G, T>
     where G: 'static + BasicProps + WithProps<T>,
           B: Borrow<G>
 {
-    fn new_prop_edge(g: &Subgraph<G, B>, value: T) -> Self {
-        DefaultPropMutEdge::<G, T>::new_prop_edge(g.g(), value)
+    fn new_edge_prop(g: &Subgraph<G, B>, value: T) -> Self {
+        DefaultEdgePropMut::<G, T>::new_edge_prop(g.g(), value)
     }
 }
 
@@ -202,7 +206,7 @@ pub trait WithSubgraph<G: Undirected + BasicProps, B: Borrow<G>> {
 
     fn edge_induced_subgraph(self, edges: VecEdge<G>) -> Subgraph<G, B>;
 
-    fn induced_subgraph(self, vertices: VecVertex<G>) -> Subgraph<G, B> where G: IncEdges;
+    fn induced_subgraph(self, vertices: VecVertex<G>) -> Subgraph<G, B> where G: Incidence;
 }
 
 
@@ -267,7 +271,7 @@ impl<G, B> WithSubgraph<G, B> for B
     }
 
     fn induced_subgraph(self, vertices: VecVertex<G>) -> Subgraph<G, B>
-        where G: IncEdges
+        where G: Incidence
     {
         let mut edges;
         let mut inc;

@@ -210,11 +210,13 @@ impl<V: Num, E: Num> Builder for StaticGraphGenericBuilder<V, E> {
 impl<V: Num, E: Num> WithVertex for StaticGraphGeneric<V, E> {
     type Vertex = StaticVertex<V>;
     type OptionVertex = OptionalMax<StaticVertex<V>>;
+    type VertexIndexProp = FnToIndex<fn(Vertex<StaticGraphGeneric<V, E>>) -> usize>;
 }
 
 impl<V: Num, E: Num> WithEdge for StaticGraphGeneric<V, E> {
     type Edge = StaticEdge<E>;
     type OptionEdge = OptionalMax<StaticEdge<E>>;
+    type EdgeIndexProp = FnToIndex<fn(Edge<StaticGraphGeneric<V, E>>) -> usize>;
 }
 
 impl<V: Num, E: Num> WithPair<StaticEdge<E>> for StaticGraphGeneric<V, E> {
@@ -229,14 +231,14 @@ impl<V: Num, E: Num> WithPair<StaticEdge<E>> for StaticGraphGeneric<V, E> {
     }
 }
 
-impl<'a, V: Num, E: Num> VertexIterators<'a, StaticGraphGeneric<V, E>> for StaticGraphGeneric<V, E> {
-    type Vertex = V::Range;
-    type Neighbor = MapBind1<'a, IterIncEdge<'a, Self>, Self, Vertex<Self>>;
+impl<'a, V: Num, E: Num> VertexTypes<'a, StaticGraphGeneric<V, E>> for StaticGraphGeneric<V, E> {
+    type VertexIter = V::Range;
+    type NeighborIter = MapBind1<'a, IncEdgeIter<'a, Self>, Self, Vertex<Self>>;
 }
 
-impl<'a, V: Num, E: Num> EdgeIterators<'a, StaticGraphGeneric<V, E>> for StaticGraphGeneric<V, E> {
-    type Edge = Map<Range<usize>, fn(usize) -> StaticEdge<E>>;
-    type IncEdge = Cloned<Iter<'a, StaticEdge<E>>>;
+impl<'a, V: Num, E: Num> EdgeTypes<'a, StaticGraphGeneric<V, E>> for StaticGraphGeneric<V, E> {
+    type EdgeIter = Map<Range<usize>, fn(usize) -> StaticEdge<E>>;
+    type IncEdgeIter = Cloned<Iter<'a, StaticEdge<E>>>;
 }
 
 impl<V: Num, E: Num> VertexList for StaticGraphGeneric<V, E> {
@@ -244,7 +246,7 @@ impl<V: Num, E: Num> VertexList for StaticGraphGeneric<V, E> {
         self.num_vertices
     }
 
-    fn vertices(&self) -> IterVertex<Self> {
+    fn vertices(&self) -> VertexIter<Self> {
         V::range(0, self.num_vertices)
     }
 }
@@ -254,7 +256,7 @@ impl<V: Num, E: Num> EdgeList for StaticGraphGeneric<V, E> {
         self.ends.len() / 2
     }
 
-    fn edges(&self) -> IterEdge<Self> {
+    fn edges(&self) -> EdgeIter<Self> {
         // TODO: iterate over 1, 3, 5, ...
         (0..self.num_edges()).map(StaticEdge::new)
     }
@@ -267,9 +269,9 @@ impl<V: Num, E: Num> EdgeList for StaticGraphGeneric<V, E> {
 
 impl<V: Num, E: Num> Undirected for StaticGraphGeneric<V, E> { }
 
-impl<V: Num, E: Num> Neighbors for StaticGraphGeneric<V, E> {
+impl<V: Num, E: Num> Adjacency for StaticGraphGeneric<V, E> {
     #[inline(always)]
-    fn neighbors(&self, v: Vertex<Self>) -> IterNeighbor<Self> {
+    fn neighbors(&self, v: Vertex<Self>) -> NeighborIter<Self> {
         self.inc_edges(v).map_bind1(self, Self::target)
     }
 
@@ -279,28 +281,27 @@ impl<V: Num, E: Num> Neighbors for StaticGraphGeneric<V, E> {
     }
 }
 
-impl<V: Num, E: Num> IncEdges for StaticGraphGeneric<V, E> {
-    fn inc_edges(&self, v: Vertex<Self>) -> IterIncEdge<Self> {
+impl<V: Num, E: Num> Incidence for StaticGraphGeneric<V, E> {
+    fn inc_edges(&self, v: Vertex<Self>) -> IncEdgeIter<Self> {
         self.inc(v).iter().cloned()
     }
 }
 
-impl<V: Num, E: Num> Indices for StaticGraphGeneric<V, E> {
-    type Vertex = FnToIndex<fn(Vertex<StaticGraphGeneric<V, E>>) -> usize>;
-    type Edge = FnToIndex<fn(Edge<StaticGraphGeneric<V, E>>) -> usize>;
-
-    fn prop_vertex_index(&self) -> VertexIndex<Self> {
+impl<V: Num, E: Num> VertexIndex for StaticGraphGeneric<V, E> {
+    fn vertex_index(&self) -> VertexIndexProp<Self> {
         FnToIndex(V::to_usize)
     }
+}
 
-    fn prop_edge_index(&self) -> EdgeIndex<Self> {
+impl<V: Num, E: Num> EdgeIndex for StaticGraphGeneric<V, E> {
+    fn edge_index(&self) -> EdgeIndexProp<Self> {
         FnToIndex(StaticEdge::<E>::to_index)
     }
 }
 
 impl<T: Clone, V: Num, E: Num> WithProps<T> for StaticGraphGeneric<V, E> {
-    type Vertex = VecPropVertex<Self, T>;
-    type Edge = VecPropEdge<Self, T>;
+    type VertexProp = VecVertexProp<Self, T>;
+    type EdgeProp = VecEdgeProp<Self, T>;
 }
 
 impl<V: Num, E: Num> Choose for StaticGraphGeneric<V, E> {

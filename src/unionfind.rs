@@ -3,8 +3,8 @@ use graph::*;
 use fera::unionfind;
 
 pub type UnionFind<G> = unionfind::UnionFind<Vertex<G>,
-                                             DefaultPropMutVertex<G, Vertex<G>>,
-                                             DefaultPropMutVertex<G, usize>>;
+                                             DefaultVertexPropMut<G, Vertex<G>>,
+                                             DefaultVertexPropMut<G, usize>>;
 
 pub trait WithUnionFind: Undirected + BasicProps {
     fn new_unionfind(&self) -> UnionFind<Self> {
