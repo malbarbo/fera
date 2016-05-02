@@ -4,6 +4,7 @@ use fera::optional::OptionalMax;
 use builder::{Builder, WithBuilder};
 use choose::Choose;
 use vecprop::*;
+use fnprop::*;
 
 use std::iter::{Cloned, Map};
 use std::ops::{Index, Range};
@@ -210,13 +211,13 @@ impl<V: Num, E: Num> Builder for StaticGraphGenericBuilder<V, E> {
 impl<V: Num, E: Num> WithVertex for StaticGraphGeneric<V, E> {
     type Vertex = StaticVertex<V>;
     type OptionVertex = OptionalMax<StaticVertex<V>>;
-    type VertexIndexProp = FnToIndex<fn(Vertex<StaticGraphGeneric<V, E>>) -> usize>;
+    type VertexIndexProp = FnProp<fn(Vertex<StaticGraphGeneric<V, E>>) -> usize, Self>;
 }
 
 impl<V: Num, E: Num> WithEdge for StaticGraphGeneric<V, E> {
     type Edge = StaticEdge<E>;
     type OptionEdge = OptionalMax<StaticEdge<E>>;
-    type EdgeIndexProp = FnToIndex<fn(Edge<StaticGraphGeneric<V, E>>) -> usize>;
+    type EdgeIndexProp = FnProp<fn(Edge<StaticGraphGeneric<V, E>>) -> usize, Self>;
 }
 
 impl<V: Num, E: Num> WithPair<StaticEdge<E>> for StaticGraphGeneric<V, E> {
@@ -289,13 +290,13 @@ impl<V: Num, E: Num> Incidence for StaticGraphGeneric<V, E> {
 
 impl<V: Num, E: Num> VertexIndex for StaticGraphGeneric<V, E> {
     fn vertex_index(&self) -> VertexIndexProp<Self> {
-        FnToIndex(V::to_usize)
+        FnProp::new(V::to_usize)
     }
 }
 
 impl<V: Num, E: Num> EdgeIndex for StaticGraphGeneric<V, E> {
     fn edge_index(&self) -> EdgeIndexProp<Self> {
-        FnToIndex(StaticEdge::<E>::to_index)
+        FnProp::new(StaticEdge::<E>::to_index)
     }
 }
 

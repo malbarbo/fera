@@ -33,7 +33,7 @@ pub trait WithVertex: Sized
 {
     type Vertex: Item;
     type OptionVertex: Optional<Vertex<Self>> + Clone;
-    type VertexIndexProp: ToIndex<Vertex<Self>>;
+    type VertexIndexProp: VertexPropGet<Self, usize>;
 }
 
 pub trait WithPair<P: Item>: WithVertex {
@@ -67,7 +67,7 @@ pub trait WithEdge: Sized + WithPair<Edge<Self>>
 {
     type Edge: Item;
     type OptionEdge: Optional<Edge<Self>> + Clone;
-    type EdgeIndexProp: ToIndex<Edge<Self>>;
+    type EdgeIndexProp: EdgePropGet<Self, usize>;
 }
 
 pub trait VertexList: Sized + WithVertex {
@@ -123,22 +123,6 @@ pub trait Incidence: WithEdge + Adjacency {
 }
 
 // Index
-
-pub trait ToIndex<K> {
-    fn to_index(&self, k: K) -> usize;
-}
-
-#[derive(Clone)]
-pub struct FnToIndex<F>(pub F);
-
-impl<K, F> ToIndex<K> for FnToIndex<F>
-    where F: Fn(K) -> usize
-{
-    fn to_index(&self, k: K) -> usize {
-        (self.0)(k)
-    }
-}
-
 pub trait VertexIndex: WithVertex {
     fn vertex_index(&self) -> VertexIndexProp<Self>;
 }
@@ -149,24 +133,40 @@ pub trait EdgeIndex: WithEdge {
 
 
 // Properties
+// TODO: explain why the trait repetition for VertexProp and EdgeProp
 
-pub trait VertexProp<G, T>: Index<Vertex<G>, Output = T> where G: WithVertex {}
+pub trait PropGet<I> {
+    type Output: Sized;
+    fn get(&self, item: I) -> Self::Output;
+}
 
-pub trait VertexPropMut<G, T>
-    : VertexProp<G, T> + IndexMut<Vertex<G>, Output = T>
+pub trait VertexPropGet<G, T>: PropGet<Vertex<G>, Output = T>
     where G: WithVertex
 {
 }
 
-impl<G, T, A> VertexProp<G, T> for A
+impl<P, G, T> VertexPropGet<G, T> for P
     where G: WithVertex,
-          A: Index<Vertex<G>, Output = T>
+          P: PropGet<Vertex<G>, Output = T>
 {
 }
 
-impl<G, T, A> VertexPropMut<G, T> for A
+pub trait VertexProp<G, T>: Index<Vertex<G>, Output = T> where G: WithVertex {}
+
+impl<P, G, T> VertexProp<G, T> for P
     where G: WithVertex,
-          A: VertexProp<G, T> + IndexMut<Vertex<G>, Output = T>
+          P: Index<Vertex<G>, Output = T>
+{
+}
+
+pub trait VertexPropMut<G, T>: IndexMut<Vertex<G>, Output = T>
+    where G: WithVertex
+{
+}
+
+impl<P, G, T> VertexPropMut<G, T> for P
+    where G: WithVertex,
+          P: IndexMut<Vertex<G>, Output = T>
 {
 }
 
@@ -174,31 +174,6 @@ pub trait VertexPropMutNew<G, T>: VertexPropMut<G, T>
     where G: WithVertex
 {
     fn new_vertex_prop(g: &G, value: T) -> Self where T: Clone;
-}
-
-pub trait EdgeProp<G, T>: Index<Edge<G>, Output = T> where G: WithEdge {}
-
-pub trait EdgePropMut<G, T>: EdgeProp<G, T> + IndexMut<Edge<G>, Output = T>
-    where G: WithEdge
-{
-}
-
-impl<G, T, A> EdgeProp<G, T> for A
-    where G: WithEdge,
-          A: Index<Edge<G>, Output = T>
-{
-}
-
-impl<G, T, A> EdgePropMut<G, T> for A
-    where G: WithEdge,
-          A: EdgeProp<G, T> + IndexMut<Edge<G>, Output = T>
-{
-}
-
-pub trait EdgePropMutNew<G, T>: EdgePropMut<G, T>
-    where G: WithEdge
-{
-    fn new_edge_prop(g: &G, value: T) -> Self where T: Clone;
 }
 
 pub trait WithVertexProp<T>: WithVertex {
@@ -209,6 +184,37 @@ pub trait WithVertexProp<T>: WithVertex {
     {
         DefaultVertexPropMut::<Self, T>::new_vertex_prop(self, value)
     }
+}
+
+// Edge
+pub trait EdgePropGet<G, T>: PropGet<Edge<G>, Output = T> where G: WithEdge {}
+
+impl<P, G, T> EdgePropGet<G, T> for P
+    where G: WithEdge,
+          P: PropGet<Edge<G>, Output = T>
+{
+}
+
+pub trait EdgeProp<G, T>: Index<Edge<G>, Output = T> where G: WithEdge {}
+
+impl<P, G, T> EdgeProp<G, T> for P
+    where G: WithEdge,
+          P: Index<Edge<G>, Output = T>
+{
+}
+
+pub trait EdgePropMut<G, T>: IndexMut<Edge<G>, Output = T> where G: WithEdge {}
+
+impl<P, G, T> EdgePropMut<G, T> for P
+    where G: WithEdge,
+          P: IndexMut<Edge<G>, Output = T>
+{
+}
+
+pub trait EdgePropMutNew<G, T>: EdgePropMut<G, T>
+    where G: WithEdge
+{
+    fn new_edge_prop(g: &G, value: T) -> Self where T: Clone;
 }
 
 pub trait WithEdgeProp<T>: WithEdge {
