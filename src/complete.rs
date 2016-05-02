@@ -1,5 +1,6 @@
 use graph::*;
 use choose::Choose;
+use fnprop::*;
 use vecprop::*;
 
 use fera::{IteratorExt, MapBind1};
@@ -55,8 +56,10 @@ impl PartialEq for CompleteEdge {
 #[derive(Clone, Debug)]
 pub struct CompleteEdgeToIndex(u32);
 
-impl ToIndex<CompleteEdge> for CompleteEdgeToIndex {
-    fn to_index(&self, e: CompleteEdge) -> usize {
+impl PropGet<CompleteEdge> for CompleteEdgeToIndex {
+    type Output = usize;
+
+    fn get(&self, e: CompleteEdge) -> usize {
         // TODO: explain
         let n = self.0 as usize;
         let (u, v) = (e.u as usize, e.v as usize);
@@ -149,7 +152,7 @@ impl ExactSizeIterator for IncCompleteEdgeIter {
 impl WithVertex for CompleteGraph {
     type Vertex = u32;
     type OptionVertex = OptionalMax<u32>;
-    type VertexIndexProp = FnToIndex<fn (u32) -> usize>;
+    type VertexIndexProp = FnProp<fn (u32) -> usize, Self>;
 }
 
 impl WithEdge for CompleteGraph {
@@ -237,7 +240,7 @@ impl VertexIndex for CompleteGraph {
         fn u32_to_usize(x: u32) -> usize {
             x as usize
         }
-        FnToIndex(u32_to_usize)
+        FnProp::new(u32_to_usize)
     }
 }
 
@@ -297,8 +300,8 @@ mod tests {
             }
             let ind = g.edge_index();
             for (i, e) in g.edges().enumerate() {
-                assert_eq!(i, ind.to_index(e));
-                assert_eq!(i, ind.to_index(g.reverse(e)));
+                assert_eq!(i, ind.get(e));
+                assert_eq!(i, ind.get(g.reverse(e)));
                 assert_eq!(r[i].0, g.source(e));
                 assert_eq!(r[i].1, g.target(e));
             }
