@@ -77,8 +77,6 @@ impl<N: Num> Bounded for StaticEdge<N> {
     }
 }
 
-impl<N: Num> Item for StaticEdge<N> {}
-
 // TODO: Document the representation of StaticEdge
 impl<N: Num> StaticEdge<N> {
     #[inline(always)]
@@ -136,9 +134,6 @@ impl<N: Num> Hash for StaticEdge<N> {
 // Vertex
 
 pub type StaticVertex<N> = N;
-
-impl<N: Num> Item for StaticVertex<N> {}
-
 
 // StaticGraphGeneric
 
@@ -268,8 +263,6 @@ impl<V: Num, E: Num> EdgeList for StaticGraphGeneric<V, E> {
     }
 }
 
-impl<V: Num, E: Num> Undirected for StaticGraphGeneric<V, E> { }
-
 impl<V: Num, E: Num> Adjacency for StaticGraphGeneric<V, E> {
     #[inline(always)]
     fn neighbors(&self, v: Vertex<Self>) -> NeighborIter<Self> {
@@ -311,6 +304,8 @@ impl<T, V: Num, E: Num> WithEdgeProp<T> for StaticGraphGeneric<V, E> {
 }
 
 impl<V: Num, E: Num> BasicEdgeProps for StaticGraphGeneric<V, E> { }
+
+impl<V: Num, E: Num> BasicProps for StaticGraphGeneric<V, E> { }
 
 impl<V: Num, E: Num> Choose for StaticGraphGeneric<V, E> {
     fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {

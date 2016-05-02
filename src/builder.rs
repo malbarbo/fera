@@ -59,7 +59,7 @@ macro_rules! graph {
 }
 
 pub trait Builder {
-    type Graph: Undirected;
+    type Graph: Graph;
 
     fn new(num_vertices: usize, num_edges: usize) -> Self;
 
@@ -70,7 +70,7 @@ pub trait Builder {
     fn finalize_(self) -> (Self::Graph, VecVertex<Self::Graph>, VecEdge<Self::Graph>);
 }
 
-pub trait WithBuilder: Undirected {
+pub trait WithBuilder: Graph {
     type Builder: Builder<Graph = Self>;
 
     fn builder(num_vertices: usize, num_edges: usize) -> Self::Builder {
@@ -142,7 +142,7 @@ pub fn tree<G, R>(n: usize, rng: &mut R) -> G::Builder
 
 pub trait BuilderTests {
     // TODO: which bounds?
-    type G: Undirected + Incidence + BasicVertexProps + BasicEdgeProps + WithBuilder;
+    type G: IncidenceGraph + WithBuilder;
 
     fn graph_macro() {
         let g = graph!(

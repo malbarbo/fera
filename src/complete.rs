@@ -36,8 +36,6 @@ impl CompleteEdge {
     }
 }
 
-impl Item for CompleteEdge {}
-
 #[derive(Clone, Copy)]
 pub struct CompleteEdgeNone;
 
@@ -54,9 +52,9 @@ impl PartialEq for CompleteEdge {
 }
 
 #[derive(Clone, Debug)]
-pub struct CompleteEdgeToIndex(u32);
+pub struct CompleteEdgeIndex(u32);
 
-impl PropGet<CompleteEdge> for CompleteEdgeToIndex {
+impl PropGet<CompleteEdge> for CompleteEdgeIndex {
     type Output = usize;
 
     fn get(&self, e: CompleteEdge) -> usize {
@@ -158,7 +156,7 @@ impl WithVertex for CompleteGraph {
 impl WithEdge for CompleteGraph {
     type Edge = CompleteEdge;
     type OptionEdge = Optioned<CompleteEdge, CompleteEdgeNone>;
-    type EdgeIndexProp = CompleteEdgeToIndex;
+    type EdgeIndexProp = CompleteEdgeIndex;
 }
 
 impl WithPair<CompleteEdge> for CompleteGraph {
@@ -212,8 +210,6 @@ impl EdgeList for CompleteGraph {
     }
 }
 
-impl Undirected for CompleteGraph {}
-
 impl Adjacency for CompleteGraph {
     fn neighbors(&self, v: Vertex<Self>) -> NeighborIter<Self> {
         self.inc_edges(v).map_bind1(self, Self::target)
@@ -246,7 +242,7 @@ impl VertexIndex for CompleteGraph {
 
 impl EdgeIndex for CompleteGraph {
     fn edge_index(&self) -> EdgeIndexProp<Self> {
-        CompleteEdgeToIndex(self.num_vertices() as u32)
+        CompleteEdgeIndex(self.num_vertices() as u32)
     }
 }
 
@@ -257,6 +253,10 @@ impl<T: Clone> WithVertexProp<T> for CompleteGraph {
 impl<T: Clone> WithEdgeProp<T> for CompleteGraph {
     type EdgeProp = VecEdgeProp<CompleteGraph, T>;
 }
+
+impl BasicVertexProps for CompleteGraph {}
+impl BasicEdgeProps for CompleteGraph {}
+impl BasicProps for CompleteGraph {}
 
 impl Choose for CompleteGraph {
     fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {

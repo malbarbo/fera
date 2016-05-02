@@ -20,17 +20,31 @@ pub type IncEdgeIter<'a, G> = <G as EdgeTypes<'a, G>>::IncEdgeIter;
 pub type DefaultEdgePropMut<G, T> = <G as WithEdgeProp<T>>::EdgeProp;
 pub type VecEdge<G> = Vec<Edge<G>>;
 
+macro_rules! items {
+    ($($item:item)*) => ($($item)*);
+}
 
-pub trait Item: Copy + Eq + Hash + Debug {}
+macro_rules! trait_alias {
+    ($name:ident = $($base:tt)+) => {
+        items! {
+            pub trait $name: $($base)+ { }
+            impl<T: $($base)+> $name for T { }
+        }
+    };
+}
+
+trait_alias!(Graph = VertexList + EdgeList + BasicProps);
+trait_alias!(AdjacencyGraph = Graph + Adjacency);
+trait_alias!(IncidenceGraph = AdjacencyGraph + Incidence);
+
+trait_alias!(Item = Copy + Eq + Hash + Debug);
 
 pub trait VertexTypes<'a, G: WithVertex> {
     type VertexIter: Iterator<Item = Vertex<G>>;
     type NeighborIter: Iterator<Item = Vertex<G>>;
 }
 
-pub trait WithVertex: Sized
-    where for<'a> Self: VertexTypes<'a, Self>
-{
+pub trait WithVertex: Sized + for<'a> VertexTypes<'a, Self> {
     type Vertex: Item;
     type OptionVertex: Optional<Vertex<Self>> + Clone;
     type VertexIndexProp: VertexPropGet<Self, usize>;
@@ -62,9 +76,7 @@ pub trait EdgeTypes<'a, G: WithEdge> {
     type IncEdgeIter: Iterator<Item = Edge<G>>;
 }
 
-pub trait WithEdge: Sized + WithPair<Edge<Self>>
-    where for<'a> Self: EdgeTypes<'a, Self>
-{
+pub trait WithEdge: Sized + WithPair<Edge<Self>> + for<'a> EdgeTypes<'a, Self> {
     type Edge: Item;
     type OptionEdge: Optional<Edge<Self>> + Clone;
     type EdgeIndexProp: EdgePropGet<Self, usize>;
@@ -108,8 +120,6 @@ pub trait EdgeList: Sized + WithEdge {
     }
 }
 
-pub trait Undirected: VertexList + EdgeList {}
-
 pub trait Adjacency: WithVertex {
     fn neighbors(&self, v: Vertex<Self>) -> NeighborIter<Self>;
 
@@ -122,7 +132,9 @@ pub trait Incidence: WithEdge + Adjacency {
     fn inc_edges(&self, v: Vertex<Self>) -> IncEdgeIter<Self>;
 }
 
+
 // Index
+
 pub trait VertexIndex: WithVertex {
     fn vertex_index(&self) -> VertexIndexProp<Self>;
 }
@@ -140,6 +152,7 @@ pub trait PropGet<I> {
     fn get(&self, item: I) -> Self::Output;
 }
 
+// Vertex
 pub trait VertexPropGet<G, T>: PropGet<Vertex<G>, Output = T>
     where G: WithVertex
 {
@@ -227,37 +240,46 @@ pub trait WithEdgeProp<T>: WithEdge {
     }
 }
 
+pub trait WithProp<T>: WithVertexProp<T> + WithEdgeProp<T> {}
+
+impl<G, T> WithProp<T> for G where G: WithVertexProp<T> + WithEdgeProp<T> {}
+
 #[macro_export]
 macro_rules! items {
     ($($item:item)*) => ($($item)*);
 }
 
 macro_rules! basic_props1 {
-    ($($v:ty),* ; $($e:ty),*) => (
+    ($($v:ty),* ; $($e:ty),* ; $($c:ty),*) => (
         items! {
             pub trait BasicVertexProps:
                 $(WithVertexProp<$v> +)* { }
 
             pub trait BasicEdgeProps:
                 $(WithEdgeProp<$e> +)* { }
+
+            pub trait BasicProps:
+                $(WithProp<$c> +)* { }
         }
     )
 }
 
 macro_rules! basic_props2 {
-    ($($v:ty),* ; $($e:ty),* ) => (
+    ($($v:ty),* ; $($e:ty),* ; $($c:ty),* ) => (
         basic_props1! {
-            $($v),+ , $(Vec<$v>),+, $(DefaultVertexPropMut<Self, $v>),+ ;
-            $($e),+ , $(Vec<$e>),+, $(DefaultVertexPropMut<Self, $e>),+
+            $($v),+ , $(Vec<$v>),+ ;
+            $($e),+ , $(Vec<$e>),+ ;
+            $($c),+ , $(Vec<$c>),+
         }
     )
 }
 
 macro_rules! basic_props {
-    ($($ty:ty),*) => (
-        basic_props1! {
-            Vertex<Self>, OptionVertex<Self>, $($ty),+ ;
-            Edge<Self>, OptionEdge<Self>, $($ty),+
+    ($($t:ty),*) => (
+        basic_props2! {
+            $($t),+, Vertex<Self>, OptionVertex<Self> ;
+            $($t),+, Edge<Self>, OptionEdge<Self> ;
+            $($t),+, Vertex<Self>, OptionVertex<Self>, Edge<Self>, OptionEdge<Self>
         }
     )
 }

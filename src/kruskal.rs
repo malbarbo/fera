@@ -10,13 +10,13 @@ pub enum Accept {
 }
 
 pub trait Visitor<G>
-    where G: Undirected
+    where G: Graph
 {
     fn visit(&mut self, e: Edge<G>) -> Accept;
 }
 
 impl<F, G> Visitor<G> for F
-    where G: Undirected,
+    where G: Graph,
           F: FnMut(Edge<G>) -> Accept
 {
     fn visit(&mut self, e: Edge<G>) -> Accept {
@@ -27,7 +27,7 @@ impl<F, G> Visitor<G> for F
 // TODO: Allow an UnionFind as parameter, so the kruskal algorithm can be
 // executed in more than one step
 
-pub trait Kruskal: Undirected + BasicVertexProps + BasicEdgeProps {
+pub trait Kruskal: IncidenceGraph {
     fn kruskal_with_edges<I, V>(&self, edges: I, visitor: &mut V)
         where I: Iterator<Item = Edge<Self>>,
               V: Visitor<Self>
@@ -86,7 +86,7 @@ pub trait Kruskal: Undirected + BasicVertexProps + BasicEdgeProps {
     }
 }
 
-impl<G> Kruskal for G where G: Undirected + BasicVertexProps + BasicEdgeProps {}
+impl<G> Kruskal for G where G: IncidenceGraph {}
 
 
 #[cfg(test)]

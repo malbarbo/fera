@@ -44,7 +44,7 @@ macro_rules! graph_adj_tests {
 }
 
 pub trait GraphTests {
-    type G: Undirected;
+    type G: Graph;
 
     fn new() -> (Self::G, VecVertex<Self::G>, VecEdge<Self::G>);
 
