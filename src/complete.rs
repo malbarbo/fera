@@ -150,7 +150,7 @@ impl ExactSizeIterator for IncCompleteEdgeIter {
 impl WithVertex for CompleteGraph {
     type Vertex = u32;
     type OptionVertex = OptionalMax<u32>;
-    type VertexIndexProp = FnProp<fn (u32) -> usize, Self>;
+    type VertexIndexProp = FnProp<fn (u32) -> usize>;
 }
 
 impl WithEdge for CompleteGraph {
@@ -236,7 +236,7 @@ impl VertexIndex for CompleteGraph {
         fn u32_to_usize(x: u32) -> usize {
             x as usize
         }
-        FnProp::new(u32_to_usize)
+        FnProp(u32_to_usize)
     }
 }
 
