@@ -85,12 +85,12 @@ pub trait WithBuilder: Graph {
         complete_binary_tree::<Self>(height).finalize()
     }
 
-    fn tree<R: Rng>(n: usize, rng: &mut R) -> Self {
-        tree::<Self, _>(n, rng).finalize()
+    fn random_tree<R: Rng>(n: usize, rng: &mut R) -> Self {
+        random_tree::<Self, _>(n, rng).finalize()
     }
 }
 
-pub fn complete<G: WithBuilder>(n: usize) -> G::Builder {
+fn complete<G: WithBuilder>(n: usize) -> G::Builder {
     let mut b = G::builder(n, (n * n - n) / 2);
     for u in 0..n {
         for v in u + 1..n {
@@ -100,7 +100,7 @@ pub fn complete<G: WithBuilder>(n: usize) -> G::Builder {
     b
 }
 
-pub fn complete_binary_tree<G: WithBuilder>(height: u32) -> G::Builder {
+fn complete_binary_tree<G: WithBuilder>(height: u32) -> G::Builder {
     let num_vertices = 2usize.pow(height + 1) - 1;
     let mut b = G::builder(num_vertices, num_vertices - 1);
     for i in 0..2usize.pow(height) - 1 {
@@ -110,7 +110,7 @@ pub fn complete_binary_tree<G: WithBuilder>(height: u32) -> G::Builder {
     b
 }
 
-pub fn tree<G, R>(n: usize, rng: &mut R) -> G::Builder
+fn random_tree<G, R>(n: usize, rng: &mut R) -> G::Builder
     where G: WithBuilder,
           R: Rng
 {
@@ -193,7 +193,7 @@ pub trait BuilderTests {
         let (g, v, _) = complete_binary_tree::<Self::G>(1).finalize_();
         assert_eq!(3, g.num_vertices());
         assert_eq!(2, g.num_edges());
-        assert_eq!(hash_set![(v[0], v[1]), (v[0], v[2])],
+        assert_eq!(set![HashSet, (v[0], v[1]), (v[0], v[2])],
                    g.inc_edges(v[0]).map(|e| g.ends(e)).into_hash_set());
 
         for h in 2..10 {
@@ -209,11 +209,11 @@ pub trait BuilderTests {
         }
     }
 
-    fn tree() {
+    fn random_tree() {
         let mut rng = StdRng::from_seed(&[123]);
         for n in 0..100 {
             for _ in 0..10 {
-                let g = Self::G::tree(n, &mut rng);
+                let g = Self::G::random_tree(n, &mut rng);
                 assert_eq!(n, g.num_vertices());
                 if n > 0 {
                     assert_eq!(n - 1, g.num_edges());
@@ -232,7 +232,7 @@ macro_rules! graph_builder_tests {
             graph_prop_macro,
             complete,
             complete_binary_tree,
-            tree
+            random_tree
         }
     )
 }
