@@ -1,7 +1,5 @@
 use graph::*;
 
-use std::marker::PhantomData;
-
 #[derive(Clone, Copy)]
 pub struct FnProp<F>(pub F);
 
@@ -10,6 +8,7 @@ impl<F, I, T> PropGet<I> for FnProp<F>
           T: Sized
 {
     type Output = T;
+
     #[inline(always)]
     fn get(&self, item: I) -> T {
         (self.0)(item)

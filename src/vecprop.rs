@@ -1,7 +1,5 @@
 use graph::*;
 
-use fera::array::Array;
-
 use std::ops::{Deref, Index, IndexMut};
 
 // TODO: Define a feature to disable bounds check.
