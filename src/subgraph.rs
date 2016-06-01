@@ -10,6 +10,7 @@ use std::borrow::Borrow;
 use rand::Rng;
 
 // TODO: Allow a subgraph be reused
+// TODO: remove 'static bounds (is it possible?)
 
 pub struct Subgraph<G, B>
     where G: Graph,
@@ -345,33 +346,33 @@ mod tests {
         let (g, _, e02, e12, _) = new_graph();
         let s = g.spanning_subgraph(vec![e02, e12]);
         assert_eq!(vec![0, 1, 2, 3, 4], s.vertices().into_vec());
-        assert_eq!(hash_set![e02, e12], s.edges().into_hash_set());
-        assert_eq!(hash_set![e02], s.inc_edges(0).into_hash_set());
-        assert_eq!(hash_set![e12], s.inc_edges(1).into_hash_set());
-        assert_eq!(hash_set![e02, e12], s.inc_edges(2).into_hash_set());
-        assert_eq!(hash_set![], s.inc_edges(3).into_hash_set());
-        assert_eq!(hash_set![], s.inc_edges(4).into_hash_set());
+        assert_eq!(set![HashSet, e02, e12], s.edges().into_hash_set());
+        assert_eq!(set![HashSet, e02], s.inc_edges(0).into_hash_set());
+        assert_eq!(set![HashSet, e12], s.inc_edges(1).into_hash_set());
+        assert_eq!(set![HashSet, e02, e12], s.inc_edges(2).into_hash_set());
+        assert_eq!(set![HashSet], s.inc_edges(3).into_hash_set());
+        assert_eq!(set![HashSet], s.inc_edges(4).into_hash_set());
     }
 
     #[test]
     fn test_edge_induced_subgraph() {
         let (g, e01, e02, _, _) = new_graph();
         let s = g.edge_induced_subgraph(vec![e01, e02]);
-        assert_eq!(hash_set![0, 1, 2], s.vertices().into_hash_set());
-        assert_eq!(hash_set![e01, e02], s.edges().into_hash_set());
-        assert_eq!(hash_set![e01, e02], s.inc_edges(0).into_hash_set());
-        assert_eq!(hash_set![e01], s.inc_edges(1).into_hash_set());
-        assert_eq!(hash_set![e02], s.inc_edges(2).into_hash_set());
+        assert_eq!(set![HashSet, 0, 1, 2], s.vertices().into_hash_set());
+        assert_eq!(set![HashSet, e01, e02], s.edges().into_hash_set());
+        assert_eq!(set![HashSet, e01, e02], s.inc_edges(0).into_hash_set());
+        assert_eq!(set![HashSet, e01], s.inc_edges(1).into_hash_set());
+        assert_eq!(set![HashSet, e02], s.inc_edges(2).into_hash_set());
     }
 
     #[test]
     fn test_induced_subgraph() {
         let (g, e01, e02, e12, _) = new_graph();
         let s = g.induced_subgraph(vec![0, 1, 2]);
-        assert_eq!(hash_set![0, 1, 2], s.vertices().into_hash_set());
-        assert_eq!(hash_set![e01, e02, e12], s.edges().into_hash_set());
-        assert_eq!(hash_set![e01, e02], s.inc_edges(0).into_hash_set());
-        assert_eq!(hash_set![e01, e12], s.inc_edges(1).into_hash_set());
-        assert_eq!(hash_set![e02, e12], s.inc_edges(2).into_hash_set());
+        assert_eq!(set![HashSet, 0, 1, 2], s.vertices().into_hash_set());
+        assert_eq!(set![HashSet, e01, e02, e12], s.edges().into_hash_set());
+        assert_eq!(set![HashSet, e01, e02], s.inc_edges(0).into_hash_set());
+        assert_eq!(set![HashSet, e01, e12], s.inc_edges(1).into_hash_set());
+        assert_eq!(set![HashSet, e02, e12], s.inc_edges(2).into_hash_set());
     }
 }

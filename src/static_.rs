@@ -327,7 +327,6 @@ impl<V: Num, E: Num> Choose for StaticGraphGeneric<V, E> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use fera::IteratorExt;
     use graph::*;
     use builder::*;
     use tests::*;
