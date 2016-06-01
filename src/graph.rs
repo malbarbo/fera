@@ -46,7 +46,7 @@ pub trait VertexTypes<'a, G: WithVertex> {
 
 pub trait WithVertex: Sized + for<'a> VertexTypes<'a, Self> {
     type Vertex: Item;
-    type OptionVertex: Optional<Vertex<Self>> + Clone;
+    type OptionVertex: Optional<Vertex<Self>> + From<Option<Vertex<Self>>> + PartialEq + Copy;
     type VertexIndexProp: VertexPropGet<Self, usize>;
 }
 
@@ -66,7 +66,7 @@ pub trait WithPair<P: Item>: WithVertex {
         } else if u == t {
             s
         } else {
-            panic!("u is not an endvertex of e");
+            panic!("u is not an end of e");
         }
     }
 }
@@ -78,7 +78,7 @@ pub trait EdgeTypes<'a, G: WithEdge> {
 
 pub trait WithEdge: Sized + WithPair<Edge<Self>> + for<'a> EdgeTypes<'a, Self> {
     type Edge: Item;
-    type OptionEdge: Optional<Edge<Self>> + Clone;
+    type OptionEdge: Optional<Edge<Self>> + From<Option<Edge<Self>>> + PartialEq + Copy;
     type EdgeIndexProp: EdgePropGet<Self, usize>;
 }
 
@@ -91,12 +91,12 @@ pub trait VertexList: Sized + WithVertex {
 
     // TODO: is this necessary?
     fn vertex_none() -> OptionVertex<Self> {
-        OptionVertex::<Self>::default()
+        Default::default()
     }
 
     // TODO: is this necessary?
     fn vertex_some(v: Vertex<Self>) -> OptionVertex<Self> {
-        OptionVertex::<Self>::from(v)
+        From::from(v)
     }
 }
 
@@ -111,12 +111,12 @@ pub trait EdgeList: Sized + WithEdge {
 
     // TODO: is this necessary?
     fn edge_none() -> OptionEdge<Self> {
-        OptionEdge::<Self>::default()
+        Default::default()
     }
 
     // TODO: is this necessary?
     fn edge_some(e: Edge<Self>) -> OptionEdge<Self> {
-        OptionEdge::<Self>::from(e)
+        From::from(e)
     }
 }
 
@@ -153,6 +153,7 @@ pub trait PropGet<I> {
 }
 
 // Vertex
+
 pub trait VertexPropGet<G, T>: PropGet<Vertex<G>, Output = T>
     where G: WithVertex
 {
@@ -200,6 +201,7 @@ pub trait WithVertexProp<T>: WithVertex {
 }
 
 // Edge
+
 pub trait EdgePropGet<G, T>: PropGet<Edge<G>, Output = T> where G: WithEdge {}
 
 impl<P, G, T> EdgePropGet<G, T> for P
@@ -240,9 +242,14 @@ pub trait WithEdgeProp<T>: WithEdge {
     }
 }
 
+// Vertex and Edge
+
 pub trait WithProp<T>: WithVertexProp<T> + WithEdgeProp<T> {}
 
 impl<G, T> WithProp<T> for G where G: WithVertexProp<T> + WithEdgeProp<T> {}
+
+
+// Generate basic props traits
 
 #[macro_export]
 macro_rules! items {
