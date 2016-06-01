@@ -36,12 +36,16 @@ impl CompleteEdge {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(PartialEq, Clone, Copy)]
 pub struct CompleteEdgeNone;
 
 impl BuildNone<CompleteEdge> for CompleteEdgeNone {
     fn none() -> CompleteEdge {
         CompleteEdge { u: ::std::u32::MAX, v: ::std::u32::MAX }
+    }
+
+    fn desc() -> &'static str {
+        "CompleteEdge"
     }
 }
 
@@ -153,9 +157,11 @@ impl WithVertex for CompleteGraph {
     type VertexIndexProp = FnProp<fn (u32) -> usize>;
 }
 
+pub type OptionalCompleteEdge = Optioned<CompleteEdge, CompleteEdgeNone>;
+
 impl WithEdge for CompleteGraph {
     type Edge = CompleteEdge;
-    type OptionEdge = Optioned<CompleteEdge, CompleteEdgeNone>;
+    type OptionEdge = OptionalCompleteEdge;
     type EdgeIndexProp = CompleteEdgeIndex;
 }
 
