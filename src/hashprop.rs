@@ -4,12 +4,12 @@ use std::cell::UnsafeCell;
 use std::collections::HashMap;
 use std::ops::{Index, IndexMut};
 
-pub struct HashProp<I: Item, T: Clone> {
+pub struct HashProp<I: GraphItem, T: Clone> {
     default: T,
     map: UnsafeCell<HashMap<I, Box<T>>>,
 }
 
-impl<I: Item, T: Clone> HashProp<I, T> {
+impl<I: GraphItem, T: Clone> HashProp<I, T> {
     pub fn new(default: T) -> Self {
         HashProp {
             default: default,
@@ -27,7 +27,7 @@ impl<I: Item, T: Clone> HashProp<I, T> {
     }
 }
 
-impl<I: Item, T: Clone> Index<I> for HashProp<I, T> {
+impl<I: GraphItem, T: Clone> Index<I> for HashProp<I, T> {
     type Output = T;
 
     #[inline(always)]
@@ -36,7 +36,7 @@ impl<I: Item, T: Clone> Index<I> for HashProp<I, T> {
     }
 }
 
-impl<I: Item, T: Clone> IndexMut<I> for HashProp<I, T> {
+impl<I: GraphItem, T: Clone> IndexMut<I> for HashProp<I, T> {
     #[inline(always)]
     fn index_mut(&mut self, v: I) -> &mut Self::Output {
         self.index_default(v)

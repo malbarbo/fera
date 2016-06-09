@@ -37,7 +37,7 @@ trait_alias!(Graph = VertexList + EdgeList + BasicProps);
 trait_alias!(AdjacencyGraph = Graph + Adjacency);
 trait_alias!(IncidenceGraph = AdjacencyGraph + Incidence);
 
-trait_alias!(Item = Copy + Eq + Hash + Debug);
+trait_alias!(GraphItem = Copy + Eq + Hash + Debug);
 
 pub trait VertexTypes<'a, G: WithVertex> {
     type VertexIter: Iterator<Item = Vertex<G>>;
@@ -45,12 +45,12 @@ pub trait VertexTypes<'a, G: WithVertex> {
 }
 
 pub trait WithVertex: Sized + for<'a> VertexTypes<'a, Self> {
-    type Vertex: Item;
+    type Vertex: GraphItem;
     type OptionVertex: Optional<Vertex<Self>> + From<Option<Vertex<Self>>> + PartialEq + Copy;
     type VertexIndexProp: VertexPropGet<Self, usize>;
 }
 
-pub trait WithPair<P: Item>: WithVertex {
+pub trait WithPair<P: GraphItem>: WithVertex {
     fn source(&self, e: P) -> Vertex<Self>;
 
     fn target(&self, e: P) -> Vertex<Self>;
@@ -77,7 +77,7 @@ pub trait EdgeTypes<'a, G: WithEdge> {
 }
 
 pub trait WithEdge: Sized + WithPair<Edge<Self>> + for<'a> EdgeTypes<'a, Self> {
-    type Edge: Item;
+    type Edge: GraphItem;
     type OptionEdge: Optional<Edge<Self>> + From<Option<Edge<Self>>> + PartialEq + Copy;
     type EdgeIndexProp: EdgePropGet<Self, usize>;
 }
