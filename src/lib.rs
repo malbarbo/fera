@@ -30,7 +30,7 @@ pub mod traverse;
 pub mod unionfind;
 pub mod fnprop;
 pub mod hashprop;
-pub mod vecprop;
+pub mod arrayprop;
 
 pub mod prelude {
     pub use graph::*;

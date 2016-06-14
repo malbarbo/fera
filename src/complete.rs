@@ -1,7 +1,7 @@
 use graph::*;
 use choose::Choose;
 use fnprop::*;
-use vecprop::*;
+use arrayprop::*;
 
 use fera::{IteratorExt, MapBind1};
 use fera::optional::{BuildNone, Optioned, OptionalMax};

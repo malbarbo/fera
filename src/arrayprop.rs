@@ -1,19 +1,22 @@
 use graph::*;
+use fera::array::{Array, VecArray};
 
 use std::ops::{Deref, Index, IndexMut};
 
 // TODO: Define a feature to disable bounds check.
-pub type VecVertexProp<G, T> = VecProp<VertexIndexProp<G>, Vec<T>>;
+pub type ArrayVertexProp<G, A> = ArrayProp<VertexIndexProp<G>, A>;
+pub type VecVertexProp<G, T> = ArrayVertexProp<G, VecArray<T>>;
 
-pub type VecEdgeProp<G, T> = VecProp<EdgeIndexProp<G>, Vec<T>>;
+pub type ArrayEdgeProp<G, A> = ArrayProp<EdgeIndexProp<G>, A>;
+pub type VecEdgeProp<G, T> = ArrayEdgeProp<G, VecArray<T>>;
 
 #[derive(Clone)]
-pub struct VecProp<P, D> {
+pub struct ArrayProp<P, D> {
     index: P,
     data: D,
 }
 
-impl<P, D> Deref for VecProp<P, D> {
+impl<P, D> Deref for ArrayProp<P, D> {
     type Target = D;
 
     fn deref(&self) -> &Self::Target {
@@ -21,7 +24,7 @@ impl<P, D> Deref for VecProp<P, D> {
     }
 }
 
-impl<I, P, D> PropGet<I> for VecProp<P, D>
+impl<I, P, D> PropGet<I> for ArrayProp<P, D>
     where P: PropGet<I, Output = usize>,
           D: Index<usize>,
           D::Output: Clone + Sized
@@ -34,7 +37,7 @@ impl<I, P, D> PropGet<I> for VecProp<P, D>
     }
 }
 
-impl<I, P: PropGet<I, Output = usize>, D: Index<usize>> Index<I> for VecProp<P, D> {
+impl<I, P: PropGet<I, Output = usize>, D: Index<usize>> Index<I> for ArrayProp<P, D> {
     type Output = D::Output;
 
     #[inline(always)]
@@ -43,31 +46,37 @@ impl<I, P: PropGet<I, Output = usize>, D: Index<usize>> Index<I> for VecProp<P, 
     }
 }
 
-impl<I, P: PropGet<I, Output = usize>, D: IndexMut<usize>> IndexMut<I> for VecProp<P, D> {
+impl<I, P: PropGet<I, Output = usize>, D: IndexMut<usize>> IndexMut<I> for ArrayProp<P, D> {
     #[inline(always)]
     fn index_mut(&mut self, item: I) -> &mut Self::Output {
         self.data.index_mut(self.index.get(item))
     }
 }
 
-impl<G: VertexList + VertexIndex, T> VertexPropMutNew<G, T> for VecVertexProp<G, T> {
+impl<A, T, G> VertexPropMutNew<G, T> for ArrayVertexProp<G, A>
+    where A: Array<T>,
+          G: VertexList + VertexIndex
+{
     fn new_vertex_prop(g: &G, value: T) -> Self
         where T: Clone
     {
-        VecVertexProp::<G, T> {
+        ArrayProp {
             index: g.vertex_index(),
-            data: vec![value; g.num_vertices()],
+            data: A::with_value(value, g.num_vertices()),
         }
     }
 }
 
-impl<G: EdgeList + EdgeIndex, T> EdgePropMutNew<G, T> for VecEdgeProp<G, T> {
+impl<A, T, G> EdgePropMutNew<G, T> for ArrayEdgeProp<G, A>
+    where A: Array<T>,
+          G: EdgeList + EdgeIndex
+{
     fn new_edge_prop(g: &G, value: T) -> Self
         where T: Clone
     {
-        VecEdgeProp::<G, T> {
+        ArrayProp {
             index: g.edge_index(),
-            data: vec![value; g.num_edges()],
+            data: A::with_value(value, g.num_edges()),
         }
     }
 }

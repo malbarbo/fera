@@ -326,12 +326,13 @@ mod tests {
         Dfs::run(&g, &mut vis);
 
         assert_eq!(vec![None, Some(0), Some(1), Some(2), None, Some(4), Some(5)],
-                   vis.parent.to_vec().into_iter().map(|v| v.into_option()).into_vec());
+                   g.vertices().map(|v| vis.parent[v].into_option()).into_vec());
 
-        assert_eq!(vec![0, 1, 2, 3, 0, 1, 2], vis.d.to_vec());
+        assert_eq!(vec![0, 1, 2, 3, 0, 1, 2],
+                   g.vertices().map(|v| vis.d[v]).into_vec());
 
         assert_eq!(vec![TREE, BACK, TREE, BACK, TREE, TREE, BACK, TREE],
-                   vis.edge_type.to_vec());
+                   g.edges().map(|e| vis.edge_type[e]).into_vec());
     }
 
     #[test]
@@ -380,12 +381,13 @@ mod tests {
         Bfs::run(&g, &mut vis);
 
         assert_eq!(vec![None, Some(0), Some(0), Some(1), None, Some(4), Some(4)],
-                   vis.parent.to_vec().into_iter().map(|v| v.into_option()).into_vec());
+                   g.vertices().map(|v| vis.parent[v].into_option()).into_vec());
 
-        assert_eq!(vec![0, 1, 1, 2, 0, 1, 1], vis.d.to_vec());
+        assert_eq!(vec![0, 1, 1, 2, 0, 1, 1],
+                   g.vertices().map(|v| vis.d[v]).into_vec());
 
         assert_eq!(vec![TREE, TREE, BACK, TREE, BACK, TREE, TREE, BACK],
-                   vis.edge_type.to_vec());
+                   g.edges().map(|e| vis.edge_type[e]).into_vec());
     }
 
     #[test]
