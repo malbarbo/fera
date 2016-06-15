@@ -93,11 +93,18 @@ pub trait GraphTests {
     }
 
     fn reverse() {
+        use std::hash::{Hash, Hasher, SipHasher};
+        fn hash<T: Hash>(t: T) -> u64 {
+            let mut s = SipHasher::new();
+            t.hash(&mut s);
+            s.finish()
+        }
         let (g, _, _) = Self::new();
         for e in g.edges() {
             let (u, v) = g.ends(e);
             assert_eq!(e, g.reverse(e));
-            assert_eq!((v, u), g.ends(g.reverse(e)))
+            assert_eq!(hash(e), hash(g.reverse(e)));
+            assert_eq!((v, u), g.ends(g.reverse(e)));
         }
     }
 

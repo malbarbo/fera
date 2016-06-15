@@ -7,6 +7,7 @@ use fera::{IteratorExt, MapBind1};
 use fera::optional::{BuildNone, Optioned, OptionalMax};
 
 use std::ops::Range;
+use std::hash::{Hash, Hasher};
 
 use rand::Rng;
 
@@ -22,7 +23,7 @@ impl CompleteGraph {
 
 // Edge
 
-#[derive(Clone, Copy, Eq, PartialOrd, Ord, Hash, Debug)]
+#[derive(Clone, Copy, Eq, PartialOrd, Ord, Debug)]
 pub struct CompleteEdge {
     u: u32,
     v: u32,
@@ -52,6 +53,18 @@ impl BuildNone<CompleteEdge> for CompleteEdgeNone {
 impl PartialEq for CompleteEdge {
     fn eq(&self, other: &CompleteEdge) -> bool {
         (self.u == other.u && self.v == other.v) || (self.u == other.v && self.v == other.u)
+    }
+}
+
+impl Hash for CompleteEdge {
+    fn hash<H>(&self, state: &mut H) where H: Hasher {
+        if self.u < self.v {
+            self.u.hash(state);
+            self.v.hash(state);
+        } else {
+            self.v.hash(state);
+            self.u.hash(state);
+        }
     }
 }
 
