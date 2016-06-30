@@ -34,14 +34,13 @@ pub trait FindPath: IncidenceGraph {
         }
         let mut found = false;
         let mut tree = self.vertex_prop(Self::edge_none());
-        Dfs::run_start(self,
-                       u,
-                       &mut TreeEdgeVisitor(|e| {
-                           let t = self.target(e);
-                           tree[t] = Self::edge_some(e);
-                           found = t == v;
-                           !found
-                       }));
+        Dfs::new(self).traverse(u,
+                                &mut TreeEdgeVisitor(|e| {
+                                    let t = self.target(e);
+                                    tree[t] = Self::edge_some(e);
+                                    found = t == v;
+                                    !found
+                                }));
         if found {
             self.find_path_on_parent_tree(&tree, u, v)
         } else {
@@ -50,8 +49,7 @@ pub trait FindPath: IncidenceGraph {
     }
 }
 
-impl<G> FindPath for G
-    where G: IncidenceGraph { }
+impl<G> FindPath for G where G: IncidenceGraph {}
 
 #[cfg(test)]
 mod tests {
@@ -62,11 +60,7 @@ mod tests {
 
     #[test]
     fn find_path() {
-        let g = graph!(
-            StaticGraph,
-            6,
-            (0, 1), (0, 2), (1, 4), (2, 3), (2, 4)
-        );
+        let g = graph!(StaticGraph, 6, (0, 1), (0, 2), (1, 4), (2, 3), (2, 4));
         let e = g.edges().into_vec();
 
         assert_eq!(None, g.find_path(0, 0));

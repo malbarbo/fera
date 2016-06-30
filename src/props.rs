@@ -4,11 +4,10 @@ use traverse::*;
 pub trait Props: IncidenceGraph {
     fn is_acyclic(&self) -> bool {
         let mut acyclic = true;
-        Dfs::run(self,
-                 &mut BackEdgeVisitor(|_| {
-                     acyclic = false;
-                     false
-                 }));
+        Dfs::new(self).traverse_all(&mut BackEdgeVisitor(|_| {
+            acyclic = false;
+            false
+        }));
         acyclic
     }
 
@@ -16,11 +15,10 @@ pub trait Props: IncidenceGraph {
         self.num_vertices() == 0 ||
         {
             let mut count = 0;
-            Dfs::run(self,
-                     &mut StartVertexVisitor(|_| {
-                         count += 1;
-                         count == 1
-                     }));
+            Dfs::new(self).traverse_all(&mut StartVertexVisitor(|_| {
+                count += 1;
+                count == 1
+            }));
             count == 1
         }
     }
@@ -33,8 +31,7 @@ pub trait Props: IncidenceGraph {
     }
 }
 
-impl<G> Props for G
-    where G: IncidenceGraph { }
+impl<G> Props for G where G: IncidenceGraph {}
 
 #[cfg(test)]
 mod tests {
