@@ -47,7 +47,7 @@ macro_rules! graph {
             $(b.add_edge($u, $v);)+
             let (g, _, edges) = b.finalize_();
             let mut e = edges.into_iter();
-            let mut w = g.edge_prop({$(default(&$p));+});
+            let mut w = g.default_edge_prop({$(default(&$p));+});
             $(w[e.next().unwrap()] = $p;)+
             (g, w)
         }

@@ -106,7 +106,7 @@ mod tests {
             // expected tree
             // 0      1       2               3
         );
-        let mut weight = g.edge_prop(0usize);
+        let mut weight = g.default_edge_prop(0usize);
         for (e, &w) in g.edges().zip(&[1, 2, 3, 4, 5, 6, 7]) {
             weight[e] = w;
         }

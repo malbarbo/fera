@@ -283,12 +283,14 @@ impl<V: Num, E: Num> Incidence for StaticGraphGeneric<V, E> {
 
 impl<V: Num, E: Num> VertexIndex for StaticGraphGeneric<V, E> {
     fn vertex_index(&self) -> VertexIndexProp<Self> {
+        // TODO: check if to_usize is being inlined
         FnProp(V::to_usize)
     }
 }
 
 impl<V: Num, E: Num> EdgeIndex for StaticGraphGeneric<V, E> {
     fn edge_index(&self) -> EdgeIndexProp<Self> {
+        // TODO: check if to_index is being inlined
         FnProp(StaticEdge::<E>::to_index)
     }
 }

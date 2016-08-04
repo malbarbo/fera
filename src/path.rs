@@ -33,7 +33,7 @@ pub trait FindPath: IncidenceGraph {
             return None;
         }
         let mut found = false;
-        let mut tree = self.vertex_prop(Self::edge_none());
+        let mut tree = self.default_vertex_prop(Self::edge_none());
         Dfs::new(self).traverse(u,
                                 &mut TreeEdgeVisitor(|e| {
                                     let t = self.target(e);

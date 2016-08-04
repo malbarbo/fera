@@ -9,7 +9,8 @@ pub type OptionVertex<G> = <G as WithVertex>::OptionVertex;
 pub type VertexIndexProp<G> = <G as WithVertex>::VertexIndexProp;
 pub type VertexIter<'a, G> = <G as VertexTypes<'a, G>>::VertexIter;
 pub type NeighborIter<'a, G> = <G as VertexTypes<'a, G>>::NeighborIter;
-pub type DefaultVertexPropMut<G, T> = <G as WithVertexProp<T>>::VertexProp;
+pub type DefaultVertexPropMut<G, T> =
+    <G as WithVertexProp<T>>::VertexProp;
 pub type VecVertex<G> = Vec<Vertex<G>>;
 
 pub type Edge<G> = <G as WithEdge>::Edge;
@@ -190,13 +191,22 @@ pub trait VertexPropMutNew<G, T>: VertexPropMut<G, T>
     fn new_vertex_prop(g: &G, value: T) -> Self where T: Clone;
 }
 
+// TODO: Add traits for sets: WithVertexSet, etc...
+
 pub trait WithVertexProp<T>: WithVertex {
     type VertexProp: VertexPropMutNew<Self, T>;
 
-    fn vertex_prop(&self, value: T) -> DefaultVertexPropMut<Self, T>
+    fn vertex_prop<P>(&self, value: T) -> P
+        where P: VertexPropMutNew<Self, T>,
+              T: Clone
+    {
+        P::new_vertex_prop(self, value)
+    }
+
+    fn default_vertex_prop(&self, value: T) -> DefaultVertexPropMut<Self, T>
         where T: Clone
     {
-        DefaultVertexPropMut::<Self, T>::new_vertex_prop(self, value)
+        self.vertex_prop(value)
     }
 }
 
@@ -235,10 +245,17 @@ pub trait EdgePropMutNew<G, T>: EdgePropMut<G, T>
 pub trait WithEdgeProp<T>: WithEdge {
     type EdgeProp: EdgePropMutNew<Self, T>;
 
-    fn edge_prop(&self, value: T) -> DefaultEdgePropMut<Self, T>
+    fn edge_prop<P>(&self, value: T) -> P
+        where P: EdgePropMutNew<Self, T>,
+              T: Clone
+    {
+        P::new_edge_prop(self, value)
+    }
+
+    fn default_edge_prop(&self, value: T) -> DefaultEdgePropMut<Self, T>
         where T: Clone
     {
-        DefaultEdgePropMut::<Self, T>::new_edge_prop(self, value)
+        self.edge_prop(value)
     }
 }
 

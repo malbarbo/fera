@@ -146,8 +146,10 @@ impl<T: Clone, G, B> WithVertexProp<T> for Subgraph<G, B>
 {
     type VertexProp = DefaultVertexPropMut<G, T>;
 
-    fn vertex_prop(&self, value: T) -> DefaultVertexPropMut<Self, T> {
-        self.g().vertex_prop(value)
+    fn default_vertex_prop(&self, value: T) -> DefaultVertexPropMut<Self, T>
+        where T: Clone
+    {
+        self.g().default_vertex_prop(value)
     }
 }
 
@@ -157,8 +159,10 @@ impl<T: Clone, G, B> WithEdgeProp<T> for Subgraph<G, B>
 {
     type EdgeProp = DefaultEdgePropMut<G, T>;
 
-    fn edge_prop(&self, value: T) -> DefaultEdgePropMut<Self, T> {
-        self.g().edge_prop(value)
+    fn default_edge_prop(&self, value: T) -> DefaultEdgePropMut<Self, T>
+        where T: Clone
+    {
+        self.g().default_edge_prop(value)
     }
 }
 
@@ -241,7 +245,7 @@ impl<G, B> WithSubgraph<G, B> for B
         {
             let g: &G = self.borrow();
             vertices = g.vertices().into_vec();
-            inc = g.vertex_prop(Vec::<Edge<G>>::new());
+            inc = g.default_vertex_prop(Vec::<Edge<G>>::new());
             for &e in &edges {
                 let (u, v) = g.ends(e);
                 inc[u].push(e);
@@ -263,9 +267,9 @@ impl<G, B> WithSubgraph<G, B> for B
         let mut inc;
         {
             let g: &G = self.borrow();
-            vin = g.vertex_prop(false);
+            vin = g.default_vertex_prop(false);
             vertices = vec![];
-            inc = g.vertex_prop(Vec::<Edge<G>>::new());
+            inc = g.default_vertex_prop(Vec::<Edge<G>>::new());
             for &e in &edges {
                 let (u, v) = g.ends(e);
                 if !vin[u] {
@@ -298,7 +302,7 @@ impl<G, B> WithSubgraph<G, B> for B
         {
             let g: &G = self.borrow();
             edges = vec![];
-            inc = g.vertex_prop(Vec::<Edge<G>>::new());
+            inc = g.default_vertex_prop(Vec::<Edge<G>>::new());
             for &u in &vertices {
                 for e in g.inc_edges(u) {
                     let v = g.target(e);

@@ -155,7 +155,7 @@ pub trait GraphTests {
         where Self::G: WithVertexProp<usize>
     {
         let (g, _, _) = Self::new();
-        let mut p = g.vertex_prop(0usize);
+        let mut p = g.default_vertex_prop(0usize);
         for (i, u) in g.vertices().enumerate() {
             p[u] = 10 * i;
         }
@@ -168,7 +168,7 @@ pub trait GraphTests {
         where Self::G: WithEdgeProp<usize>
     {
         let (g, _, _) = Self::new();
-        let mut p = g.edge_prop(0usize);
+        let mut p = g.default_edge_prop(0usize);
         for (i, e) in g.edges().enumerate() {
             p[e] = 10 * i;
         }

@@ -255,6 +255,7 @@ impl VertexIndex for CompleteGraph {
         fn u32_to_usize(x: u32) -> usize {
             x as usize
         }
+        // FIXME: u32_to_usize is not being inlined; create a new type instead of using FnProp
         FnProp(u32_to_usize)
     }
 }
