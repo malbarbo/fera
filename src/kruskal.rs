@@ -1,6 +1,5 @@
 use graph::*;
 use fera::{VecExt, IteratorExt};
-use fera::collections::Extend1;
 use unionfind::WithUnionFind;
 
 #[derive(PartialEq, Eq)]
@@ -45,21 +44,6 @@ pub trait Kruskal: IncidenceGraph {
                 }
             }
         }
-    }
-
-    fn kruskal_with_edges_collect_to<I, C>(&self, edges: I, mut tree: C) -> C
-        where I: Iterator<Item = Edge<Self>>,
-              C: Extend1<Edge<Self>>
-    {
-        // TODO: Create a CollectorVisitor struct an make it implement Visitor,
-        // so this function can be removed
-        tree.extend1_reserve(self.num_vertices() - 1);
-        self.kruskal_with_edges(edges,
-                                &mut |e| {
-                                    tree.extend1(e);
-                                    Accept::Yes
-                                });
-        tree
     }
 
     fn kruskal<T, W, V>(&self, weight: &W, visitor: &mut V)
