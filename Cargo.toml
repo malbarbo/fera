@@ -6,6 +6,7 @@ authors = ["Marco A L Barbosa <malbarbo@gmail.com>"]
 [features]
 default = []
 nightly = []
+clippy = []
 
 [dependencies]
 num = "0.1"
