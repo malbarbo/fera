@@ -140,7 +140,7 @@ impl<G, B> Incidence for Subgraph<G, B>
     }
 }
 
-impl<T: Clone, G, B> WithVertexProp<T> for Subgraph<G, B>
+impl<T, G, B> WithVertexProp<T> for Subgraph<G, B>
     where G: 'static + Graph + WithVertexProp<T>,
           B: Borrow<G>
 {
@@ -153,7 +153,7 @@ impl<T: Clone, G, B> WithVertexProp<T> for Subgraph<G, B>
     }
 }
 
-impl<T: Clone, G, B> WithEdgeProp<T> for Subgraph<G, B>
+impl<T, G, B> WithEdgeProp<T> for Subgraph<G, B>
     where G: 'static + Graph + WithEdgeProp<T>,
           B: Borrow<G>
 {
@@ -166,20 +166,24 @@ impl<T: Clone, G, B> WithEdgeProp<T> for Subgraph<G, B>
     }
 }
 
-impl<T: Clone, G, B> VertexPropMutNew<Subgraph<G, B>, T> for DefaultVertexPropMut<G, T>
+impl<T, G, B> VertexPropMutNew<Subgraph<G, B>, T> for DefaultVertexPropMut<G, T>
     where G: 'static + Graph + WithVertexProp<T>,
           B: Borrow<G>
 {
-    fn new_vertex_prop(g: &Subgraph<G, B>, value: T) -> Self {
+    fn new_vertex_prop(g: &Subgraph<G, B>, value: T) -> Self
+        where T: Clone
+    {
         DefaultVertexPropMut::<G, T>::new_vertex_prop(g.g(), value)
     }
 }
 
-impl<T: Clone, G, B> EdgePropMutNew<Subgraph<G, B>, T> for DefaultEdgePropMut<G, T>
+impl<T, G, B> EdgePropMutNew<Subgraph<G, B>, T> for DefaultEdgePropMut<G, T>
     where G: 'static + Graph + WithEdgeProp<T>,
           B: Borrow<G>
 {
-    fn new_edge_prop(g: &Subgraph<G, B>, value: T) -> Self {
+    fn new_edge_prop(g: &Subgraph<G, B>, value: T) -> Self
+        where T: Clone
+    {
         DefaultEdgePropMut::<G, T>::new_edge_prop(g.g(), value)
     }
 }

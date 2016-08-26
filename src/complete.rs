@@ -190,7 +190,7 @@ impl WithPair<CompleteEdge> for CompleteGraph {
 
 impl<'a> VertexTypes<'a, CompleteGraph> for CompleteGraph {
     type VertexIter = Range<u32>;
-    // TODO: write another iterator
+    // TODO: write another iterator, do not depend of IncEdgeIter
     type NeighborIter = MapBind1<'a, IncEdgeIter<'a, Self>, Self, Vertex<Self>>;
 }
 
@@ -266,11 +266,11 @@ impl EdgeIndex for CompleteGraph {
     }
 }
 
-impl<T: Clone> WithVertexProp<T> for CompleteGraph {
+impl<T> WithVertexProp<T> for CompleteGraph {
     type VertexProp = VecVertexProp<CompleteGraph, T>;
 }
 
-impl<T: Clone> WithEdgeProp<T> for CompleteGraph {
+impl<T> WithEdgeProp<T> for CompleteGraph {
     type EdgeProp = VecEdgeProp<CompleteGraph, T>;
 }
 
