@@ -3,6 +3,7 @@ use std::collections::VecDeque;
 
 // Visitor
 
+// TODO: implement visitor for &mut Visitor
 pub trait Visitor<G>
     where G: Graph
 {
@@ -126,6 +127,12 @@ pub const BLACK: u8 = 2;
 
 // Dfs
 
+// TODO: create a builder (also for Bfs)
+//     dfs(g)
+//         .color(x)    // optional
+//         .visited(x)  // optional
+//         .stack(x)    // optional
+//         .build()
 // TODO: make stack generic
 pub struct Dfs<'a, G, C = DefaultVertexPropMut<G, u8>, P = DefaultVertexPropMut<G, OptionEdge<G>>>
     where G: 'a + Graph,

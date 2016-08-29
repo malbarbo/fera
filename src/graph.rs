@@ -177,6 +177,7 @@ impl<P, G, T> VertexProp<G, T> for P
 pub trait VertexPropMut<G, T>: IndexMut<Vertex<G>, Output = T>
     where G: WithVertex
 {
+    // TODO: add a way to reset the property, like: set(&mut self, value: T)
 }
 
 impl<P, G, T> VertexPropMut<G, T> for P

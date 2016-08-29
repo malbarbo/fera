@@ -4,6 +4,8 @@ use std::cell::UnsafeCell;
 use std::collections::HashMap;
 use std::ops::{Index, IndexMut};
 
+// TODO: implement VertexPropMutNew and EdgePropMutNew
+
 pub struct HashProp<I: GraphItem, T: Clone> {
     default: T,
     map: UnsafeCell<HashMap<I, Box<T>>>,
