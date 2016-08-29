@@ -285,12 +285,12 @@ impl Choose for CompleteGraph {
 
     fn choose_edge<R: Rng>(&self, rng: &mut R) -> Edge<Self> {
         let u = self.choose_vertex(rng);
-        let v = self.choose_vertex_if(rng, &mut |v| v != u);
+        let v = self.choose_vertex_if(rng, |v| v != u);
         CompleteEdge::new(u, v)
     }
 
     fn choose_inc_edge<R: Rng>(&self, rng: &mut R, u: Vertex<Self>) -> Edge<Self> {
-        let v = self.choose_vertex_if(rng, &mut |v| v != u);
+        let v = self.choose_vertex_if(rng, |v| v != u);
         CompleteEdge::new(u, v)
     }
 }

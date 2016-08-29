@@ -11,6 +11,7 @@ use rand::Rng;
 
 // TODO: Allow a subgraph be reused
 // TODO: remove 'static bounds (is it possible?)
+// TODO: delegate all (possible) methods to g
 
 pub struct Subgraph<G, B>
     where G: Graph,

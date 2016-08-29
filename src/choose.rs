@@ -8,7 +8,7 @@ use rand::Rng;
 pub trait Choose: IncidenceGraph {
     fn choose_vertex<R>(&self, rng: &mut R) -> Vertex<Self> where R: Rng;
 
-    fn choose_vertex_if<R, F>(&self, rng: &mut R, fun: &mut F) -> Vertex<Self>
+    fn choose_vertex_if<R, F>(&self, rng: &mut R, fun: F) -> Vertex<Self>
         where R: Rng,
               F: FnMut(Vertex<Self>) -> bool
     {
@@ -17,38 +17,40 @@ pub trait Choose: IncidenceGraph {
 
     fn choose_edge<R>(&self, rng: &mut R) -> Edge<Self> where R: Rng;
 
-    fn choose_edge_if<R, F>(&self, rng: &mut R, fun: &mut F) -> Edge<Self>
+    fn choose_edge_if<R, F>(&self, rng: &mut R, fun: F) -> Edge<Self>
         where R: Rng,
               F: FnMut(Edge<Self>) -> bool
     {
         choose(|| self.choose_edge(rng), fun)
     }
 
-    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self> where R: Rng;
+    fn choose_inc_edge<R>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self> where R: Rng;
 
-    fn choose_inc_edge_if<R, F>(&self, rng: &mut R, v: Vertex<Self>, fun: &mut F) -> Edge<Self>
+    fn choose_inc_edge_if<R, F>(&self, rng: &mut R, v: Vertex<Self>, fun: F) -> Edge<Self>
         where R: Rng,
               F: FnMut(Edge<Self>) -> bool
     {
         choose(|| self.choose_inc_edge(rng, v), fun)
     }
 
-    fn choose_neighbor<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Vertex<Self> where R: Rng {
+    fn choose_neighbor<R>(&self, rng: &mut R, v: Vertex<Self>) -> Vertex<Self>
+        where R: Rng
+    {
         self.target(self.choose_inc_edge(rng, v))
     }
 
-    fn choose_neighbor_if<R, F>(&self, rng: &mut R, v: Vertex<Self>, fun: &mut F) -> Vertex<Self>
+    fn choose_neighbor_if<R, F>(&self, rng: &mut R, v: Vertex<Self>, mut fun: F) -> Vertex<Self>
         where R: Rng,
               F: FnMut(Vertex<Self>) -> bool
     {
-        let e = self.choose_inc_edge_if(rng, v, &mut |e| fun(self.target(e)));
+        let e = self.choose_inc_edge_if(rng, v, |e| fun(self.target(e)));
         self.target(e)
     }
 }
 
-fn choose<Y: Copy, G: FnMut() -> Y, F: FnMut(Y) -> bool>(mut gen: G, fun: &mut F) -> Y {
+fn choose<Y: Copy, G: FnMut() -> Y, F: FnMut(Y) -> bool>(mut gen: G, mut fun: F) -> Y {
     loop {
-        // TODO: on static create an range and use ind_sample
+        // TODO: for StaticGraph create a range and use ind_sample
         let e = gen();
         if fun(e) {
             return e;
