@@ -13,28 +13,17 @@ use rand::Rng;
 // TODO: remove 'static bounds (is it possible?)
 // TODO: delegate all (possible) methods to g
 
-pub struct Subgraph<G, B>
-    where G: Graph,
-          B: Borrow<G>
+pub struct Subgraph<'a, G>
+    where G: 'a + Graph,
 {
-    g: B,
+    g: &'a G,
     vertices: VecVertex<G>,
     edges: VecEdge<G>,
     inc: DefaultVertexPropMut<G, VecEdge<G>>,
 }
 
-impl<G, B> Subgraph<G, B>
-    where G: Graph,
-          B: Borrow<G>
-{
-    fn g(&self) -> &G {
-        self.g.borrow()
-    }
-}
-
-impl<G, B> WithVertex for Subgraph<G, B>
-    where G: 'static + Graph,
-          B: Borrow<G>
+impl<'a, G> WithVertex for Subgraph<'a, G>
+    where G: 'a + Graph,
 {
     type Vertex = Vertex<G>;
     type OptionVertex = OptionVertex<G>;
@@ -42,9 +31,8 @@ impl<G, B> WithVertex for Subgraph<G, B>
     type VertexIndexProp = VertexIndexProp<G>;
 }
 
-impl<G, B> WithEdge for Subgraph<G, B>
-    where G: 'static + Graph,
-          B: Borrow<G>
+impl<'a, G> WithEdge for Subgraph<'a, G>
+    where G: 'a + Graph,
 {
     type Edge = Edge<G>;
     type OptionEdge = OptionEdge<G>;
@@ -52,79 +40,75 @@ impl<G, B> WithEdge for Subgraph<G, B>
     type EdgeIndexProp = EdgeIndexProp<G>;
 }
 
-impl<G, B> WithPair<Edge<Subgraph<G, B>>> for Subgraph<G, B>
-    where G: 'static + Graph,
-          B: Borrow<G>
+impl<'a, G> WithPair<Edge<Subgraph<'a, G>>> for Subgraph<'a, G>
+    where G: 'a + Graph,
 {
     fn source(&self, e: Edge<Self>) -> Vertex<Self> {
-        self.g().source(e)
+        self.g.source(e)
     }
 
     fn target(&self, e: Edge<Self>) -> Vertex<Self> {
-        self.g().target(e)
+        self.g.target(e)
     }
 
     fn ends(&self, e: Edge<Self>) -> (Vertex<Self>, Vertex<Self>) {
-        self.g().ends(e)
+        self.g.ends(e)
     }
 
     fn opposite(&self, u: Vertex<Self>, e: Edge<Self>) -> Vertex<Self> {
-        self.g().opposite(u, e)
+        self.g.opposite(u, e)
     }
 }
 
-impl<'a, G, B> VertexTypes<'a, Subgraph<G, B>> for Subgraph<G, B>
-    where G: 'static + Graph,
-          B: Borrow<G>
+impl<'a, 'b, G> VertexTypes<'a, Subgraph<'b, G>> for Subgraph<'b, G>
+    where G: 'b + Graph,
 {
-    type VertexIter = Cloned<Iter<'a, Vertex<G>>>;
-    type NeighborIter = MapBind1<'a, IncEdgeIter<'a, Self>, G, Vertex<Self>>;
+    type VertexIter = Cloned<Iter<'b, Vertex<G>>>;
+    type NeighborIter = MapBind1<'b, IncEdgeIter<'b, Self>, G, Vertex<Self>>;
 }
 
-impl<G, B> VertexList for Subgraph<G, B>
-    where G: 'static + Graph,
-          B: Borrow<G>
+impl<'a, G> VertexList for Subgraph<'a, G>
+    where G: 'a + Graph,
 {
     fn num_vertices(&self) -> usize {
         self.vertices.len()
     }
 
     fn vertices(&self) -> VertexIter<Self> {
-        self.vertices.iter().cloned()
+        let iter: Iter<Vertex<G>> = unsafe { ::std::mem::transmute(self.vertices.iter()) };
+        iter.cloned()
     }
 }
 
-impl<'a, G, B> EdgeTypes<'a, Subgraph<G, B>> for Subgraph<G, B>
-    where G: 'static + Graph,
-          B: Borrow<G>
+impl<'a, 'b, G> EdgeTypes<'a, Subgraph<'b, G>> for Subgraph<'b, G>
+    where G: 'b + Graph,
 {
-    type EdgeIter = Cloned<Iter<'a, Edge<G>>>;
-    type IncEdgeIter = Cloned<Iter<'a, Edge<G>>>;
+    type EdgeIter = Cloned<Iter<'b, Edge<G>>>;
+    type IncEdgeIter = Cloned<Iter<'b, Edge<G>>>;
 }
 
-impl<G, B> EdgeList for Subgraph<G, B>
-    where G: 'static + Graph,
-          B: Borrow<G>
+impl<'a, G> EdgeList for Subgraph<'a, G>
+    where G: 'a + Graph,
 {
     fn num_edges(&self) -> usize {
         self.edges.len()
     }
 
     fn edges(&self) -> EdgeIter<Self> {
-        self.edges.iter().cloned()
+        let iter: Iter<Edge<G>> = unsafe { ::std::mem::transmute(self.edges.iter()) };
+        iter.cloned()
     }
 
     fn reverse(&self, e: Edge<Self>) -> Edge<Self> {
-        self.g().reverse(e)
+        self.g.reverse(e)
     }
 }
 
-impl<G, B> Adjacency for Subgraph<G, B>
-    where G: 'static + Graph,
-          B: Borrow<G>
+impl<'a, G> Adjacency for Subgraph<'a, G>
+    where G: 'a + Graph,
 {
     fn neighbors(&self, v: Vertex<Self>) -> NeighborIter<Self> {
-        self.inc_edges(v).map_bind1(self.g(), G::target)
+        self.inc_edges(v).map_bind1(self.g, G::target)
     }
 
     fn degree(&self, v: Vertex<Self>) -> usize {
@@ -132,87 +116,80 @@ impl<G, B> Adjacency for Subgraph<G, B>
     }
 }
 
-impl<G, B> Incidence for Subgraph<G, B>
-    where G: 'static + Graph,
-          B: Borrow<G>
+impl<'a, G> Incidence for Subgraph<'a, G>
+    where G: 'a + Graph,
 {
     fn inc_edges(&self, v: Vertex<Self>) -> IncEdgeIter<Self> {
-        self.inc[v].iter().cloned()
+        // TODO: explain why this is safe (also vertices and edges)
+        let iter: Iter<Edge<G>> = unsafe { ::std::mem::transmute(self.inc[v].iter()) };
+        iter.cloned()
     }
 }
 
-impl<T, G, B> WithVertexProp<T> for Subgraph<G, B>
-    where G: 'static + Graph + WithVertexProp<T>,
-          B: Borrow<G>
+impl<'a, G, T> WithVertexProp<T> for Subgraph<'a, G>
+    where G: 'a + Graph + WithVertexProp<T>,
 {
     type VertexProp = DefaultVertexPropMut<G, T>;
 
     fn default_vertex_prop(&self, value: T) -> DefaultVertexPropMut<Self, T>
         where T: Clone
     {
-        self.g().default_vertex_prop(value)
+        self.g.default_vertex_prop(value)
     }
 }
 
-impl<T, G, B> WithEdgeProp<T> for Subgraph<G, B>
-    where G: 'static + Graph + WithEdgeProp<T>,
-          B: Borrow<G>
+impl<'a, G, T> WithEdgeProp<T> for Subgraph<'a, G>
+    where G: 'a + Graph + WithEdgeProp<T>,
 {
     type EdgeProp = DefaultEdgePropMut<G, T>;
 
     fn default_edge_prop(&self, value: T) -> DefaultEdgePropMut<Self, T>
         where T: Clone
     {
-        self.g().default_edge_prop(value)
+        self.g.default_edge_prop(value)
     }
 }
 
-impl<T, G, B> VertexPropMutNew<Subgraph<G, B>, T> for DefaultVertexPropMut<G, T>
-    where G: 'static + Graph + WithVertexProp<T>,
-          B: Borrow<G>
+impl<'a, G, T> VertexPropMutNew<Subgraph<'a, G>, T> for DefaultVertexPropMut<G, T>
+    where G: 'a + Graph + WithVertexProp<T>,
 {
-    fn new_vertex_prop(g: &Subgraph<G, B>, value: T) -> Self
+    fn new_vertex_prop(g: &Subgraph<'a, G>, value: T) -> Self
         where T: Clone
     {
-        DefaultVertexPropMut::<G, T>::new_vertex_prop(g.g(), value)
+        DefaultVertexPropMut::<G, T>::new_vertex_prop(g.g, value)
     }
 }
 
-impl<T, G, B> EdgePropMutNew<Subgraph<G, B>, T> for DefaultEdgePropMut<G, T>
-    where G: 'static + Graph + WithEdgeProp<T>,
-          B: Borrow<G>
+impl<'a, G, T> EdgePropMutNew<Subgraph<'a, G>, T> for DefaultEdgePropMut<G, T>
+    where G: 'a + Graph + WithEdgeProp<T>,
 {
-    fn new_edge_prop(g: &Subgraph<G, B>, value: T) -> Self
+    fn new_edge_prop(g: &Subgraph<'a, G>, value: T) -> Self
         where T: Clone
     {
-        DefaultEdgePropMut::<G, T>::new_edge_prop(g.g(), value)
+        DefaultEdgePropMut::<G, T>::new_edge_prop(g.g, value)
     }
 }
 
-impl<G, B> BasicVertexProps for Subgraph<G, B>
-    where G: 'static + Graph,
-          B: Borrow<G>
+impl<'a, G> BasicVertexProps for Subgraph<'a, G>
+    where G: 'a + Graph,
 {
 }
 
-impl<G, B> BasicEdgeProps for Subgraph<G, B>
-    where G: 'static + Graph,
-          B: Borrow<G>
+impl<'a, G> BasicEdgeProps for Subgraph<'a, G>
+    where G: 'a + Graph,
 {
 }
 
-impl<G, B> BasicProps for Subgraph<G, B>
-    where G: 'static + Graph,
-          B: Borrow<G>
+impl<'a, G> BasicProps for Subgraph<'a, G>
+    where G: 'a + Graph,
 {
 }
 
 
 // Choose
 
-impl<G, B> Choose for Subgraph<G, B>
-    where G: 'static + IncidenceGraph,
-          B: Borrow<G>
+impl<'a, G> Choose for Subgraph<'a, G>
+    where G: 'a + IncidenceGraph,
 {
     fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {
         self.vertices[rng.gen_range(0, self.num_vertices())]
@@ -230,20 +207,17 @@ impl<G, B> Choose for Subgraph<G, B>
 
 // Extensions Traits
 
-pub trait WithSubgraph<G: Graph, B: Borrow<G>> {
-    fn spanning_subgraph(self, edges: VecEdge<G>) -> Subgraph<G, B>;
+pub trait WithSubgraph<G: Graph> {
+    fn spanning_subgraph(&self, edges: VecEdge<G>) -> Subgraph<G>;
 
-    fn edge_induced_subgraph(self, edges: VecEdge<G>) -> Subgraph<G, B>;
+    fn edge_induced_subgraph(&self, edges: VecEdge<G>) -> Subgraph<G>;
 
-    fn induced_subgraph(self, vertices: VecVertex<G>) -> Subgraph<G, B> where G: Incidence;
+    fn induced_subgraph(&self, vertices: VecVertex<G>) -> Subgraph<G> where G: Incidence;
 }
 
 
-impl<G, B> WithSubgraph<G, B> for B
-    where G: Graph,
-          B: Borrow<G>
-{
-    fn spanning_subgraph(self, edges: VecEdge<G>) -> Subgraph<G, B> {
+impl<G: Graph> WithSubgraph<G> for G {
+    fn spanning_subgraph(&self, edges: VecEdge<G>) -> Subgraph<G> {
         // TODO: do not copy vertices
         let vertices;
         let mut inc;
@@ -266,7 +240,7 @@ impl<G, B> WithSubgraph<G, B> for B
         }
     }
 
-    fn edge_induced_subgraph(self, edges: VecEdge<G>) -> Subgraph<G, B> {
+    fn edge_induced_subgraph(&self, edges: VecEdge<G>) -> Subgraph<G> {
         let mut vin;
         let mut vertices;
         let mut inc;
@@ -299,7 +273,7 @@ impl<G, B> WithSubgraph<G, B> for B
         }
     }
 
-    fn induced_subgraph(self, vertices: VecVertex<G>) -> Subgraph<G, B>
+    fn induced_subgraph(&self, vertices: VecVertex<G>) -> Subgraph<G>
         where G: Incidence
     {
         let mut edges;
