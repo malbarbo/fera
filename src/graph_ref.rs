@@ -1,4 +1,8 @@
-use graph::*;
+
+use choose::Choose;use graph::*;
+
+use rand::Rng;
+use std::ops::{Index, IndexMut};
 
 impl<'a, 'b, G: WithVertex> VertexTypes<'a, &'b G> for &'b G {
     type VertexIter = VertexIter<'a, G>;
@@ -108,31 +112,98 @@ impl<'a, G: EdgeIndex> EdgeIndex for &'a G {
     }
 }
 
-// TODO: complete the Grapf implementation for &G
 
-// impl<'a, G: WithVertexProp<T>, T> WithVertexProp<T> for &'a G {
-//     type VertexProp = DefaultVertexPropMut<G, T>;
-//
-//     fn vertex_prop<P>(&self, value: T) -> P
-//         where P: VertexPropMutNew<Self, T>,
-//               T: Clone
-//     {
-//         G::vertex_prop(*self, value)
-//     }
-//
-//     fn default_vertex_prop(&self, value: T) -> DefaultVertexPropMut<Self, T>
-//         where T: Clone
-//     {
-//         G::default_vertex_prop(self, value)
-//     }
-// }
+// Properties
 
-// FIXME: this implementation conflicts with the one in arrayprop.rs
-//
-// impl<'a, T, G> VertexPropMutNew<&'a G, T> for DefaultVertexPropMut<G, T>
-//     where G: WithVertexProp<T>,
-// {
-//     fn new_vertex_prop(g: &&'a G, value: T) -> Self where T: Clone {
-//         unimplemented!()
-//     }
-// }
+pub struct RefVertexProp<G: WithVertexProp<T>, T>(DefaultVertexPropMut<G, T>);
+
+impl<G: WithVertexProp<T>, T> Index<Vertex<G>> for RefVertexProp<G, T> {
+    type Output = T;
+
+    fn index(&self, v: Vertex<G>) -> &Self::Output {
+        self.0.index(v)
+    }
+}
+
+impl<G: WithVertexProp<T>, T> IndexMut<Vertex<G>> for RefVertexProp<G, T> {
+    fn index_mut(&mut self, v: Vertex<G>) -> &mut Self::Output {
+        self.0.index_mut(v)
+    }
+}
+
+impl<'a, G: WithVertexProp<T>, T> VertexPropMutNew<&'a G, T> for RefVertexProp<G, T> {
+    fn new_vertex_prop(g: &&'a G, value: T) -> Self
+        where T: Clone
+    {
+        RefVertexProp(G::default_vertex_prop(*g, value))
+    }
+}
+
+impl<'a, G: WithVertexProp<T>, T> WithVertexProp<T> for &'a G {
+    type VertexProp = RefVertexProp<G, T>;
+
+    fn default_vertex_prop(&self, value: T) -> DefaultVertexPropMut<Self, T>
+        where T: Clone
+    {
+        RefVertexProp(G::default_vertex_prop(self, value))
+    }
+}
+
+
+pub struct RefEdgeProp<G: WithEdgeProp<T>, T>(DefaultEdgePropMut<G, T>);
+
+impl<G: WithEdgeProp<T>, T> Index<Edge<G>> for RefEdgeProp<G, T> {
+    type Output = T;
+
+    fn index(&self, v: Edge<G>) -> &Self::Output {
+        self.0.index(v)
+    }
+}
+
+impl<G: WithEdgeProp<T>, T> IndexMut<Edge<G>> for RefEdgeProp<G, T> {
+    fn index_mut(&mut self, v: Edge<G>) -> &mut Self::Output {
+        self.0.index_mut(v)
+    }
+}
+
+impl<'a, G: WithEdgeProp<T>, T> EdgePropMutNew<&'a G, T> for RefEdgeProp<G, T> {
+    fn new_edge_prop(g: &&'a G, value: T) -> Self
+        where T: Clone
+    {
+        RefEdgeProp(G::default_edge_prop(*g, value))
+    }
+}
+
+impl<'a, G: WithEdgeProp<T>, T> WithEdgeProp<T> for &'a G {
+    type EdgeProp = RefEdgeProp<G, T>;
+
+    fn default_edge_prop(&self, value: T) -> DefaultEdgePropMut<Self, T>
+        where T: Clone
+    {
+        RefEdgeProp(G::default_edge_prop(self, value))
+    }
+}
+
+impl<'a, G: BasicVertexProps> BasicVertexProps for &'a G {}
+
+impl<'a, G: BasicEdgeProps> BasicEdgeProps for &'a G {}
+
+impl<'a, G: BasicProps> BasicProps for &'a G {}
+
+
+// Choose
+
+impl<'a, G: 'a + Choose> Choose for &'a G {
+    // TODO: delegate others
+    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {
+        G::choose_vertex(self, rng)
+    }
+
+    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Edge<Self> {
+        G::choose_edge(self, rng)
+    }
+
+    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self> {
+        G::choose_inc_edge(self, rng, v)
+    }
+}

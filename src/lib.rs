@@ -16,11 +16,11 @@ pub mod tests;
 
 // TODO: Create a DiGraph trait and implementations
 pub mod graph;
-pub mod graph_ref;
 
 #[macro_use]
 pub mod builder;
 
+pub mod graph_ref;
 pub mod subgraph;
 pub mod complete;
 pub mod static_;
