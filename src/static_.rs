@@ -299,15 +299,15 @@ impl<T, V: Num, E: Num> WithVertexProp<T> for StaticGraphGeneric<V, E> {
     type VertexProp = VecVertexProp<Self, T>;
 }
 
-impl<V: Num, E: Num> BasicVertexProps for StaticGraphGeneric<V, E> { }
+impl<V: Num, E: Num> BasicVertexProps for StaticGraphGeneric<V, E> {}
 
 impl<T, V: Num, E: Num> WithEdgeProp<T> for StaticGraphGeneric<V, E> {
     type EdgeProp = VecEdgeProp<Self, T>;
 }
 
-impl<V: Num, E: Num> BasicEdgeProps for StaticGraphGeneric<V, E> { }
+impl<V: Num, E: Num> BasicEdgeProps for StaticGraphGeneric<V, E> {}
 
-impl<V: Num, E: Num> BasicProps for StaticGraphGeneric<V, E> { }
+impl<V: Num, E: Num> BasicProps for StaticGraphGeneric<V, E> {}
 
 impl<V: Num, E: Num> Choose for StaticGraphGeneric<V, E> {
     fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {

@@ -14,7 +14,7 @@ use rand::Rng;
 // TODO: delegate all (possible) methods to g
 
 pub struct Subgraph<'a, G>
-    where G: 'a + Graph,
+    where G: 'a + Graph
 {
     g: &'a G,
     vertices: VecVertex<G>,
@@ -23,7 +23,7 @@ pub struct Subgraph<'a, G>
 }
 
 impl<'a, G> WithVertex for Subgraph<'a, G>
-    where G: 'a + Graph,
+    where G: 'a + Graph
 {
     type Vertex = Vertex<G>;
     type OptionVertex = OptionVertex<G>;
@@ -32,7 +32,7 @@ impl<'a, G> WithVertex for Subgraph<'a, G>
 }
 
 impl<'a, G> WithEdge for Subgraph<'a, G>
-    where G: 'a + Graph,
+    where G: 'a + Graph
 {
     type Edge = Edge<G>;
     type OptionEdge = OptionEdge<G>;
@@ -41,7 +41,7 @@ impl<'a, G> WithEdge for Subgraph<'a, G>
 }
 
 impl<'a, G> WithPair<Edge<Subgraph<'a, G>>> for Subgraph<'a, G>
-    where G: 'a + Graph,
+    where G: 'a + Graph
 {
     fn source(&self, e: Edge<Self>) -> Vertex<Self> {
         self.g.source(e)
@@ -61,14 +61,14 @@ impl<'a, G> WithPair<Edge<Subgraph<'a, G>>> for Subgraph<'a, G>
 }
 
 impl<'a, 'b, G> VertexTypes<'a, Subgraph<'b, G>> for Subgraph<'b, G>
-    where G: 'b + Graph,
+    where G: 'b + Graph
 {
     type VertexIter = Cloned<Iter<'b, Vertex<G>>>;
     type NeighborIter = MapBind1<'b, IncEdgeIter<'b, Self>, G, Vertex<Self>>;
 }
 
 impl<'a, G> VertexList for Subgraph<'a, G>
-    where G: 'a + Graph,
+    where G: 'a + Graph
 {
     fn num_vertices(&self) -> usize {
         self.vertices.len()
@@ -81,14 +81,14 @@ impl<'a, G> VertexList for Subgraph<'a, G>
 }
 
 impl<'a, 'b, G> EdgeTypes<'a, Subgraph<'b, G>> for Subgraph<'b, G>
-    where G: 'b + Graph,
+    where G: 'b + Graph
 {
     type EdgeIter = Cloned<Iter<'b, Edge<G>>>;
     type IncEdgeIter = Cloned<Iter<'b, Edge<G>>>;
 }
 
 impl<'a, G> EdgeList for Subgraph<'a, G>
-    where G: 'a + Graph,
+    where G: 'a + Graph
 {
     fn num_edges(&self) -> usize {
         self.edges.len()
@@ -105,7 +105,7 @@ impl<'a, G> EdgeList for Subgraph<'a, G>
 }
 
 impl<'a, G> Adjacency for Subgraph<'a, G>
-    where G: 'a + Graph,
+    where G: 'a + Graph
 {
     fn neighbors(&self, v: Vertex<Self>) -> NeighborIter<Self> {
         self.inc_edges(v).map_bind1(self.g, G::target)
@@ -117,7 +117,7 @@ impl<'a, G> Adjacency for Subgraph<'a, G>
 }
 
 impl<'a, G> Incidence for Subgraph<'a, G>
-    where G: 'a + Graph,
+    where G: 'a + Graph
 {
     fn inc_edges(&self, v: Vertex<Self>) -> IncEdgeIter<Self> {
         // TODO: explain why this is safe (also vertices and edges)
@@ -127,7 +127,7 @@ impl<'a, G> Incidence for Subgraph<'a, G>
 }
 
 impl<'a, G, T> WithVertexProp<T> for Subgraph<'a, G>
-    where G: 'a + Graph + WithVertexProp<T>,
+    where G: 'a + Graph + WithVertexProp<T>
 {
     type VertexProp = DefaultVertexPropMut<G, T>;
 
@@ -139,7 +139,7 @@ impl<'a, G, T> WithVertexProp<T> for Subgraph<'a, G>
 }
 
 impl<'a, G, T> WithEdgeProp<T> for Subgraph<'a, G>
-    where G: 'a + Graph + WithEdgeProp<T>,
+    where G: 'a + Graph + WithEdgeProp<T>
 {
     type EdgeProp = DefaultEdgePropMut<G, T>;
 
@@ -151,7 +151,7 @@ impl<'a, G, T> WithEdgeProp<T> for Subgraph<'a, G>
 }
 
 impl<'a, G, T> VertexPropMutNew<Subgraph<'a, G>, T> for DefaultVertexPropMut<G, T>
-    where G: 'a + Graph + WithVertexProp<T>,
+    where G: 'a + Graph + WithVertexProp<T>
 {
     fn new_vertex_prop(g: &Subgraph<'a, G>, value: T) -> Self
         where T: Clone
@@ -161,7 +161,7 @@ impl<'a, G, T> VertexPropMutNew<Subgraph<'a, G>, T> for DefaultVertexPropMut<G, 
 }
 
 impl<'a, G, T> EdgePropMutNew<Subgraph<'a, G>, T> for DefaultEdgePropMut<G, T>
-    where G: 'a + Graph + WithEdgeProp<T>,
+    where G: 'a + Graph + WithEdgeProp<T>
 {
     fn new_edge_prop(g: &Subgraph<'a, G>, value: T) -> Self
         where T: Clone
@@ -170,26 +170,17 @@ impl<'a, G, T> EdgePropMutNew<Subgraph<'a, G>, T> for DefaultEdgePropMut<G, T>
     }
 }
 
-impl<'a, G> BasicVertexProps for Subgraph<'a, G>
-    where G: 'a + Graph,
-{
-}
+impl<'a, G> BasicVertexProps for Subgraph<'a, G> where G: 'a + Graph {}
 
-impl<'a, G> BasicEdgeProps for Subgraph<'a, G>
-    where G: 'a + Graph,
-{
-}
+impl<'a, G> BasicEdgeProps for Subgraph<'a, G> where G: 'a + Graph {}
 
-impl<'a, G> BasicProps for Subgraph<'a, G>
-    where G: 'a + Graph,
-{
-}
+impl<'a, G> BasicProps for Subgraph<'a, G> where G: 'a + Graph {}
 
 
 // Choose
 
 impl<'a, G> Choose for Subgraph<'a, G>
-    where G: 'a + IncidenceGraph,
+    where G: 'a + IncidenceGraph
 {
     fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {
         self.vertices[rng.gen_range(0, self.num_vertices())]

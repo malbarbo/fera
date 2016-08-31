@@ -9,8 +9,8 @@ pub type UnionFind<G> = unionfind::UnionFind<Vertex<G>,
 pub trait WithUnionFind: Graph {
     fn new_unionfind(&self) -> UnionFind<Self> {
         let mut ds = UnionFind::<Self>::with_parent_rank(self.vertex_prop(self.vertices()
-                                                                              .next()
-                                                                              .unwrap()),
+                                                             .next()
+                                                             .unwrap()),
                                                          self.vertex_prop(0usize));
         for v in self.vertices() {
             ds.make_set(v);

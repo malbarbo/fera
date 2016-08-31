@@ -42,7 +42,10 @@ pub struct CompleteEdgeNone;
 
 impl BuildNone<CompleteEdge> for CompleteEdgeNone {
     fn none() -> CompleteEdge {
-        CompleteEdge { u: ::std::u32::MAX, v: ::std::u32::MAX }
+        CompleteEdge {
+            u: ::std::u32::MAX,
+            v: ::std::u32::MAX,
+        }
     }
 
     fn desc() -> &'static str {
@@ -57,7 +60,9 @@ impl PartialEq for CompleteEdge {
 }
 
 impl Hash for CompleteEdge {
-    fn hash<H>(&self, state: &mut H) where H: Hasher {
+    fn hash<H>(&self, state: &mut H)
+        where H: Hasher
+    {
         if self.u < self.v {
             self.u.hash(state);
             self.v.hash(state);
@@ -167,7 +172,7 @@ impl ExactSizeIterator for IncCompleteEdgeIter {
 impl WithVertex for CompleteGraph {
     type Vertex = u32;
     type OptionVertex = OptionalMax<u32>;
-    type VertexIndexProp = FnProp<fn (u32) -> usize>;
+    type VertexIndexProp = FnProp<fn(u32) -> usize>;
 }
 
 pub type OptionalCompleteEdge = Optioned<CompleteEdge, CompleteEdgeNone>;
