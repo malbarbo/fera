@@ -133,6 +133,10 @@ pub trait Incidence: WithEdge + Adjacency {
     fn inc_edges(&self, v: Vertex<Self>) -> IncEdgeIter<Self>;
 }
 
+pub trait EdgeByEnds: WithEdge + WithVertex {
+    fn edge_by_ends(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Edge<Self>>;
+}
+
 
 // Index
 

@@ -254,6 +254,16 @@ impl Incidence for CompleteGraph {
     }
 }
 
+impl EdgeByEnds for CompleteGraph {
+    fn edge_by_ends(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Edge<Self>> {
+        if (u as usize) < self.num_vertices() && (v as usize) < self.num_vertices() && u != v {
+            CompleteEdge::new(u, v).into()
+        } else {
+            None
+        }
+    }
+}
+
 impl VertexIndex for CompleteGraph {
     fn vertex_index(&self) -> VertexIndexProp<Self> {
         #[inline(always)]
