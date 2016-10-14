@@ -1,6 +1,7 @@
 use graph::*;
 use traverse::*;
 
+// TODO: this can be methods on Traverser
 pub trait Props: IncidenceGraph {
     fn is_acyclic(&self) -> bool {
         let mut acyclic = true;
@@ -23,6 +24,7 @@ pub trait Props: IncidenceGraph {
         }
     }
 
+    // FIXME: does not work for multigraph
     fn is_tree(&self) -> bool {
         self.num_vertices() == 0 ||
         {

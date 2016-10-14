@@ -149,8 +149,9 @@ pub trait EdgeIndex: WithEdge {
 // TODO: explain why the trait repetition for VertexProp and EdgeProp
 
 pub trait PropGet<I> {
+    // FIXME: Rename to Value
     type Output: Sized;
-    fn get(&self, item: I) -> Self::Output;
+    fn get(&self, key: I) -> Self::Output;
 }
 
 // Vertex
@@ -191,8 +192,6 @@ pub trait VertexPropMutNew<G, T>: VertexPropMut<G, T>
 {
     fn new_vertex_prop(g: &G, value: T) -> Self where T: Clone;
 }
-
-// TODO: Add traits for sets: WithVertexSet, etc...
 
 pub trait WithVertexProp<T>: WithVertex {
     type VertexProp: VertexPropMutNew<Self, T>;
