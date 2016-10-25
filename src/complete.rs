@@ -1,6 +1,5 @@
 use graph::*;
 use choose::Choose;
-use fnprop::*;
 use arrayprop::*;
 
 use fera::{IteratorExt, MapBind1};
@@ -74,9 +73,9 @@ impl Hash for CompleteEdge {
 }
 
 #[derive(Clone, Debug)]
-pub struct CompleteEdgeIndex(u32);
+pub struct CompleteEdgeIndexProp(u32);
 
-impl PropGet<CompleteEdge> for CompleteEdgeIndex {
+impl PropGet<CompleteEdge> for CompleteEdgeIndexProp {
     type Output = usize;
 
     fn get(&self, e: CompleteEdge) -> usize {
@@ -97,10 +96,10 @@ impl PropGet<CompleteEdge> for CompleteEdgeIndex {
 // Iterators
 
 pub struct EdgesIter {
-    n: u32,
+    n: CompleteVertex,
     rem: usize,
-    u: u32,
-    v: u32,
+    u: CompleteVertex,
+    v: CompleteVertex,
 }
 
 impl Iterator for EdgesIter {
@@ -135,8 +134,8 @@ impl ExactSizeIterator for EdgesIter {
 
 pub struct IncCompleteEdgeIter {
     rem: usize,
-    u: u32,
-    v: u32,
+    u: CompleteVertex,
+    v: CompleteVertex,
 }
 
 impl Iterator for IncCompleteEdgeIter {
@@ -169,10 +168,12 @@ impl ExactSizeIterator for IncCompleteEdgeIter {
 
 // Graph implementation
 
+pub type CompleteVertex = u32;
+
 impl WithVertex for CompleteGraph {
-    type Vertex = u32;
-    type OptionVertex = OptionalMax<u32>;
-    type VertexIndexProp = FnProp<fn(u32) -> usize>;
+    type Vertex = CompleteVertex;
+    type OptionVertex = OptionalMax<CompleteVertex>;
+    type VertexIndexProp = CompleteVertexIndexProp;
 }
 
 pub type OptionalCompleteEdge = Optioned<CompleteEdge, CompleteEdgeNone>;
@@ -180,7 +181,7 @@ pub type OptionalCompleteEdge = Optioned<CompleteEdge, CompleteEdgeNone>;
 impl WithEdge for CompleteGraph {
     type Edge = CompleteEdge;
     type OptionEdge = OptionalCompleteEdge;
-    type EdgeIndexProp = CompleteEdgeIndex;
+    type EdgeIndexProp = CompleteEdgeIndexProp;
 }
 
 impl WithPair<CompleteEdge> for CompleteGraph {
@@ -194,7 +195,7 @@ impl WithPair<CompleteEdge> for CompleteGraph {
 }
 
 impl<'a> VertexTypes<'a, CompleteGraph> for CompleteGraph {
-    type VertexIter = Range<u32>;
+    type VertexIter = Range<CompleteVertex>;
     // TODO: write another iterator, do not depend of IncEdgeIter
     type NeighborIter = MapBind1<'a, IncEdgeIter<'a, Self>, Self, Vertex<Self>>;
 }
@@ -222,7 +223,7 @@ impl EdgeList for CompleteGraph {
 
     fn edges(&self) -> EdgeIter<Self> {
         EdgesIter {
-            n: self.num_vertices() as u32,
+            n: self.num_vertices() as CompleteVertex,
             rem: self.num_edges(),
             u: 0,
             v: 1,
@@ -264,20 +265,26 @@ impl EdgeByEnds for CompleteGraph {
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct CompleteVertexIndexProp;
+
+impl PropGet<CompleteVertex> for CompleteVertexIndexProp {
+    type Output = usize;
+
+    fn get(&self, x: CompleteVertex) -> usize {
+        x as usize
+    }
+}
+
 impl VertexIndex for CompleteGraph {
     fn vertex_index(&self) -> VertexIndexProp<Self> {
-        #[inline(always)]
-        fn u32_to_usize(x: u32) -> usize {
-            x as usize
-        }
-        // FIXME: u32_to_usize is not being inlined; create a new type instead of using FnProp
-        FnProp(u32_to_usize)
+        CompleteVertexIndexProp
     }
 }
 
 impl EdgeIndex for CompleteGraph {
     fn edge_index(&self) -> EdgeIndexProp<Self> {
-        CompleteEdgeIndex(self.num_vertices() as u32)
+        CompleteEdgeIndexProp(self.num_vertices() as u32)
     }
 }
 
