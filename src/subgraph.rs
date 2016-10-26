@@ -1,11 +1,12 @@
 use graph::*;
 use choose::Choose;
+use common::IncidenceNeighborIter;
 
-use fera::{IteratorExt, MapBind1};
+use fera::IteratorExt;
 
-use std::iter::Cloned;
-use std::slice::Iter;
 use std::borrow::Borrow;
+use std::iter::Cloned;
+use std::slice;
 
 use rand::Rng;
 
@@ -58,8 +59,8 @@ impl<'a, G> WithPair<Edge<Subgraph<'a, G>>> for Subgraph<'a, G>
 impl<'a, 'b, G> VertexTypes<'a, Subgraph<'b, G>> for Subgraph<'b, G>
     where G: 'b + Graph
 {
-    type VertexIter = Cloned<Iter<'b, Vertex<G>>>;
-    type NeighborIter = MapBind1<'b, IncEdgeIter<'b, Self>, G, Vertex<Self>>;
+    type VertexIter = Cloned<slice::Iter<'a, Vertex<G>>>;
+    type NeighborIter = IncidenceNeighborIter<Cloned<slice::Iter<'a, Edge<G>>>, G>;
 }
 
 impl<'a, G> VertexList for Subgraph<'a, G>
@@ -70,16 +71,15 @@ impl<'a, G> VertexList for Subgraph<'a, G>
     }
 
     fn vertices(&self) -> VertexIter<Self> {
-        let iter: Iter<Vertex<G>> = unsafe { ::std::mem::transmute(self.vertices.iter()) };
-        iter.cloned()
+        self.vertices.iter().cloned()
     }
 }
 
 impl<'a, 'b, G> EdgeTypes<'a, Subgraph<'b, G>> for Subgraph<'b, G>
     where G: 'b + Graph
 {
-    type EdgeIter = Cloned<Iter<'b, Edge<G>>>;
-    type IncEdgeIter = Cloned<Iter<'b, Edge<G>>>;
+    type EdgeIter = Cloned<slice::Iter<'a, Edge<G>>>;
+    type IncEdgeIter = Cloned<slice::Iter<'a, Edge<G>>>;
 }
 
 impl<'a, G> EdgeList for Subgraph<'a, G>
@@ -90,8 +90,7 @@ impl<'a, G> EdgeList for Subgraph<'a, G>
     }
 
     fn edges(&self) -> EdgeIter<Self> {
-        let iter: Iter<Edge<G>> = unsafe { ::std::mem::transmute(self.edges.iter()) };
-        iter.cloned()
+        self.edges.iter().cloned()
     }
 
     fn reverse(&self, e: Edge<Self>) -> Edge<Self> {
@@ -103,7 +102,7 @@ impl<'a, G> Adjacency for Subgraph<'a, G>
     where G: 'a + Graph
 {
     fn neighbors(&self, v: Vertex<Self>) -> NeighborIter<Self> {
-        self.inc_edges(v).map_bind1(self.g, G::target)
+        IncidenceNeighborIter::new(self.inc_edges(v), self.g)
     }
 
     fn degree(&self, v: Vertex<Self>) -> usize {
@@ -115,9 +114,7 @@ impl<'a, G> Incidence for Subgraph<'a, G>
     where G: 'a + Graph
 {
     fn inc_edges(&self, v: Vertex<Self>) -> IncEdgeIter<Self> {
-        // TODO: explain why this is safe (also vertices and edges)
-        let iter: Iter<Edge<G>> = unsafe { ::std::mem::transmute(self.inc[v].iter()) };
-        iter.cloned()
+        self.inc[v].iter().cloned()
     }
 }
 
@@ -330,8 +327,11 @@ mod tests {
         assert_eq!(set![HashSet, 0, 1, 2], s.vertices().into_hash_set());
         assert_eq!(set![HashSet, e01, e02], s.edges().into_hash_set());
         assert_eq!(set![HashSet, e01, e02], s.inc_edges(0).into_hash_set());
+        assert_eq!(set![HashSet, 1, 2], s.neighbors(0).into_hash_set());
         assert_eq!(set![HashSet, e01], s.inc_edges(1).into_hash_set());
+        assert_eq!(set![HashSet, 0], s.neighbors(1).into_hash_set());
         assert_eq!(set![HashSet, e02], s.inc_edges(2).into_hash_set());
+        assert_eq!(set![HashSet, 0], s.neighbors(2).into_hash_set());
     }
 
     #[test]

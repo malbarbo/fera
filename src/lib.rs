@@ -34,6 +34,8 @@ pub mod fnprop;
 pub mod hashprop;
 pub mod arrayprop;
 
+pub mod common;
+
 pub mod prelude {
     pub use graph::*;
     pub use subgraph::{Subgraph, WithSubgraph};
