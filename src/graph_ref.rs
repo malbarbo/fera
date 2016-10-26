@@ -13,7 +13,6 @@ impl<'a, 'b, G: WithVertex> VertexTypes<'a, &'b G> for &'b G {
 impl<'a, G: WithVertex> WithVertex for &'a G {
     type Vertex = Vertex<G>;
     type OptionVertex = OptionVertex<G>;
-    type VertexIndexProp = VertexIndexProp<G>;
 }
 
 impl<'a, G: WithEdge> WithPair<Edge<&'a G>> for &'a G {
@@ -42,7 +41,6 @@ impl<'a, 'b, G: WithEdge> EdgeTypes<'a, &'b G> for &'b G {
 impl<'a, G: WithEdge> WithEdge for &'a G {
     type Edge = Edge<G>;
     type OptionEdge = OptionEdge<G>;
-    type EdgeIndexProp = EdgeIndexProp<G>;
 }
 
 impl<'a, G: VertexList> VertexList for &'a G {
@@ -102,12 +100,16 @@ impl<'a, G: Incidence> Incidence for &'a G {
 }
 
 impl<'a, G: VertexIndex> VertexIndex for &'a G {
+    type VertexIndexProp = VertexIndexProp<G>;
+
     fn vertex_index(&self) -> VertexIndexProp<Self> {
         G::vertex_index(self)
     }
 }
 
 impl<'a, G: EdgeIndex> EdgeIndex for &'a G {
+    type EdgeIndexProp = EdgeIndexProp<G>;
+
     fn edge_index(&self) -> EdgeIndexProp<Self> {
         G::edge_index(self)
     }

@@ -173,7 +173,6 @@ pub type CompleteVertex = u32;
 impl WithVertex for CompleteGraph {
     type Vertex = CompleteVertex;
     type OptionVertex = OptionalMax<CompleteVertex>;
-    type VertexIndexProp = CompleteVertexIndexProp;
 }
 
 pub type OptionalCompleteEdge = Optioned<CompleteEdge, CompleteEdgeNone>;
@@ -181,7 +180,6 @@ pub type OptionalCompleteEdge = Optioned<CompleteEdge, CompleteEdgeNone>;
 impl WithEdge for CompleteGraph {
     type Edge = CompleteEdge;
     type OptionEdge = OptionalCompleteEdge;
-    type EdgeIndexProp = CompleteEdgeIndexProp;
 }
 
 impl WithPair<CompleteEdge> for CompleteGraph {
@@ -277,12 +275,16 @@ impl PropGet<CompleteVertex> for CompleteVertexIndexProp {
 }
 
 impl VertexIndex for CompleteGraph {
+    type VertexIndexProp = CompleteVertexIndexProp;
+
     fn vertex_index(&self) -> VertexIndexProp<Self> {
         CompleteVertexIndexProp
     }
 }
 
 impl EdgeIndex for CompleteGraph {
+    type EdgeIndexProp = CompleteEdgeIndexProp;
+
     fn edge_index(&self) -> EdgeIndexProp<Self> {
         CompleteEdgeIndexProp(self.num_vertices() as u32)
     }

@@ -26,8 +26,6 @@ impl<'a, G> WithVertex for Subgraph<'a, G>
 {
     type Vertex = Vertex<G>;
     type OptionVertex = OptionVertex<G>;
-    // FIXME: this is not rigth
-    type VertexIndexProp = VertexIndexProp<G>;
 }
 
 impl<'a, G> WithEdge for Subgraph<'a, G>
@@ -35,8 +33,6 @@ impl<'a, G> WithEdge for Subgraph<'a, G>
 {
     type Edge = Edge<G>;
     type OptionEdge = OptionEdge<G>;
-    // FIXME: this is not rigth
-    type EdgeIndexProp = EdgeIndexProp<G>;
 }
 
 impl<'a, G> WithPair<Edge<Subgraph<'a, G>>> for Subgraph<'a, G>

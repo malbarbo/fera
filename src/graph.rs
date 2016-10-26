@@ -6,7 +6,7 @@ use std::ops::{Index, IndexMut};
 
 pub type Vertex<G> = <G as WithVertex>::Vertex;
 pub type OptionVertex<G> = <G as WithVertex>::OptionVertex;
-pub type VertexIndexProp<G> = <G as WithVertex>::VertexIndexProp;
+pub type VertexIndexProp<G> = <G as VertexIndex>::VertexIndexProp;
 pub type VertexIter<'a, G> = <G as VertexTypes<'a, G>>::VertexIter;
 pub type NeighborIter<'a, G> = <G as VertexTypes<'a, G>>::NeighborIter;
 pub type DefaultVertexPropMut<G, T> =
@@ -15,7 +15,7 @@ pub type VecVertex<G> = Vec<Vertex<G>>;
 
 pub type Edge<G> = <G as WithEdge>::Edge;
 pub type OptionEdge<G> = <G as WithEdge>::OptionEdge;
-pub type EdgeIndexProp<G> = <G as WithEdge>::EdgeIndexProp;
+pub type EdgeIndexProp<G> = <G as EdgeIndex>::EdgeIndexProp;
 pub type EdgeIter<'a, G> = <G as EdgeTypes<'a, G>>::EdgeIter;
 pub type IncEdgeIter<'a, G> = <G as EdgeTypes<'a, G>>::IncEdgeIter;
 pub type DefaultEdgePropMut<G, T> = <G as WithEdgeProp<T>>::EdgeProp;
@@ -48,7 +48,6 @@ pub trait VertexTypes<'a, G: WithVertex> {
 pub trait WithVertex: Sized + for<'a> VertexTypes<'a, Self> {
     type Vertex: GraphItem;
     type OptionVertex: Optional<Vertex<Self>> + From<Option<Vertex<Self>>> + PartialEq + Copy;
-    type VertexIndexProp: VertexPropGet<Self, usize>;
 }
 
 pub trait WithPair<P: GraphItem>: WithVertex {
@@ -80,7 +79,6 @@ pub trait EdgeTypes<'a, G: WithEdge> {
 pub trait WithEdge: Sized + WithPair<Edge<Self>> + for<'a> EdgeTypes<'a, Self> {
     type Edge: GraphItem;
     type OptionEdge: Optional<Edge<Self>> + From<Option<Edge<Self>>> + PartialEq + Copy;
-    type EdgeIndexProp: EdgePropGet<Self, usize>;
 }
 
 pub trait VertexList: Sized + WithVertex {
@@ -141,10 +139,14 @@ pub trait EdgeByEnds: WithEdge + WithVertex {
 // Index
 
 pub trait VertexIndex: WithVertex {
+    type VertexIndexProp: VertexPropGet<Self, usize>;
+
     fn vertex_index(&self) -> VertexIndexProp<Self>;
 }
 
 pub trait EdgeIndex: WithEdge {
+    type EdgeIndexProp: EdgePropGet<Self, usize>;
+
     fn edge_index(&self) -> EdgeIndexProp<Self>;
 }
 

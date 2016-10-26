@@ -206,13 +206,11 @@ impl<V: Num, E: Num> Builder for StaticGraphGenericBuilder<V, E> {
 impl<V: Num, E: Num> WithVertex for StaticGraphGeneric<V, E> {
     type Vertex = StaticVertex<V>;
     type OptionVertex = OptionalMax<StaticVertex<V>>;
-    type VertexIndexProp = FnProp<fn(Vertex<StaticGraphGeneric<V, E>>) -> usize>;
 }
 
 impl<V: Num, E: Num> WithEdge for StaticGraphGeneric<V, E> {
     type Edge = StaticEdge<E>;
     type OptionEdge = OptionalMax<StaticEdge<E>>;
-    type EdgeIndexProp = FnProp<fn(Edge<StaticGraphGeneric<V, E>>) -> usize>;
 }
 
 impl<V: Num, E: Num> WithPair<StaticEdge<E>> for StaticGraphGeneric<V, E> {
@@ -282,6 +280,8 @@ impl<V: Num, E: Num> Incidence for StaticGraphGeneric<V, E> {
 }
 
 impl<V: Num, E: Num> VertexIndex for StaticGraphGeneric<V, E> {
+    type VertexIndexProp = FnProp<fn(Vertex<StaticGraphGeneric<V, E>>) -> usize>;
+
     fn vertex_index(&self) -> VertexIndexProp<Self> {
         // TODO: check if to_usize is being inlined
         FnProp(V::to_usize)
@@ -289,6 +289,8 @@ impl<V: Num, E: Num> VertexIndex for StaticGraphGeneric<V, E> {
 }
 
 impl<V: Num, E: Num> EdgeIndex for StaticGraphGeneric<V, E> {
+    type EdgeIndexProp = FnProp<fn(Edge<StaticGraphGeneric<V, E>>) -> usize>;
+
     fn edge_index(&self) -> EdgeIndexProp<Self> {
         // TODO: check if to_index is being inlined
         FnProp(StaticEdge::<E>::to_index)
