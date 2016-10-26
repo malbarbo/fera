@@ -1,6 +1,7 @@
 use graph::*;
 use choose::Choose;
 use common::IncidenceNeighborIter;
+use delegateprop::*;
 
 use fera::IteratorExt;
 
@@ -20,6 +21,14 @@ pub struct Subgraph<'a, G>
     vertices: VecVertex<G>,
     edges: VecEdge<G>,
     inc: DefaultVertexPropMut<G, VecEdge<G>>,
+}
+
+impl<'a, G> DelegateProp<G> for Subgraph<'a, G>
+    where G: 'a + Graph
+{
+    fn delegate_prop(&self) -> &G {
+        self.g
+    }
 }
 
 impl<'a, G> WithVertex for Subgraph<'a, G>
@@ -121,45 +130,13 @@ impl<'a, G> Incidence for Subgraph<'a, G>
 impl<'a, G, T> WithVertexProp<T> for Subgraph<'a, G>
     where G: 'a + Graph + WithVertexProp<T>
 {
-    type VertexProp = DefaultVertexPropMut<G, T>;
-
-    fn default_vertex_prop(&self, value: T) -> DefaultVertexPropMut<Self, T>
-        where T: Clone
-    {
-        self.g.default_vertex_prop(value)
-    }
+    type VertexProp = DelegateVertexProp<G, T>;
 }
 
 impl<'a, G, T> WithEdgeProp<T> for Subgraph<'a, G>
     where G: 'a + Graph + WithEdgeProp<T>
 {
-    type EdgeProp = DefaultEdgePropMut<G, T>;
-
-    fn default_edge_prop(&self, value: T) -> DefaultEdgePropMut<Self, T>
-        where T: Clone
-    {
-        self.g.default_edge_prop(value)
-    }
-}
-
-impl<'a, G, T> VertexPropMutNew<Subgraph<'a, G>, T> for DefaultVertexPropMut<G, T>
-    where G: 'a + Graph + WithVertexProp<T>
-{
-    fn new_vertex_prop(g: &Subgraph<'a, G>, value: T) -> Self
-        where T: Clone
-    {
-        DefaultVertexPropMut::<G, T>::new_vertex_prop(g.g, value)
-    }
-}
-
-impl<'a, G, T> EdgePropMutNew<Subgraph<'a, G>, T> for DefaultEdgePropMut<G, T>
-    where G: 'a + Graph + WithEdgeProp<T>
-{
-    fn new_edge_prop(g: &Subgraph<'a, G>, value: T) -> Self
-        where T: Clone
-    {
-        DefaultEdgePropMut::<G, T>::new_edge_prop(g.g, value)
-    }
+    type EdgeProp = DelegateEdgeProp<G, T>;
 }
 
 impl<'a, G> BasicVertexProps for Subgraph<'a, G> where G: 'a + Graph {}

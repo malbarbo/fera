@@ -35,6 +35,7 @@ pub mod hashprop;
 pub mod arrayprop;
 
 pub mod common;
+pub mod delegateprop;
 
 pub mod prelude {
     pub use graph::*;
