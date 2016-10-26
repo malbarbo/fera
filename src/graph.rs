@@ -46,8 +46,8 @@ pub trait VertexTypes<'a, G: WithVertex> {
 }
 
 pub trait WithVertex: Sized + for<'a> VertexTypes<'a, Self> {
-    type Vertex: GraphItem;
-    type OptionVertex: Optional<Vertex<Self>> + From<Option<Vertex<Self>>> + PartialEq + Copy;
+    type Vertex: 'static + GraphItem;
+    type OptionVertex: 'static + Optional<Vertex<Self>> + From<Option<Vertex<Self>>> + PartialEq + Copy;
 }
 
 pub trait WithPair<P: GraphItem>: WithVertex {
@@ -77,8 +77,8 @@ pub trait EdgeTypes<'a, G: WithEdge> {
 }
 
 pub trait WithEdge: Sized + WithPair<Edge<Self>> + for<'a> EdgeTypes<'a, Self> {
-    type Edge: GraphItem;
-    type OptionEdge: Optional<Edge<Self>> + From<Option<Edge<Self>>> + PartialEq + Copy;
+    type Edge: 'static + GraphItem;
+    type OptionEdge: 'static + Optional<Edge<Self>> + From<Option<Edge<Self>>> + PartialEq + Copy;
 }
 
 pub trait VertexList: Sized + WithVertex {
