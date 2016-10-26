@@ -1,6 +1,6 @@
 use graph::*;
 use builder::*;
-use hashprop::*;
+use hashmapprop::*;
 
 use fera::IteratorExt;
 
@@ -44,7 +44,7 @@ macro_rules! graph_adj_tests {
 }
 
 pub trait GraphTests {
-    type G: Graph;
+    type G: VertexList + EdgeList;
 
     fn new() -> (Self::G, VecVertex<Self::G>, VecEdge<Self::G>);
 
@@ -121,7 +121,7 @@ pub trait GraphTests {
         where Self::G: Adjacency
     {
         let (g, _, edges) = Self::new();
-        let mut d = HashProp::new(0usize);
+        let mut d = HashMapProp::new(0usize);
         for e in edges {
             let (u, v) = g.ends(e);
             d[u] += 1;
@@ -136,7 +136,7 @@ pub trait GraphTests {
         where Self::G: Incidence
     {
         let (g, _, edges) = Self::new();
-        let mut inc = HashProp::new(VecEdge::<Self::G>::new());
+        let mut inc = HashMapProp::new(VecEdge::<Self::G>::new());
         for e in edges {
             let (u, v) = g.ends(e);
             inc[u].push(e);
@@ -182,7 +182,7 @@ pub trait GraphTests {
         where Self::G: Adjacency
     {
         let (g, _, edges) = Self::new();
-        let mut adj = HashProp::new(VecVertex::<Self::G>::new());
+        let mut adj = HashMapProp::new(VecVertex::<Self::G>::new());
         for e in edges {
             let (u, v) = g.ends(e);
             adj[u].push(v);

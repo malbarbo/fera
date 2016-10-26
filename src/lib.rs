@@ -31,7 +31,7 @@ pub mod props;
 pub mod traverse;
 pub mod unionfind;
 pub mod fnprop;
-pub mod hashprop;
+pub mod hashmapprop;
 pub mod arrayprop;
 
 pub mod common;
