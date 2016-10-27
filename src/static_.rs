@@ -137,7 +137,7 @@ pub type StaticVertex<N> = N;
 
 // StaticGraphGeneric
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct StaticGraphGeneric<V: Num, E: Num> {
     num_vertices: usize,
     ends: Vec<StaticVertex<V>>,
