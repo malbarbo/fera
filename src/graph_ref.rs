@@ -7,15 +7,32 @@ use std::ops::{Index, IndexMut};
 
 impl<'a, 'b, G: WithVertex> VertexTypes<'a, &'b G> for &'b G {
     type VertexIter = VertexIter<'a, G>;
-    type NeighborIter = NeighborIter<'a, G>;
+    type OutNeighborIter = OutNeighborIter<'a, G>;
 }
 
 impl<'a, G: WithVertex> WithVertex for &'a G {
     type Vertex = Vertex<G>;
     type OptionVertex = OptionVertex<G>;
+
+    fn vertex_none() -> OptionVertex<Self> {
+        G::vertex_none()
+    }
+
+    fn vertex_some(v: Vertex<Self>) -> OptionVertex<Self> {
+        G::vertex_some(v)
+    }
 }
 
-impl<'a, G: WithEdge> WithPair<Edge<&'a G>> for &'a G {
+impl<'a, 'b, G: WithEdge> EdgeTypes<'a, &'b G> for &'b G {
+    type EdgeIter = EdgeIter<'a, G>;
+    type OutEdgeIter = OutEdgeIter<'a, G>;
+}
+
+impl<'a, G: WithEdge> WithEdge for &'a G {
+    type Kind = G::Kind;
+    type Edge = Edge<G>;
+    type OptionEdge = OptionEdge<G>;
+
     fn source(&self, e: Edge<Self>) -> Vertex<Self> {
         G::source(self, e)
     }
@@ -31,47 +48,11 @@ impl<'a, G: WithEdge> WithPair<Edge<&'a G>> for &'a G {
     fn opposite(&self, u: Vertex<Self>, e: Edge<Self>) -> Vertex<Self> {
         G::opposite(self, u, e)
     }
-}
 
-impl<'a, 'b, G: WithEdge> EdgeTypes<'a, &'b G> for &'b G {
-    type EdgeIter = EdgeIter<'a, G>;
-    type IncEdgeIter = IncEdgeIter<'a, G>;
-}
-
-impl<'a, G: WithEdge> WithEdge for &'a G {
-    type Edge = Edge<G>;
-    type OptionEdge = OptionEdge<G>;
-}
-
-impl<'a, G: VertexList> VertexList for &'a G {
-    fn vertices(&self) -> VertexIter<Self> {
-        G::vertices(self)
-    }
-
-    fn num_vertices(&self) -> usize {
-        G::num_vertices(self)
-    }
-
-    fn vertex_none() -> OptionVertex<Self> {
-        G::vertex_none()
-    }
-
-    fn vertex_some(v: Vertex<Self>) -> OptionVertex<Self> {
-        G::vertex_some(v)
-    }
-}
-
-impl<'a, G: EdgeList> EdgeList for &'a G {
-    fn edges(&self) -> EdgeIter<Self> {
-        G::edges(self)
-    }
-
-    fn num_edges(&self) -> usize {
-        G::num_edges(self)
-    }
-
-    fn reverse(&self, e: Edge<Self>) -> Edge<Self> {
-        G::reverse(self, e)
+    fn reverse(&self, _e: Edge<Self>) -> Edge<Self> where Self: WithEdge<Kind = Undirected> {
+        // FIXME: implement
+        // G::reverse(self, e)
+        unimplemented!()
     }
 
     fn edge_none() -> OptionEdge<Self> {
@@ -83,19 +64,39 @@ impl<'a, G: EdgeList> EdgeList for &'a G {
     }
 }
 
-impl<'a, G: Adjacency> Adjacency for &'a G {
-    fn neighbors(&self, v: Vertex<Self>) -> NeighborIter<Self> {
-        G::neighbors(self, v)
+impl<'a, G: VertexList> VertexList for &'a G {
+    fn vertices(&self) -> VertexIter<Self> {
+        G::vertices(self)
     }
 
-    fn degree(&self, v: Vertex<Self>) -> usize {
-        G::degree(self, v)
+    fn num_vertices(&self) -> usize {
+        G::num_vertices(self)
+    }
+}
+
+impl<'a, G: EdgeList> EdgeList for &'a G {
+    fn edges(&self) -> EdgeIter<Self> {
+        G::edges(self)
+    }
+
+    fn num_edges(&self) -> usize {
+        G::num_edges(self)
+    }
+}
+
+impl<'a, G: Adjacency> Adjacency for &'a G {
+    fn out_neighbors(&self, v: Vertex<Self>) -> OutNeighborIter<Self> {
+        G::out_neighbors(self, v)
+    }
+
+    fn out_degree(&self, v: Vertex<Self>) -> usize {
+        G::out_degree(self, v)
     }
 }
 
 impl<'a, G: Incidence> Incidence for &'a G {
-    fn inc_edges(&self, v: Vertex<Self>) -> IncEdgeIter<Self> {
-        G::inc_edges(self, v)
+    fn out_edges(&self, v: Vertex<Self>) -> OutEdgeIter<Self> {
+        G::out_edges(self, v)
     }
 }
 

@@ -209,11 +209,10 @@ impl<V: Num, E: Num> WithVertex for StaticGraphGeneric<V, E> {
 }
 
 impl<V: Num, E: Num> WithEdge for StaticGraphGeneric<V, E> {
+    type Kind = Undirected;
     type Edge = StaticEdge<E>;
     type OptionEdge = OptionalMax<StaticEdge<E>>;
-}
 
-impl<V: Num, E: Num> WithPair<StaticEdge<E>> for StaticGraphGeneric<V, E> {
     #[inline(always)]
     fn source(&self, e: Edge<Self>) -> Vertex<Self> {
         self.ends[Num::to_usize(e.0) ^ 1]
@@ -223,16 +222,22 @@ impl<V: Num, E: Num> WithPair<StaticEdge<E>> for StaticGraphGeneric<V, E> {
     fn target(&self, e: Edge<Self>) -> Vertex<Self> {
         self.ends[Num::to_usize(e.0)]
     }
+
+    #[inline(always)]
+    fn reverse(&self, e: Edge<Self>) -> Edge<Self> {
+        e.reverse()
+    }
 }
 
 impl<'a, V: Num, E: Num> VertexTypes<'a, StaticGraphGeneric<V, E>> for StaticGraphGeneric<V, E> {
     type VertexIter = V::Range;
-    type NeighborIter = MapBind1<'a, IncEdgeIter<'a, Self>, Self, Vertex<Self>>;
+    // TODO: Use IncidenceOutNeighborIter
+    type OutNeighborIter = MapBind1<'a, OutEdgeIter<'a, Self>, Self, Vertex<Self>>;
 }
 
 impl<'a, V: Num, E: Num> EdgeTypes<'a, StaticGraphGeneric<V, E>> for StaticGraphGeneric<V, E> {
     type EdgeIter = Map<Range<usize>, fn(usize) -> StaticEdge<E>>;
-    type IncEdgeIter = Cloned<Iter<'a, StaticEdge<E>>>;
+    type OutEdgeIter = Cloned<Iter<'a, StaticEdge<E>>>;
 }
 
 impl<V: Num, E: Num> VertexList for StaticGraphGeneric<V, E> {
@@ -254,27 +259,22 @@ impl<V: Num, E: Num> EdgeList for StaticGraphGeneric<V, E> {
         // TODO: iterate over 1, 3, 5, ...
         (0..self.num_edges()).map(StaticEdge::new)
     }
-
-    #[inline(always)]
-    fn reverse(&self, e: Edge<Self>) -> Edge<Self> {
-        e.reverse()
-    }
 }
 
 impl<V: Num, E: Num> Adjacency for StaticGraphGeneric<V, E> {
     #[inline(always)]
-    fn neighbors(&self, v: Vertex<Self>) -> NeighborIter<Self> {
-        self.inc_edges(v).map_bind1(self, Self::target)
+    fn out_neighbors(&self, v: Vertex<Self>) -> OutNeighborIter<Self> {
+        self.out_edges(v).map_bind1(self, Self::target)
     }
 
     #[inline(always)]
-    fn degree(&self, v: Vertex<Self>) -> usize {
+    fn out_degree(&self, v: Vertex<Self>) -> usize {
         self.inc[Num::to_usize(v)].len()
     }
 }
 
 impl<V: Num, E: Num> Incidence for StaticGraphGeneric<V, E> {
-    fn inc_edges(&self, v: Vertex<Self>) -> IncEdgeIter<Self> {
+    fn out_edges(&self, v: Vertex<Self>) -> OutEdgeIter<Self> {
         self.inc(v).iter().cloned()
     }
 }
@@ -321,7 +321,7 @@ impl<V: Num, E: Num> Choose for StaticGraphGeneric<V, E> {
     }
 
     fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self> {
-        self.inc(v)[rng.gen_range(0, self.degree(v))]
+        self.inc(v)[rng.gen_range(0, self.out_degree(v))]
     }
 }
 

@@ -133,7 +133,7 @@ fn recursive_dfs_visit<G, V>(g: &G,
 {
     vis.discover_vertex(g, u);
     color[u] = Color::Gray;
-    for e in g.inc_edges(u) {
+    for e in g.out_edges(u) {
         if Some(e) == from {
             continue;
         }
@@ -318,7 +318,7 @@ pub struct Dfs<'a, G, C = DefaultVertexPropMut<G, u8>, P = DefaultVertexPropMut<
     pub g: &'a G,
     pub color: C,
     pub parent: P,
-    pub stack: Vec<(Vertex<G>, IncEdgeIter<'a, G>)>,
+    pub stack: Vec<(Vertex<G>, OutEdgeIter<'a, G>)>,
 }
 
 impl<'a, G> Dfs<'a, G>
@@ -340,7 +340,7 @@ impl<'a, G, C, P> Traverser<'a, G> for Dfs<'a, G, C, P>
           P: VertexPropMut<G, OptionEdge<G>>
 {
     fn traverse<V: Visitor<G>>(&mut self, v: Vertex<G>, vis: &mut V) -> bool {
-        self.stack.push((v, self.g.inc_edges(v)));
+        self.stack.push((v, self.g.out_edges(v)));
         self.open(v);
         return_unless!(vis.discover_vertex(self.g, v));
         'out: while let Some((u, mut inc)) = self.stack.pop() {
@@ -350,7 +350,7 @@ impl<'a, G, C, P> Traverser<'a, G> for Dfs<'a, G, C, P>
                     self.open(v);
                     self.mark(e);
                     self.stack.push((u, inc));
-                    self.stack.push((v, self.g.inc_edges(v)));
+                    self.stack.push((v, self.g.out_edges(v)));
                     return_unless!(vis.discover_tree_edge(self.g, e));
                     return_unless!(vis.discover_vertex(self.g, v));
                     continue 'out;
@@ -440,7 +440,7 @@ impl<'a, G, C, P> Traverser<'a, G> for Bfs<'a, G, C, P>
         self.queue.push_back(v);
         self.open(v);
         while let Some(u) = self.queue.pop_front() {
-            for e in self.g.inc_edges(u) {
+            for e in self.g.out_edges(u) {
                 let v = self.g.target(e);
                 if !self.is_discovered(v) {
                     self.open(v);

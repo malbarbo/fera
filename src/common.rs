@@ -1,16 +1,16 @@
 use graph::*;
 
-pub struct IncidenceNeighborIter<I, G> {
+pub struct IncidenceOutNeighborIter<I, G> {
     iter: I,
     g: *const G,
 }
 
-impl<I, G> IncidenceNeighborIter<I, G>
+impl<I, G> IncidenceOutNeighborIter<I, G>
     where I: Iterator<Item = Edge<G>>,
           G: WithEdge
 {
     pub fn new(iter: I, g: &G) -> Self {
-        IncidenceNeighborIter {
+        IncidenceOutNeighborIter {
             iter: iter,
             g: g as *const _,
         }
@@ -18,7 +18,7 @@ impl<I, G> IncidenceNeighborIter<I, G>
 }
 
 
-impl<I, G> Iterator for IncidenceNeighborIter<I, G>
+impl<I, G> Iterator for IncidenceOutNeighborIter<I, G>
     where I: Iterator<Item = Edge<G>>,
           G: WithEdge
 {
@@ -33,7 +33,7 @@ impl<I, G> Iterator for IncidenceNeighborIter<I, G>
     }
 }
 
-impl<I, G> ExactSizeIterator for IncidenceNeighborIter<I, G>
+impl<I, G> ExactSizeIterator for IncidenceOutNeighborIter<I, G>
     where I: Iterator<Item = Edge<G>> + ExactSizeIterator,
           G: WithEdge
 {

@@ -194,17 +194,17 @@ pub trait BuilderTests {
         assert_eq!(3, g.num_vertices());
         assert_eq!(2, g.num_edges());
         assert_eq!(set![HashSet, (v[0], v[1]), (v[0], v[2])],
-                   g.inc_edges(v[0]).map(|e| g.ends(e)).into_hash_set());
+                   g.out_edges(v[0]).map(|e| g.ends(e)).into_hash_set());
 
         for h in 2..10 {
             let (g, v, _) = complete_binary_tree::<Self::G>(h).finalize_();
             assert!(g.is_tree());
-            assert_eq!(2, g.degree(v[0]));
+            assert_eq!(2, g.out_degree(v[0]));
             for i in 1..g.num_vertices() / 2 - 1 {
-                assert_eq!(3, g.degree(v[i]));
+                assert_eq!(3, g.out_degree(v[i]));
             }
             for i in (g.num_vertices() / 2)..g.num_vertices() {
-                assert_eq!(1, g.degree(v[i]));
+                assert_eq!(1, g.out_degree(v[i]));
             }
         }
     }

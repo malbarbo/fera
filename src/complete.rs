@@ -178,11 +178,10 @@ impl WithVertex for CompleteGraph {
 pub type OptionalCompleteEdge = Optioned<CompleteEdge, CompleteEdgeNone>;
 
 impl WithEdge for CompleteGraph {
+    type Kind = Undirected;
     type Edge = CompleteEdge;
     type OptionEdge = OptionalCompleteEdge;
-}
 
-impl WithPair<CompleteEdge> for CompleteGraph {
     fn source(&self, e: Edge<Self>) -> Vertex<Self> {
         e.u
     }
@@ -190,17 +189,21 @@ impl WithPair<CompleteEdge> for CompleteGraph {
     fn target(&self, e: Edge<Self>) -> Vertex<Self> {
         e.v
     }
+
+    fn reverse(&self, e: Edge<Self>) -> Edge<Self> {
+        CompleteEdge::new(e.v, e.u)
+    }
 }
 
 impl<'a> VertexTypes<'a, CompleteGraph> for CompleteGraph {
     type VertexIter = Range<CompleteVertex>;
-    // TODO: write another iterator, do not depend of IncEdgeIter
-    type NeighborIter = MapBind1<'a, IncEdgeIter<'a, Self>, Self, Vertex<Self>>;
+    // TODO: write another iterator, do not depend of OutEdgeIter (IncidenceOutNeighborIter?)
+    type OutNeighborIter = MapBind1<'a, OutEdgeIter<'a, Self>, Self, Vertex<Self>>;
 }
 
 impl<'a> EdgeTypes<'a, CompleteGraph> for CompleteGraph {
     type EdgeIter = EdgesIter;
-    type IncEdgeIter = IncCompleteEdgeIter;
+    type OutEdgeIter = IncCompleteEdgeIter;
 }
 
 impl VertexList for CompleteGraph {
@@ -227,26 +230,22 @@ impl EdgeList for CompleteGraph {
             v: 1,
         }
     }
-
-    fn reverse(&self, e: Edge<Self>) -> Edge<Self> {
-        CompleteEdge::new(e.v, e.u)
-    }
 }
 
 impl Adjacency for CompleteGraph {
-    fn neighbors(&self, v: Vertex<Self>) -> NeighborIter<Self> {
-        self.inc_edges(v).map_bind1(self, Self::target)
+    fn out_neighbors(&self, v: Vertex<Self>) -> OutNeighborIter<Self> {
+        self.out_edges(v).map_bind1(self, Self::target)
     }
 
-    fn degree(&self, _: Vertex<Self>) -> usize {
+    fn out_degree(&self, _: Vertex<Self>) -> usize {
         self.num_vertices() - 1
     }
 }
 
 impl Incidence for CompleteGraph {
-    fn inc_edges(&self, v: Vertex<Self>) -> IncEdgeIter<Self> {
+    fn out_edges(&self, v: Vertex<Self>) -> OutEdgeIter<Self> {
         IncCompleteEdgeIter {
-            rem: self.degree(v),
+            rem: self.out_degree(v),
             u: v,
             v: 0,
         }

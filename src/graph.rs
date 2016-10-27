@@ -8,7 +8,7 @@ pub type Vertex<G> = <G as WithVertex>::Vertex;
 pub type OptionVertex<G> = <G as WithVertex>::OptionVertex;
 pub type VertexIndexProp<G> = <G as VertexIndex>::VertexIndexProp;
 pub type VertexIter<'a, G> = <G as VertexTypes<'a, G>>::VertexIter;
-pub type NeighborIter<'a, G> = <G as VertexTypes<'a, G>>::NeighborIter;
+pub type OutNeighborIter<'a, G> = <G as VertexTypes<'a, G>>::OutNeighborIter;
 pub type DefaultVertexPropMut<G, T> =
     <G as WithVertexProp<T>>::VertexProp;
 pub type VecVertex<G> = Vec<Vertex<G>>;
@@ -17,7 +17,7 @@ pub type Edge<G> = <G as WithEdge>::Edge;
 pub type OptionEdge<G> = <G as WithEdge>::OptionEdge;
 pub type EdgeIndexProp<G> = <G as EdgeIndex>::EdgeIndexProp;
 pub type EdgeIter<'a, G> = <G as EdgeTypes<'a, G>>::EdgeIter;
-pub type IncEdgeIter<'a, G> = <G as EdgeTypes<'a, G>>::IncEdgeIter;
+pub type OutEdgeIter<'a, G> = <G as EdgeTypes<'a, G>>::OutEdgeIter;
 pub type DefaultEdgePropMut<G, T> = <G as WithEdgeProp<T>>::EdgeProp;
 pub type VecEdge<G> = Vec<Edge<G>>;
 
@@ -34,59 +34,30 @@ macro_rules! trait_alias {
     };
 }
 
-trait_alias!(Graph = VertexList + EdgeList + BasicProps);
+trait_alias!(Graph = VertexList + EdgeList<Kind = Undirected> + BasicProps);
 trait_alias!(AdjacencyGraph = Graph + Adjacency);
 trait_alias!(IncidenceGraph = AdjacencyGraph + Incidence);
 
 trait_alias!(GraphItem = Copy + Eq + Hash + Debug);
 
+pub trait EdgeKind {}
+
+pub struct Directed;
+impl EdgeKind for Directed {}
+
+pub struct Undirected;
+impl EdgeKind for Undirected {}
+
+// pub struct Mixed; // for graphs with directed and undirected edges
+
 pub trait VertexTypes<'a, G: WithVertex> {
     type VertexIter: Iterator<Item = Vertex<G>>;
-    type NeighborIter: Iterator<Item = Vertex<G>>;
+    type OutNeighborIter: Iterator<Item = Vertex<G>>;
 }
 
 pub trait WithVertex: Sized + for<'a> VertexTypes<'a, Self> {
     type Vertex: 'static + GraphItem;
     type OptionVertex: 'static + Optional<Vertex<Self>> + From<Option<Vertex<Self>>> + PartialEq + Copy;
-}
-
-pub trait WithPair<P: GraphItem>: WithVertex {
-    fn source(&self, e: P) -> Vertex<Self>;
-
-    fn target(&self, e: P) -> Vertex<Self>;
-
-    fn ends(&self, e: P) -> (Vertex<Self>, Vertex<Self>) {
-        (self.source(e), self.target(e))
-    }
-
-    fn opposite(&self, u: Vertex<Self>, e: P) -> Vertex<Self> {
-        let (s, t) = self.ends(e);
-        if u == s {
-            t
-        } else if u == t {
-            s
-        } else {
-            panic!("u is not an end of e");
-        }
-    }
-}
-
-pub trait EdgeTypes<'a, G: WithEdge> {
-    type EdgeIter: Iterator<Item = Edge<G>>;
-    type IncEdgeIter: Iterator<Item = Edge<G>>;
-}
-
-pub trait WithEdge: Sized + WithPair<Edge<Self>> + for<'a> EdgeTypes<'a, Self> {
-    type Edge: 'static + GraphItem;
-    type OptionEdge: 'static + Optional<Edge<Self>> + From<Option<Edge<Self>>> + PartialEq + Copy;
-}
-
-pub trait VertexList: Sized + WithVertex {
-    fn vertices(&self) -> VertexIter<Self>;
-
-    fn num_vertices(&self) -> usize {
-        self.vertices().count()
-    }
 
     // TODO: is this necessary?
     fn vertex_none() -> OptionVertex<Self> {
@@ -99,14 +70,38 @@ pub trait VertexList: Sized + WithVertex {
     }
 }
 
-pub trait EdgeList: Sized + WithEdge {
-    fn edges(&self) -> EdgeIter<Self>;
+pub trait EdgeTypes<'a, G: WithEdge> {
+    type EdgeIter: Iterator<Item = Edge<G>>;
+    type OutEdgeIter: Iterator<Item = Edge<G>>;
+}
 
-    fn num_edges(&self) -> usize {
-        self.edges().count()
+pub trait WithEdge: Sized + WithVertex + for<'a> EdgeTypes<'a, Self> {
+    type Kind: EdgeKind;
+    type Edge: 'static + GraphItem;
+    type OptionEdge: 'static + Optional<Edge<Self>> + From<Option<Edge<Self>>> + PartialEq + Copy;
+
+    fn source(&self, e: Edge<Self>) -> Vertex<Self>;
+
+    fn target(&self, e: Edge<Self>) -> Vertex<Self>;
+
+    fn ends(&self, e: Edge<Self>) -> (Vertex<Self>, Vertex<Self>) {
+        (self.source(e), self.target(e))
     }
 
-    fn reverse(&self, e: Edge<Self>) -> Edge<Self>;
+    fn opposite(&self, u: Vertex<Self>, e: Edge<Self>) -> Vertex<Self> {
+        let (s, t) = self.ends(e);
+        if u == s {
+            t
+        } else if u == t {
+            s
+        } else {
+            panic!("u is not an end of e");
+        }
+    }
+
+    // TODO: return Optional<Edge<Self>> so it can be implemented for any kind (we can also have a
+    // None default implementation)
+    fn reverse(&self, e: Edge<Self>) -> Edge<Self> where Self: WithEdge<Kind = Undirected>;
 
     // TODO: is this necessary?
     fn edge_none() -> OptionEdge<Self> {
@@ -119,19 +114,36 @@ pub trait EdgeList: Sized + WithEdge {
     }
 }
 
-pub trait Adjacency: WithVertex {
-    fn neighbors(&self, v: Vertex<Self>) -> NeighborIter<Self>;
+pub trait VertexList: Sized + WithVertex {
+    fn vertices(&self) -> VertexIter<Self>;
 
-    fn degree(&self, v: Vertex<Self>) -> usize {
-        self.neighbors(v).count()
+    fn num_vertices(&self) -> usize {
+        self.vertices().count()
+    }
+}
+
+pub trait EdgeList: Sized + WithEdge {
+    fn edges(&self) -> EdgeIter<Self>;
+
+    fn num_edges(&self) -> usize {
+        self.edges().count()
+    }
+}
+
+pub trait Adjacency: WithVertex {
+    fn out_neighbors(&self, v: Vertex<Self>) -> OutNeighborIter<Self>;
+
+    fn out_degree(&self, v: Vertex<Self>) -> usize {
+        self.out_neighbors(v).count()
     }
 }
 
 pub trait Incidence: WithEdge + Adjacency {
-    fn inc_edges(&self, v: Vertex<Self>) -> IncEdgeIter<Self>;
+    fn out_edges(&self, v: Vertex<Self>) -> OutEdgeIter<Self>;
 }
 
 pub trait EdgeByEnds: WithEdge + WithVertex {
+    // TODO: Move to EdgeList? What if there is more than one edge?
     fn edge_by_ends(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Edge<Self>>;
 }
 

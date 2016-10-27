@@ -1,6 +1,6 @@
 use graph::*;
 use choose::Choose;
-use common::IncidenceNeighborIter;
+use common::IncidenceOutNeighborIter;
 use delegateprop::*;
 
 use fera::IteratorExt;
@@ -31,6 +31,13 @@ impl<'a, G> DelegateProp<G> for Subgraph<'a, G>
     }
 }
 
+impl<'a, 'b, G> VertexTypes<'a, Subgraph<'b, G>> for Subgraph<'b, G>
+    where G: 'b + Graph
+{
+    type VertexIter = Cloned<slice::Iter<'a, Vertex<G>>>;
+    type OutNeighborIter = IncidenceOutNeighborIter<Cloned<slice::Iter<'a, Edge<G>>>, G>;
+}
+
 impl<'a, G> WithVertex for Subgraph<'a, G>
     where G: 'a + Graph
 {
@@ -38,16 +45,20 @@ impl<'a, G> WithVertex for Subgraph<'a, G>
     type OptionVertex = OptionVertex<G>;
 }
 
+impl<'a, 'b, G> EdgeTypes<'a, Subgraph<'b, G>> for Subgraph<'b, G>
+    where G: 'b + Graph
+{
+    type EdgeIter = Cloned<slice::Iter<'a, Edge<G>>>;
+    type OutEdgeIter = Cloned<slice::Iter<'a, Edge<G>>>;
+}
+
 impl<'a, G> WithEdge for Subgraph<'a, G>
     where G: 'a + Graph
 {
+    type Kind = G::Kind;
     type Edge = Edge<G>;
     type OptionEdge = OptionEdge<G>;
-}
 
-impl<'a, G> WithPair<Edge<Subgraph<'a, G>>> for Subgraph<'a, G>
-    where G: 'a + Graph
-{
     fn source(&self, e: Edge<Self>) -> Vertex<Self> {
         self.g.source(e)
     }
@@ -63,13 +74,10 @@ impl<'a, G> WithPair<Edge<Subgraph<'a, G>>> for Subgraph<'a, G>
     fn opposite(&self, u: Vertex<Self>, e: Edge<Self>) -> Vertex<Self> {
         self.g.opposite(u, e)
     }
-}
 
-impl<'a, 'b, G> VertexTypes<'a, Subgraph<'b, G>> for Subgraph<'b, G>
-    where G: 'b + Graph
-{
-    type VertexIter = Cloned<slice::Iter<'a, Vertex<G>>>;
-    type NeighborIter = IncidenceNeighborIter<Cloned<slice::Iter<'a, Edge<G>>>, G>;
+    fn reverse(&self, e: Edge<Self>) -> Edge<Self> {
+        self.g.reverse(e)
+    }
 }
 
 impl<'a, G> VertexList for Subgraph<'a, G>
@@ -84,13 +92,6 @@ impl<'a, G> VertexList for Subgraph<'a, G>
     }
 }
 
-impl<'a, 'b, G> EdgeTypes<'a, Subgraph<'b, G>> for Subgraph<'b, G>
-    where G: 'b + Graph
-{
-    type EdgeIter = Cloned<slice::Iter<'a, Edge<G>>>;
-    type IncEdgeIter = Cloned<slice::Iter<'a, Edge<G>>>;
-}
-
 impl<'a, G> EdgeList for Subgraph<'a, G>
     where G: 'a + Graph
 {
@@ -101,20 +102,16 @@ impl<'a, G> EdgeList for Subgraph<'a, G>
     fn edges(&self) -> EdgeIter<Self> {
         self.edges.iter().cloned()
     }
-
-    fn reverse(&self, e: Edge<Self>) -> Edge<Self> {
-        self.g.reverse(e)
-    }
 }
 
 impl<'a, G> Adjacency for Subgraph<'a, G>
     where G: 'a + Graph
 {
-    fn neighbors(&self, v: Vertex<Self>) -> NeighborIter<Self> {
-        IncidenceNeighborIter::new(self.inc_edges(v), self.g)
+    fn out_neighbors(&self, v: Vertex<Self>) -> OutNeighborIter<Self> {
+        IncidenceOutNeighborIter::new(self.out_edges(v), self.g)
     }
 
-    fn degree(&self, v: Vertex<Self>) -> usize {
+    fn out_degree(&self, v: Vertex<Self>) -> usize {
         self.inc[v].len()
     }
 }
@@ -122,7 +119,7 @@ impl<'a, G> Adjacency for Subgraph<'a, G>
 impl<'a, G> Incidence for Subgraph<'a, G>
     where G: 'a + Graph
 {
-    fn inc_edges(&self, v: Vertex<Self>) -> IncEdgeIter<Self> {
+    fn out_edges(&self, v: Vertex<Self>) -> OutEdgeIter<Self> {
         self.inc[v].iter().cloned()
     }
 }
@@ -160,7 +157,7 @@ impl<'a, G> Choose for Subgraph<'a, G>
     }
 
     fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self> {
-        self.inc[v][rng.gen_range(0, self.degree(v))]
+        self.inc[v][rng.gen_range(0, self.out_degree(v))]
     }
 }
 
@@ -243,7 +240,7 @@ impl<G: Graph> WithSubgraph<G> for G {
             edges = vec![];
             inc = g.default_vertex_prop(Vec::<Edge<G>>::new());
             for &u in &vertices {
-                for e in g.inc_edges(u) {
+                for e in g.out_edges(u) {
                     let v = g.target(e);
                     // FIXME: this running time is terrible, improve
                     if vertices.contains(&v) {
@@ -290,11 +287,11 @@ mod tests {
         let s = g.spanning_subgraph(vec![e02, e12]);
         assert_eq!(vec![0, 1, 2, 3, 4], s.vertices().into_vec());
         assert_eq!(set![HashSet, e02, e12], s.edges().into_hash_set());
-        assert_eq!(set![HashSet, e02], s.inc_edges(0).into_hash_set());
-        assert_eq!(set![HashSet, e12], s.inc_edges(1).into_hash_set());
-        assert_eq!(set![HashSet, e02, e12], s.inc_edges(2).into_hash_set());
-        assert_eq!(set![HashSet], s.inc_edges(3).into_hash_set());
-        assert_eq!(set![HashSet], s.inc_edges(4).into_hash_set());
+        assert_eq!(set![HashSet, e02], s.out_edges(0).into_hash_set());
+        assert_eq!(set![HashSet, e12], s.out_edges(1).into_hash_set());
+        assert_eq!(set![HashSet, e02, e12], s.out_edges(2).into_hash_set());
+        assert_eq!(set![HashSet], s.out_edges(3).into_hash_set());
+        assert_eq!(set![HashSet], s.out_edges(4).into_hash_set());
     }
 
     #[test]
@@ -303,12 +300,12 @@ mod tests {
         let s = g.edge_induced_subgraph(vec![e01, e02]);
         assert_eq!(set![HashSet, 0, 1, 2], s.vertices().into_hash_set());
         assert_eq!(set![HashSet, e01, e02], s.edges().into_hash_set());
-        assert_eq!(set![HashSet, e01, e02], s.inc_edges(0).into_hash_set());
-        assert_eq!(set![HashSet, 1, 2], s.neighbors(0).into_hash_set());
-        assert_eq!(set![HashSet, e01], s.inc_edges(1).into_hash_set());
-        assert_eq!(set![HashSet, 0], s.neighbors(1).into_hash_set());
-        assert_eq!(set![HashSet, e02], s.inc_edges(2).into_hash_set());
-        assert_eq!(set![HashSet, 0], s.neighbors(2).into_hash_set());
+        assert_eq!(set![HashSet, e01, e02], s.out_edges(0).into_hash_set());
+        assert_eq!(set![HashSet, 1, 2], s.out_neighbors(0).into_hash_set());
+        assert_eq!(set![HashSet, e01], s.out_edges(1).into_hash_set());
+        assert_eq!(set![HashSet, 0], s.out_neighbors(1).into_hash_set());
+        assert_eq!(set![HashSet, e02], s.out_edges(2).into_hash_set());
+        assert_eq!(set![HashSet, 0], s.out_neighbors(2).into_hash_set());
     }
 
     #[test]
@@ -317,8 +314,8 @@ mod tests {
         let s = g.induced_subgraph(vec![0, 1, 2]);
         assert_eq!(set![HashSet, 0, 1, 2], s.vertices().into_hash_set());
         assert_eq!(set![HashSet, e01, e02, e12], s.edges().into_hash_set());
-        assert_eq!(set![HashSet, e01, e02], s.inc_edges(0).into_hash_set());
-        assert_eq!(set![HashSet, e01, e12], s.inc_edges(1).into_hash_set());
-        assert_eq!(set![HashSet, e02, e12], s.inc_edges(2).into_hash_set());
+        assert_eq!(set![HashSet, e01, e02], s.out_edges(0).into_hash_set());
+        assert_eq!(set![HashSet, e01, e12], s.out_edges(1).into_hash_set());
+        assert_eq!(set![HashSet, e02, e12], s.out_edges(2).into_hash_set());
     }
 }

@@ -25,8 +25,8 @@ macro_rules! graph_basic_tests {
             option_edge,
             reverse,
             opposite,
-            degree,
-            inc_edges
+            out_degree,
+            out_edges
         }
     )
 }
@@ -39,7 +39,7 @@ macro_rules! graph_prop_tests {
 
 macro_rules! graph_adj_tests {
     ($T: ident) => (
-        delegate_tests!{$T, neighbors}
+        delegate_tests!{$T, out_neighbors}
     )
 }
 
@@ -92,7 +92,7 @@ pub trait GraphTests {
         assert_eq!(Some(e), Self::G::edge_some(e).into_option());
     }
 
-    fn reverse() {
+    fn reverse() where Self::G: WithEdge<Kind = Undirected> {
         use std::hash::{Hash, Hasher, SipHasher};
         fn hash<T: Hash>(t: T) -> u64 {
             let mut s = SipHasher::new();
@@ -117,7 +117,7 @@ pub trait GraphTests {
         }
     }
 
-    fn degree()
+    fn out_degree()
         where Self::G: Adjacency
     {
         let (g, _, edges) = Self::new();
@@ -128,12 +128,12 @@ pub trait GraphTests {
             d[v] += 1;
         }
         for u in g.vertices() {
-            assert_eq!(d[u], g.degree(u))
+            assert_eq!(d[u], g.out_degree(u))
         }
     }
 
-    fn inc_edges()
-        where Self::G: Incidence
+    fn out_edges()
+        where Self::G: Incidence + WithEdge<Kind = Undirected>
     {
         let (g, _, edges) = Self::new();
         let mut inc = HashMapProp::new(VecEdge::<Self::G>::new());
@@ -143,11 +143,11 @@ pub trait GraphTests {
             inc[v].push(g.reverse(e));
         }
         for u in g.vertices() {
-            for e in g.inc_edges(u) {
+            for e in g.out_edges(u) {
                 assert_eq!(u, g.source(e));
             }
             assert_eq!(inc[u].iter().cloned().into_hash_set(),
-                       g.inc_edges(u).into_hash_set());
+                       g.out_edges(u).into_hash_set());
         }
     }
 
@@ -165,7 +165,7 @@ pub trait GraphTests {
     }
 
     fn edge_prop()
-        where Self::G: WithEdgeProp<usize>
+        where Self::G: WithEdgeProp<usize> + WithEdge<Kind = Undirected>
     {
         let (g, _, _) = Self::new();
         let mut p = g.default_edge_prop(0usize);
@@ -178,7 +178,7 @@ pub trait GraphTests {
         }
     }
 
-    fn neighbors()
+    fn out_neighbors()
         where Self::G: Adjacency
     {
         let (g, _, edges) = Self::new();
@@ -190,7 +190,7 @@ pub trait GraphTests {
         }
         for u in g.vertices() {
             assert_eq!(adj[u].iter().cloned().into_hash_set(),
-                       g.neighbors(u).into_hash_set());
+                       g.out_neighbors(u).into_hash_set());
         }
     }
 }
