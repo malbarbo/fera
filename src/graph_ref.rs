@@ -41,6 +41,10 @@ impl<'a, G: WithEdge> WithEdge for &'a G {
         G::target(self, e)
     }
 
+    fn orientation(&self, e: Edge<Self>) -> Orientation {
+        G::orientation(self, e)
+    }
+
     fn ends(&self, e: Edge<Self>) -> (Vertex<Self>, Vertex<Self>) {
         G::ends(self, e)
     }
@@ -49,10 +53,15 @@ impl<'a, G: WithEdge> WithEdge for &'a G {
         G::opposite(self, u, e)
     }
 
-    fn reverse(&self, _e: Edge<Self>) -> Edge<Self> where Self: WithEdge<Kind = Undirected> {
-        // FIXME: implement
-        // G::reverse(self, e)
-        unimplemented!()
+    // The compiler is not smart enough to allow this, so we use the default reverse
+    // implemenetation
+    //
+    // fn reverse(&self, e: Edge<Self>) -> Edge<Self> where Self: WithEdge<Kind = Undirected> {
+    //     G::reverse(self, e)
+    // }
+
+    fn get_reverse(&self, e: Edge<Self>) -> Option<Edge<Self>> {
+        G::get_reverse(self, e)
     }
 
     fn edge_none() -> OptionEdge<Self> {

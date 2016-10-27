@@ -67,6 +67,10 @@ impl<'a, G> WithEdge for Subgraph<'a, G>
         self.g.target(e)
     }
 
+    fn orientation(&self, e: Edge<Self>) -> Orientation {
+        self.g.orientation(e)
+    }
+
     fn ends(&self, e: Edge<Self>) -> (Vertex<Self>, Vertex<Self>) {
         self.g.ends(e)
     }
@@ -77,6 +81,10 @@ impl<'a, G> WithEdge for Subgraph<'a, G>
 
     fn reverse(&self, e: Edge<Self>) -> Edge<Self> {
         self.g.reverse(e)
+    }
+
+    fn get_reverse(&self, e: Edge<Self>) -> Option<Edge<Self>> {
+        self.g.get_reverse(e)
     }
 }
 

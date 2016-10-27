@@ -6,6 +6,8 @@ extern crate test;
 
 extern crate num;
 extern crate rand;
+#[cfg(test)]
+extern crate itertools;
 
 #[macro_use]
 extern crate fera;

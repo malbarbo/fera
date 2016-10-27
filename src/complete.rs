@@ -190,8 +190,16 @@ impl WithEdge for CompleteGraph {
         e.v
     }
 
+    fn orientation(&self, _e: Edge<Self>) -> Orientation {
+        Orientation::Undirected
+    }
+
     fn reverse(&self, e: Edge<Self>) -> Edge<Self> {
         CompleteEdge::new(e.v, e.u)
+    }
+
+    fn get_reverse(&self, e: Edge<Self>) -> Option<Edge<Self>> {
+        Some(self.reverse(e))
     }
 }
 
@@ -364,9 +372,7 @@ mod tests {
             }
         }
 
-        graph_basic_tests!{Test}
-        graph_prop_tests!{Test}
-        graph_adj_tests!{Test}
+        graph_tests!{Test}
     }
 
     mod k1 {
@@ -382,9 +388,7 @@ mod tests {
             }
         }
 
-        graph_basic_tests!{Test}
-        graph_prop_tests!{Test}
-        graph_adj_tests!{Test}
+        graph_tests!{Test}
     }
 
     mod k2 {
@@ -400,9 +404,7 @@ mod tests {
             }
         }
 
-        graph_basic_tests!{Test}
-        graph_prop_tests!{Test}
-        graph_adj_tests!{Test}
+        graph_tests!{Test}
     }
 
     mod k5 {
@@ -421,8 +423,6 @@ mod tests {
             }
         }
 
-        graph_basic_tests!{Test}
-        graph_prop_tests!{Test}
-        graph_adj_tests!{Test}
+        graph_tests!{Test}
     }
 }

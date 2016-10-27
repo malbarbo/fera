@@ -2,7 +2,9 @@ use graph::*;
 use builder::*;
 use hashmapprop::*;
 
-use fera::IteratorExt;
+use std::collections::HashSet;
+
+use itertools::{cloned, enumerate};
 
 macro_rules! delegate_tests {
     ($T: ident, $($names: ident),+) => (
@@ -15,17 +17,34 @@ macro_rules! delegate_tests {
     )
 }
 
-macro_rules! graph_basic_tests {
+macro_rules! graph_vertex_list_tests {
     ($T: ident) => (
         delegate_tests!{
             $T,
             vertices,
-            option_vertex,
+            option_vertex
+        }
+    )
+}
+
+macro_rules! graph_edge_list_tests {
+    ($T: ident) => (
+        delegate_tests!{
+            $T,
             edges,
             option_edge,
+            ends,
             reverse,
-            opposite,
-            out_degree,
+            opposite
+        }
+    )
+}
+
+macro_rules! graph_incidence_tests {
+    ($T: ident) => (
+        delegate_tests!{
+            $T,
+            out_neighbors,
             out_edges
         }
     )
@@ -33,18 +52,39 @@ macro_rules! graph_basic_tests {
 
 macro_rules! graph_prop_tests {
     ($T: ident) => (
-        delegate_tests!{$T, vertex_prop, edge_prop}
+        delegate_tests!{
+            $T,
+            vertex_prop,
+            edge_prop
+        }
     )
 }
 
-macro_rules! graph_adj_tests {
+macro_rules! graph_tests {
     ($T: ident) => (
-        delegate_tests!{$T, out_neighbors}
+        graph_vertex_list_tests!{$T}
+        graph_edge_list_tests!{$T}
+        graph_incidence_tests!{$T}
+        graph_prop_tests!{$T}
     )
+}
+
+
+pub fn set<I>(iter: I) -> HashSet<I::Item>
+    where I: IntoIterator,
+          I::Item: Eq + ::std::hash::Hash
+{
+    iter.into_iter().collect()
+}
+
+pub fn vec<I>(iter: I) -> Vec<I::Item>
+    where I: IntoIterator
+{
+    iter.into_iter().collect()
 }
 
 pub trait GraphTests {
-    type G: VertexList + EdgeList;
+    type G: WithVertex + WithEdge;
 
     fn new() -> (Self::G, VecVertex<Self::G>, VecEdge<Self::G>);
 
@@ -58,53 +98,87 @@ pub trait GraphTests {
         b.finalize_()
     }
 
-    fn vertices() {
+    fn vertices()
+        where Self::G: VertexList
+    {
         let (g, vertices, _) = Self::new();
+        assert_eq!(vertices.len(),
+                   set(cloned(&vertices)).len(),
+                   "found repeated vertices");
         assert_eq!(vertices.len(), g.num_vertices());
-        assert_eq!(vertices, g.vertices().into_vec());
+        assert_eq!(vertices, vec(g.vertices()));
     }
 
     fn option_vertex() {
         let (_, vertices, _) = Self::new();
-        assert_eq!(None, Self::G::vertex_none().into_option());
-        if vertices.is_empty() {
-            return;
+        let mut v = Self::G::vertex_none();
+        assert_eq!(None, v.to_option_ref());
+        assert_eq!(None, v.to_option_mut());
+        assert_eq!(None, v.into_option());
+        for mut v in vertices {
+            let mut vv = Self::G::vertex_some(v);
+            assert_eq!(Some(&v), vv.to_option_ref());
+            assert_eq!(Some(&mut v), vv.to_option_mut());
+            assert_eq!(Some(v), vv.into_option());
         }
-        let u = vertices[0];
-        assert_eq!(Some(u), Self::G::vertex_some(u).into_option());
     }
 
-    fn edges() {
+    fn edges()
+        where Self::G: EdgeList
+    {
         let (g, _, edges) = Self::new();
+        assert_eq!(edges.len(),
+                   set(cloned(&edges)).len(),
+                   "found repeated edges");
         assert_eq!(edges.len(), g.num_edges());
-        assert_eq!(edges, g.edges().into_vec());
-        assert_eq!(edges.iter().map(|e| g.ends(*e)).into_vec(),
-                   g.edges().map(|e| g.ends(e)).into_vec());
+        assert_eq!(edges, vec(g.edges()));
+        assert_eq!(vec(edges.iter().map(|e| g.ends(*e))),
+                   vec(g.edges().map(|e| g.ends(e))));
     }
 
     fn option_edge() {
         let (_, _, edges) = Self::new();
-        assert_eq!(None, Self::G::edge_none().into_option());
-        if edges.is_empty() {
-            return;
+        let mut e = Self::G::edge_none();
+        assert_eq!(None, e.to_option_ref());
+        assert_eq!(None, e.to_option_mut());
+        assert_eq!(None, e.into_option());
+        for mut e in edges {
+            let mut ee = Self::G::edge_some(e);
+            assert_eq!(Some(&e), ee.to_option_ref());
+            assert_eq!(Some(&mut e), ee.to_option_mut());
+            assert_eq!(Some(e), ee.into_option());
         }
-        let e = edges[0];
-        assert_eq!(Some(e), Self::G::edge_some(e).into_option());
     }
 
-    fn reverse() where Self::G: WithEdge<Kind = Undirected> {
+    fn ends() {
+        let (g, _, edges) = Self::new();
+        for e in edges {
+            let (u, v) = g.ends(e);
+            assert_eq!(u, g.source(e));
+            assert_eq!(v, g.target(e));
+        }
+    }
+
+    fn reverse()
+        where Self::G: WithEdge<Kind = Undirected>
+    {
         use std::hash::{Hash, Hasher, SipHasher};
         fn hash<T: Hash>(t: T) -> u64 {
             let mut s = SipHasher::new();
             t.hash(&mut s);
             s.finish()
         }
-        let (g, _, _) = Self::new();
-        for e in g.edges() {
+        let (g, _, edges) = Self::new();
+        for e in edges {
             let (u, v) = g.ends(e);
-            assert_eq!(e, g.reverse(e));
-            assert_eq!(hash(e), hash(g.reverse(e)));
-            assert_eq!((v, u), g.ends(g.reverse(e)));
+            if g.is_undirected_edge(e) {
+                let r = g.reverse(e);
+                assert_eq!(e, r);
+                assert_eq!(hash(e), hash(r));
+                assert_eq!(v, g.source(r));
+                assert_eq!(u, g.target(r));
+                assert_eq!((v, u), g.ends(r));
+            }
         }
     }
 
@@ -117,17 +191,23 @@ pub trait GraphTests {
         }
     }
 
-    fn out_degree()
+    fn out_neighbors()
         where Self::G: Adjacency
     {
-        let (g, _, edges) = Self::new();
+        let (g, vertices, edges) = Self::new();
+        let mut n = HashMapProp::new(VecVertex::<Self::G>::new());
         let mut d = HashMapProp::new(0usize);
         for e in edges {
             let (u, v) = g.ends(e);
+            n[u].push(v);
             d[u] += 1;
-            d[v] += 1;
+            if g.is_undirected_edge(e) {
+                n[v].push(u);
+                d[v] += 1;
+            }
         }
-        for u in g.vertices() {
+        for u in vertices {
+            assert_eq!(set(cloned(&n[u])), set(g.out_neighbors(u)));
             assert_eq!(d[u], g.out_degree(u))
         }
     }
@@ -135,62 +215,54 @@ pub trait GraphTests {
     fn out_edges()
         where Self::G: Incidence + WithEdge<Kind = Undirected>
     {
-        let (g, _, edges) = Self::new();
+        let (g, vertices, edges) = Self::new();
         let mut inc = HashMapProp::new(VecEdge::<Self::G>::new());
         for e in edges {
             let (u, v) = g.ends(e);
             inc[u].push(e);
-            inc[v].push(g.reverse(e));
+            if g.is_undirected_edge(e) {
+                inc[v].push(g.reverse(e));
+            }
         }
-        for u in g.vertices() {
+        for u in vertices {
+            let mut out = HashSet::new();
             for e in g.out_edges(u) {
                 assert_eq!(u, g.source(e));
+                assert!(out.insert(e),
+                        "found repeated out edge = {:?} = {:?}",
+                        e,
+                        g.ends(e));
             }
-            assert_eq!(inc[u].iter().cloned().into_hash_set(),
-                       g.out_edges(u).into_hash_set());
+            assert_eq!(set(cloned(&inc[u])), out);
         }
     }
 
     fn vertex_prop()
         where Self::G: WithVertexProp<usize>
     {
-        let (g, _, _) = Self::new();
+        let (g, vertices, _) = Self::new();
         let mut p = g.default_vertex_prop(0usize);
-        for (i, u) in g.vertices().enumerate() {
+        for (i, u) in cloned(&vertices).enumerate() {
             p[u] = 10 * i;
         }
-        for (i, u) in g.vertices().enumerate() {
+        for (i, u) in enumerate(vertices) {
             assert_eq!(10 * i, p[u])
         }
     }
 
     fn edge_prop()
-        where Self::G: WithEdgeProp<usize> + WithEdge<Kind = Undirected>
-    {
-        let (g, _, _) = Self::new();
-        let mut p = g.default_edge_prop(0usize);
-        for (i, e) in g.edges().enumerate() {
-            p[e] = 10 * i;
-        }
-        for (i, e) in g.edges().enumerate() {
-            assert_eq!(10 * i, p[e]);
-            assert_eq!(10 * i, p[g.reverse(e)])
-        }
-    }
-
-    fn out_neighbors()
-        where Self::G: Adjacency
+        where Self::G: WithEdgeProp<usize>
     {
         let (g, _, edges) = Self::new();
-        let mut adj = HashMapProp::new(VecVertex::<Self::G>::new());
-        for e in edges {
-            let (u, v) = g.ends(e);
-            adj[u].push(v);
-            adj[v].push(u);
+        let mut p = g.default_edge_prop(0usize);
+        for (i, e) in cloned(&edges).enumerate() {
+            p[e] = i + 1;
         }
-        for u in g.vertices() {
-            assert_eq!(adj[u].iter().cloned().into_hash_set(),
-                       g.out_neighbors(u).into_hash_set());
+        for (i, e) in enumerate(edges) {
+            assert_eq!(i + 1, p[e]);
+            if g.is_undirected_edge(e) {
+                assert_eq!(i + 1, p[g.get_reverse(e).unwrap()])
+            }
         }
     }
 }

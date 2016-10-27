@@ -8,7 +8,8 @@ pub type Vertex<G> = <G as WithVertex>::Vertex;
 pub type OptionVertex<G> = <G as WithVertex>::OptionVertex;
 pub type VertexIndexProp<G> = <G as VertexIndex>::VertexIndexProp;
 pub type VertexIter<'a, G> = <G as VertexTypes<'a, G>>::VertexIter;
-pub type OutNeighborIter<'a, G> = <G as VertexTypes<'a, G>>::OutNeighborIter;
+pub type OutNeighborIter<'a, G> =
+    <G as VertexTypes<'a, G>>::OutNeighborIter;
 pub type DefaultVertexPropMut<G, T> =
     <G as WithVertexProp<T>>::VertexProp;
 pub type VecVertex<G> = Vec<Vertex<G>>;
@@ -40,12 +41,18 @@ trait_alias!(IncidenceGraph = AdjacencyGraph + Incidence);
 
 trait_alias!(GraphItem = Copy + Eq + Hash + Debug);
 
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
+pub enum Orientation {
+    Directed,
+    Undirected,
+}
+
 pub trait EdgeKind {}
 
-pub struct Directed;
+pub enum Directed {}
 impl EdgeKind for Directed {}
 
-pub struct Undirected;
+pub enum Undirected {}
 impl EdgeKind for Undirected {}
 
 // pub struct Mixed; // for graphs with directed and undirected edges
@@ -84,6 +91,16 @@ pub trait WithEdge: Sized + WithVertex + for<'a> EdgeTypes<'a, Self> {
 
     fn target(&self, e: Edge<Self>) -> Vertex<Self>;
 
+    fn orientation(&self, _e: Edge<Self>) -> Orientation;
+
+    fn is_directed_edge(&self, e: Edge<Self>) -> bool {
+        self.orientation(e) == Orientation::Directed
+    }
+
+    fn is_undirected_edge(&self, e: Edge<Self>) -> bool {
+        self.orientation(e) == Orientation::Undirected
+    }
+
     fn ends(&self, e: Edge<Self>) -> (Vertex<Self>, Vertex<Self>) {
         (self.source(e), self.target(e))
     }
@@ -99,9 +116,16 @@ pub trait WithEdge: Sized + WithVertex + for<'a> EdgeTypes<'a, Self> {
         }
     }
 
-    // TODO: return Optional<Edge<Self>> so it can be implemented for any kind (we can also have a
-    // None default implementation)
-    fn reverse(&self, e: Edge<Self>) -> Edge<Self> where Self: WithEdge<Kind = Undirected>;
+    fn reverse(&self, e: Edge<Self>) -> Edge<Self>
+        where Self: WithEdge<Kind = Undirected>
+    {
+        self.get_reverse(e)
+            .expect("the reverse of an edge (all undirected graphs must implement reverse)")
+    }
+
+    fn get_reverse(&self, _e: Edge<Self>) -> Option<Edge<Self>> {
+        None
+    }
 
     // TODO: is this necessary?
     fn edge_none() -> OptionEdge<Self> {

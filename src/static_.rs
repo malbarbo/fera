@@ -219,6 +219,11 @@ impl<V: Num, E: Num> WithEdge for StaticGraphGeneric<V, E> {
     }
 
     #[inline(always)]
+    fn orientation(&self, _e: Edge<Self>) -> Orientation {
+        Orientation::Undirected
+    }
+
+    #[inline(always)]
     fn target(&self, e: Edge<Self>) -> Vertex<Self> {
         self.ends[Num::to_usize(e.0)]
     }
@@ -226,6 +231,11 @@ impl<V: Num, E: Num> WithEdge for StaticGraphGeneric<V, E> {
     #[inline(always)]
     fn reverse(&self, e: Edge<Self>) -> Edge<Self> {
         e.reverse()
+    }
+
+    #[inline(always)]
+    fn get_reverse(&self, e: Edge<Self>) -> Option<Edge<Self>> {
+        Some(self.reverse(e))
     }
 }
 
@@ -361,9 +371,7 @@ mod tests {
         }
     }
 
-    graph_basic_tests!{Test}
-    graph_prop_tests!{Test}
-    graph_adj_tests!{Test}
+    graph_tests!{Test}
 
     mod with_builder {
         use builder::BuilderTests;
