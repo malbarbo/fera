@@ -47,15 +47,58 @@ pub enum Orientation {
     Undirected,
 }
 
+impl Orientation {
+    fn is_directed(&self) -> bool {
+        *self == Orientation::Directed
+    }
+
+    fn is_undirected(&self) -> bool {
+        *self == Orientation::Undirected
+    }
+}
+
 pub trait EdgeKind {}
 
+pub trait UniformEdgeKind: EdgeKind {
+    fn orientation() -> Orientation;
+
+    fn is_directed() -> bool {
+        Self::orientation().is_directed()
+    }
+
+    fn is_undirected() -> bool {
+        Self::orientation().is_undirected()
+    }
+}
+
+
 pub enum Directed {}
+
 impl EdgeKind for Directed {}
 
+impl UniformEdgeKind for Directed {
+    fn orientation() -> Orientation {
+        Orientation::Directed
+    }
+}
+
+
 pub enum Undirected {}
+
 impl EdgeKind for Undirected {}
 
-// pub struct Mixed; // for graphs with directed and undirected edges
+impl UniformEdgeKind for Undirected {
+    fn orientation() -> Orientation {
+        Orientation::Undirected
+    }
+}
+
+
+// TODO: write a graph with mixed edges and test it
+pub enum Mixed {}
+
+impl EdgeKind for Mixed {}
+
 
 pub trait VertexTypes<'a, G: WithVertex> {
     type VertexIter: Iterator<Item = Vertex<G>>;
@@ -64,7 +107,7 @@ pub trait VertexTypes<'a, G: WithVertex> {
 
 pub trait WithVertex: Sized + for<'a> VertexTypes<'a, Self> {
     type Vertex: 'static + GraphItem;
-    type OptionVertex: 'static + Optional<Vertex<Self>> + From<Option<Vertex<Self>>> + PartialEq + Copy;
+    type OptionVertex: 'static + GraphItem + Optional<Vertex<Self>> + From<Option<Vertex<Self>>>;
 
     // TODO: is this necessary?
     fn vertex_none() -> OptionVertex<Self> {
@@ -85,7 +128,7 @@ pub trait EdgeTypes<'a, G: WithEdge> {
 pub trait WithEdge: Sized + WithVertex + for<'a> EdgeTypes<'a, Self> {
     type Kind: EdgeKind;
     type Edge: 'static + GraphItem;
-    type OptionEdge: 'static + Optional<Edge<Self>> + From<Option<Edge<Self>>> + PartialEq + Copy;
+    type OptionEdge: 'static + GraphItem + Optional<Edge<Self>> + From<Option<Edge<Self>>>;
 
     fn source(&self, e: Edge<Self>) -> Vertex<Self>;
 
@@ -168,6 +211,7 @@ pub trait Incidence: WithEdge + Adjacency {
 
 pub trait EdgeByEnds: WithEdge + WithVertex {
     // TODO: Move to EdgeList? What if there is more than one edge?
+    // TODO: rename to get_edge?
     fn edge_by_ends(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Edge<Self>>;
 }
 
@@ -360,7 +404,7 @@ basic_props! {
     Color
 }
 
-#[derive(Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub enum Color {
     White,
     Gray,
