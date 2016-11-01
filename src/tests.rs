@@ -34,7 +34,7 @@ macro_rules! graph_edge_list_tests {
             edges,
             option_edge,
             ends,
-            reverse,
+            get_reverse,
             opposite
         }
     )
@@ -159,8 +159,8 @@ pub trait GraphTests {
         }
     }
 
-    fn reverse()
-        where Self::G: WithEdge<Kind = Undirected>
+    fn get_reverse()
+        where Self::G: WithEdge
     {
         use std::hash::{Hash, Hasher, SipHasher};
         fn hash<T: Hash>(t: T) -> u64 {
@@ -172,7 +172,8 @@ pub trait GraphTests {
         for e in edges {
             let (u, v) = g.ends(e);
             if g.is_undirected_edge(e) {
-                let r = g.reverse(e);
+                // FIXME: reverse is not being directly tested
+                let r = g.get_reverse(e).unwrap();
                 assert_eq!(e, r);
                 assert_eq!(hash(e), hash(r));
                 assert_eq!(v, g.source(r));
@@ -213,7 +214,7 @@ pub trait GraphTests {
     }
 
     fn out_edges()
-        where Self::G: Incidence + WithEdge<Kind = Undirected>
+        where Self::G: Incidence
     {
         let (g, vertices, edges) = Self::new();
         let mut inc = HashMapProp::new(VecEdge::<Self::G>::new());
@@ -221,7 +222,7 @@ pub trait GraphTests {
             let (u, v) = g.ends(e);
             inc[u].push(e);
             if g.is_undirected_edge(e) {
-                inc[v].push(g.reverse(e));
+                inc[v].push(g.get_reverse(e).unwrap());
             }
         }
         for u in vertices {
