@@ -1,50 +1,221 @@
 use graph::*;
 use choose::Choose;
-use arrayprop::*;
+use arrayprop::{VecEdgeProp, VecVertexProp};
 
-use fera::{IteratorExt, MapBind1};
 use fera::optional::{BuildNone, Optioned, OptionalMax};
 
-use std::ops::Range;
+use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
+use std::iter::{Chain, Map};
+use std::marker::PhantomData;
+use std::ops::Range;
 
 use rand::Rng;
 
-#[derive(Clone, PartialEq, Eq, Debug)]
-pub struct CompleteGraph(u32);
+pub type CompleteGraph = Complete<Undirected>;
 
-impl CompleteGraph {
-    pub fn new(n: u32) -> Self {
-        CompleteGraph(n)
-    }
+pub type CompleteDiGraph = Complete<Directed>;
+
+pub type CVertex = u32;
+
+#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+pub struct Complete<K: CompleteEdgeKind> {
+    n: CVertex,
+    _marker: PhantomData<K>,
 }
 
-
-// Edge
-
-#[derive(Clone, Copy, Eq, PartialOrd, Ord, Debug)]
-pub struct CompleteEdge {
-    u: u32,
-    v: u32,
-}
-
-impl CompleteEdge {
-    fn new(u: u32, v: u32) -> CompleteEdge {
-        debug_assert!(u != v);
-
-        CompleteEdge { u: u, v: v }
-    }
-}
-
-#[derive(PartialEq, Clone, Copy)]
-pub struct CompleteEdgeNone;
-
-impl BuildNone<CompleteEdge> for CompleteEdgeNone {
-    fn none() -> CompleteEdge {
-        CompleteEdge {
-            u: ::std::u32::MAX,
-            v: ::std::u32::MAX,
+impl<K: CompleteEdgeKind> Complete<K> {
+    pub fn new(n: CVertex) -> Self {
+        Complete {
+            n: n,
+            _marker: PhantomData,
         }
+    }
+}
+
+pub trait CompleteEdgeKind: UniformEdgeKind {
+    type Edge: 'static + GraphItem + EdgeImpl;
+}
+
+pub trait EdgeImpl {
+    fn from_index(index: usize) -> Self;
+    fn to_index(self) -> usize;
+    fn new(n: CVertex, u: CVertex, v: CVertex) -> Self;
+    fn ends(self, n: CVertex) -> (CVertex, CVertex);
+    fn reverse(self, n: CVertex) -> Self;
+}
+
+impl<'a, K: CompleteEdgeKind> VertexTypes<'a, Complete<K>> for Complete<K> {
+    type VertexIter = Range<Vertex<Self>>;
+    type OutNeighborIter = Chain<Range<CVertex>, Range<CVertex>>;
+}
+
+impl<K: CompleteEdgeKind> WithVertex for Complete<K> {
+    type Vertex = CVertex;
+    type OptionVertex = OptionalMax<CVertex>;
+}
+
+impl<'a, K: CompleteEdgeKind> EdgeTypes<'a, Complete<K>> for Complete<K> {
+    type EdgeIter = Map<Range<usize>, fn(usize) -> K::Edge>;
+    type OutEdgeIter = COutEdgeIter<Edge<Self>>;
+}
+
+impl<K: CompleteEdgeKind> WithEdge for Complete<K> {
+    type Kind = K;
+    type Edge = K::Edge;
+    type OptionEdge = Optioned<K::Edge, MaxNone<K::Edge>>;
+
+    fn source(&self, e: Edge<Self>) -> Vertex<Self> {
+        K::Edge::ends(e, self.n).0
+    }
+
+    fn target(&self, e: Edge<Self>) -> Vertex<Self> {
+        K::Edge::ends(e, self.n).1
+    }
+
+    fn orientation(&self, _e: Edge<Self>) -> Orientation {
+        K::orientation()
+    }
+
+    fn reverse(&self, e: Edge<Self>) -> Edge<Self> {
+        K::Edge::reverse(e, self.n)
+    }
+
+    fn get_reverse(&self, e: Edge<Self>) -> Option<Edge<Self>> {
+        Some(K::Edge::reverse(e, self.n))
+    }
+}
+
+impl<K: CompleteEdgeKind> VertexList for Complete<K> {
+    fn num_vertices(&self) -> usize {
+        self.n as usize
+    }
+
+    fn vertices(&self) -> VertexIter<Self> {
+        0..self.n
+    }
+}
+
+impl<K: CompleteEdgeKind> EdgeList for Complete<K> {
+    fn num_edges(&self) -> usize {
+        let n = self.num_vertices();
+        if K::is_directed() {
+            n * n - n
+        } else {
+            (n * n - n) / 2
+        }
+    }
+
+    fn edges(&self) -> EdgeIter<Self> {
+        (0..self.num_edges()).map(K::Edge::from_index)
+    }
+}
+
+impl<K: CompleteEdgeKind> Adjacency for Complete<K> {
+    fn out_neighbors(&self, v: CVertex) -> OutNeighborIter<Self> {
+        debug_assert!(v <= self.n);
+        (0..v).chain((v + 1)..self.n)
+    }
+
+    fn out_degree(&self, v: Vertex<Self>) -> usize {
+        debug_assert!(v <= self.n);
+        self.num_vertices().checked_sub(1).unwrap_or(0)
+    }
+}
+
+impl<K: CompleteEdgeKind> Incidence for Complete<K> {
+    fn out_edges(&self, v: Vertex<Self>) -> OutEdgeIter<Self> {
+        debug_assert!(v <= self.n);
+        COutEdgeIter::new(self.n, v)
+    }
+}
+
+impl<K: CompleteEdgeKind> EdgeByEnds for Complete<K> {
+    fn edge_by_ends(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Edge<Self>> {
+        if u < self.n && v < self.n && u != v {
+            Some(K::Edge::new(self.n, u, v))
+        } else {
+            None
+        }
+    }
+}
+
+impl<T, K: CompleteEdgeKind> WithVertexProp<T> for Complete<K> {
+    type VertexProp = VecVertexProp<Complete<K>, T>;
+}
+
+impl<T, K: CompleteEdgeKind> WithEdgeProp<T> for Complete<K>
+    where Complete<K>: EdgeIndex
+{
+    type EdgeProp = VecEdgeProp<Complete<K>, T>;
+}
+
+impl<K: CompleteEdgeKind> BasicVertexProps for Complete<K> {}
+impl<K: CompleteEdgeKind> BasicEdgeProps for Complete<K> {}
+impl<K: CompleteEdgeKind> BasicProps for Complete<K> {}
+
+impl<K: CompleteEdgeKind> Choose for Complete<K> {
+    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {
+        rng.gen_range(0, self.n)
+    }
+
+    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Edge<Self> {
+        K::Edge::from_index(rng.gen_range(0, self.num_edges()))
+    }
+
+    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, u: Vertex<Self>) -> Edge<Self> {
+        let v = self.choose_vertex_if(rng, |v| v != u);
+        K::Edge::new(self.n, u, v)
+    }
+}
+
+
+#[derive(Clone, Debug)]
+pub struct CVertexIndexProp;
+
+impl PropGet<CVertex> for CVertexIndexProp {
+    type Output = usize;
+
+    fn get(&self, x: CVertex) -> usize {
+        x as usize
+    }
+}
+
+impl<K: CompleteEdgeKind> VertexIndex for Complete<K> {
+    type VertexIndexProp = CVertexIndexProp;
+
+    fn vertex_index(&self) -> CVertexIndexProp {
+        CVertexIndexProp
+    }
+}
+
+
+#[derive(Clone, Debug)]
+pub struct CEdgeIndexProp<E>(PhantomData<E>);
+
+impl<E: EdgeImpl> PropGet<E> for CEdgeIndexProp<E> {
+    type Output = usize;
+
+    fn get(&self, e: E) -> usize {
+        E::to_index(e)
+    }
+}
+
+impl<K: CompleteEdgeKind> EdgeIndex for Complete<K> {
+    type EdgeIndexProp = CEdgeIndexProp<K::Edge>;
+
+    fn edge_index(&self) -> CEdgeIndexProp<K::Edge> {
+        CEdgeIndexProp(PhantomData)
+    }
+}
+
+
+#[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
+pub struct MaxNone<E>(PhantomData<E>);
+
+impl<E: EdgeImpl> BuildNone<E> for MaxNone<E> {
+    fn none() -> E {
+        E::from_index(usize::max_value())
     }
 
     fn desc() -> &'static str {
@@ -52,94 +223,31 @@ impl BuildNone<CompleteEdge> for CompleteEdgeNone {
     }
 }
 
-impl PartialEq for CompleteEdge {
-    fn eq(&self, other: &CompleteEdge) -> bool {
-        (self.u == other.u && self.v == other.v) || (self.u == other.v && self.v == other.u)
-    }
-}
-
-impl Hash for CompleteEdge {
-    fn hash<H>(&self, state: &mut H)
-        where H: Hasher
-    {
-        if self.u < self.v {
-            self.u.hash(state);
-            self.v.hash(state);
-        } else {
-            self.v.hash(state);
-            self.u.hash(state);
-        }
-    }
-}
-
-#[derive(Clone, Debug)]
-pub struct CompleteEdgeIndexProp(u32);
-
-impl PropGet<CompleteEdge> for CompleteEdgeIndexProp {
-    type Output = usize;
-
-    fn get(&self, e: CompleteEdge) -> usize {
-        // TODO: explain
-        let n = self.0 as usize;
-        let (u, v) = (e.u as usize, e.v as usize);
-        if u < v {
-            u * (n - 1) - (u * u - u) / 2 + v - u - 1
-        } else if u > v {
-            v * (n - 1) - (v * v - v) / 2 + u - v - 1
-        } else {
-            panic!("u == v")
-        }
-    }
-}
-
 
 // Iterators
 
-pub struct EdgesIter {
-    n: CompleteVertex,
+pub struct COutEdgeIter<E> {
+    n: CVertex,
     rem: usize,
-    u: CompleteVertex,
-    v: CompleteVertex,
+    u: CVertex,
+    v: CVertex,
+    _marker: PhantomData<E>,
 }
 
-impl Iterator for EdgesIter {
-    type Item = CompleteEdge;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.rem == 0 {
-            None
-        } else {
-            let e = CompleteEdge::new(self.u, self.v);
-            if self.v + 1 >= self.n {
-                self.u += 1;
-                self.v = self.u + 1;
-            } else {
-                self.v += 1
-            }
-            self.rem -= 1;
-            Some(e)
+impl<E> COutEdgeIter<E> {
+    fn new(n: CVertex, u: CVertex) -> Self {
+        COutEdgeIter {
+            n: n,
+            rem: (n - 1) as usize,
+            u: u,
+            v: 0,
+            _marker: PhantomData,
         }
     }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        (self.rem, Some(self.rem))
-    }
 }
 
-impl ExactSizeIterator for EdgesIter {
-    fn len(&self) -> usize {
-        self.rem
-    }
-}
-
-pub struct IncCompleteEdgeIter {
-    rem: usize,
-    u: CompleteVertex,
-    v: CompleteVertex,
-}
-
-impl Iterator for IncCompleteEdgeIter {
-    type Item = CompleteEdge;
+impl<E: EdgeImpl> Iterator for COutEdgeIter<E> {
+    type Item = E;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.rem == 0 {
@@ -148,7 +256,7 @@ impl Iterator for IncCompleteEdgeIter {
             if self.u == self.v {
                 self.v += 1;
             }
-            let e = Some(CompleteEdge::new(self.u, self.v));
+            let e = Some(E::new(self.n, self.u, self.v));
             self.v += 1;
             self.rem -= 1;
             e
@@ -160,169 +268,130 @@ impl Iterator for IncCompleteEdgeIter {
     }
 }
 
-impl ExactSizeIterator for IncCompleteEdgeIter {
+impl<E: EdgeImpl> ExactSizeIterator for COutEdgeIter<E> {
     fn len(&self) -> usize {
         self.rem
     }
 }
 
-// Graph implementation
 
-pub type CompleteVertex = u32;
+// Undirected
 
-impl WithVertex for CompleteGraph {
-    type Vertex = CompleteVertex;
-    type OptionVertex = OptionalMax<CompleteVertex>;
+impl CompleteEdgeKind for Undirected {
+    type Edge = UndirectedEdge;
 }
 
-pub type OptionalCompleteEdge = Optioned<CompleteEdge, CompleteEdgeNone>;
+#[derive(Clone, Copy, Eq, Debug)]
+pub struct UndirectedEdge(usize);
 
-impl WithEdge for CompleteGraph {
-    type Kind = Undirected;
-    type Edge = CompleteEdge;
-    type OptionEdge = OptionalCompleteEdge;
-
-    fn source(&self, e: Edge<Self>) -> Vertex<Self> {
-        e.u
-    }
-
-    fn target(&self, e: Edge<Self>) -> Vertex<Self> {
-        e.v
-    }
-
-    fn orientation(&self, _e: Edge<Self>) -> Orientation {
-        Orientation::Undirected
-    }
-
-    fn reverse(&self, e: Edge<Self>) -> Edge<Self> {
-        CompleteEdge::new(e.v, e.u)
-    }
-
-    fn get_reverse(&self, e: Edge<Self>) -> Option<Edge<Self>> {
-        Some(self.reverse(e))
+impl PartialEq for UndirectedEdge {
+    fn eq(&self, other: &UndirectedEdge) -> bool {
+        self.to_index() == other.to_index()
     }
 }
 
-impl<'a> VertexTypes<'a, CompleteGraph> for CompleteGraph {
-    type VertexIter = Range<CompleteVertex>;
-    // TODO: write another iterator, do not depend of OutEdgeIter (IncidenceOutNeighborIter?)
-    type OutNeighborIter = MapBind1<'a, OutEdgeIter<'a, Self>, Self, Vertex<Self>>;
-}
-
-impl<'a> EdgeTypes<'a, CompleteGraph> for CompleteGraph {
-    type EdgeIter = EdgesIter;
-    type OutEdgeIter = IncCompleteEdgeIter;
-}
-
-impl VertexList for CompleteGraph {
-    fn num_vertices(&self) -> usize {
-        self.0 as usize
-    }
-
-    fn vertices(&self) -> VertexIter<Self> {
-        0..self.0
+impl PartialOrd for UndirectedEdge {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
 
-impl EdgeList for CompleteGraph {
-    fn num_edges(&self) -> usize {
-        let n = self.num_vertices();
-        (n * n - n) / 2
-    }
-
-    fn edges(&self) -> EdgeIter<Self> {
-        EdgesIter {
-            n: self.num_vertices() as CompleteVertex,
-            rem: self.num_edges(),
-            u: 0,
-            v: 1,
-        }
+impl Ord for UndirectedEdge {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.to_index().cmp(&other.to_index())
     }
 }
 
-impl Adjacency for CompleteGraph {
-    fn out_neighbors(&self, v: Vertex<Self>) -> OutNeighborIter<Self> {
-        self.out_edges(v).map_bind1(self, Self::target)
-    }
-
-    fn out_degree(&self, _: Vertex<Self>) -> usize {
-        self.num_vertices() - 1
+impl Hash for UndirectedEdge {
+    fn hash<H>(&self, state: &mut H)
+        where H: Hasher
+    {
+        self.to_index().hash(state)
     }
 }
 
-impl Incidence for CompleteGraph {
-    fn out_edges(&self, v: Vertex<Self>) -> OutEdgeIter<Self> {
-        IncCompleteEdgeIter {
-            rem: self.out_degree(v),
-            u: v,
-            v: 0,
-        }
+impl EdgeImpl for UndirectedEdge {
+    fn from_index(index: usize) -> Self {
+        UndirectedEdge(index << 1)
     }
-}
 
-impl EdgeByEnds for CompleteGraph {
-    fn edge_by_ends(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Edge<Self>> {
-        if (u as usize) < self.num_vertices() && (v as usize) < self.num_vertices() && u != v {
-            CompleteEdge::new(u, v).into()
+    fn to_index(self) -> usize {
+        self.0 >> 1
+    }
+
+    fn new(n: CVertex, u: CVertex, v: CVertex) -> Self {
+        let (n, u, v) = (n as usize, u as usize, v as usize);
+        let id = |u, v| {
+            if u < (n - 1) / 2 {
+                u * n + v
+            } else {
+                (n - u - 1) * n - v - 1
+            }
+        };
+
+        if u < v {
+            UndirectedEdge(id(u, v) << 1)
         } else {
-            None
+            UndirectedEdge(id(v, u) << 1 | 1)
         }
     }
-}
 
-#[derive(Clone, Debug)]
-pub struct CompleteVertexIndexProp;
+    fn ends(self, n: CVertex) -> (CVertex, CVertex) {
+        let (u, v) = {
+            let e = (self.0 >> 1) as CVertex;
+            let (u, v) = (e / n, e % n);
+            if u < v {
+                (u, v)
+            } else {
+                (n - u - 2, n - v - 1)
+            }
+        };
 
-impl PropGet<CompleteVertex> for CompleteVertexIndexProp {
-    type Output = usize;
+        if self.0 & 1 == 0 { (u, v) } else { (v, u) }
+    }
 
-    fn get(&self, x: CompleteVertex) -> usize {
-        x as usize
+    fn reverse(self, _n: CVertex) -> Self {
+        UndirectedEdge(self.0 ^ 1)
     }
 }
 
-impl VertexIndex for CompleteGraph {
-    type VertexIndexProp = CompleteVertexIndexProp;
 
-    fn vertex_index(&self) -> VertexIndexProp<Self> {
-        CompleteVertexIndexProp
-    }
+// Directed
+
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+pub struct DirectedEdge(usize);
+
+impl CompleteEdgeKind for Directed {
+    type Edge = DirectedEdge;
 }
 
-impl EdgeIndex for CompleteGraph {
-    type EdgeIndexProp = CompleteEdgeIndexProp;
-
-    fn edge_index(&self) -> EdgeIndexProp<Self> {
-        CompleteEdgeIndexProp(self.num_vertices() as u32)
-    }
-}
-
-impl<T> WithVertexProp<T> for CompleteGraph {
-    type VertexProp = VecVertexProp<CompleteGraph, T>;
-}
-
-impl<T> WithEdgeProp<T> for CompleteGraph {
-    type EdgeProp = VecEdgeProp<CompleteGraph, T>;
-}
-
-impl BasicVertexProps for CompleteGraph {}
-impl BasicEdgeProps for CompleteGraph {}
-impl BasicProps for CompleteGraph {}
-
-impl Choose for CompleteGraph {
-    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {
-        rng.gen_range(0, self.num_vertices() as u32)
+impl EdgeImpl for DirectedEdge {
+    fn from_index(index: usize) -> Self {
+        DirectedEdge(index)
     }
 
-    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Edge<Self> {
-        let u = self.choose_vertex(rng);
-        let v = self.choose_vertex_if(rng, |v| v != u);
-        CompleteEdge::new(u, v)
+    fn to_index(self) -> usize {
+        self.0
     }
 
-    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, u: Vertex<Self>) -> Edge<Self> {
-        let v = self.choose_vertex_if(rng, |v| v != u);
-        CompleteEdge::new(u, v)
+    fn new(n: CVertex, u: CVertex, v: CVertex) -> Self {
+        let (n, u, v) = (n as usize, u as usize, v as usize);
+        DirectedEdge(n * u + v - u - (if v < u { 0 } else { 1 }))
+    }
+
+    fn ends(self, n: CVertex) -> (CVertex, CVertex) {
+        let e = self.0 as CVertex;
+        let u = e / (n - 1);
+        let mut v = e % (n - 1);
+        if v >= u {
+            v += 1;
+        }
+        (u, v)
+    }
+
+    fn reverse(self, n: CVertex) -> Self {
+        let (u, v) = Self::ends(self, n);
+        Self::new(n, v, u)
     }
 }
 
@@ -334,95 +403,88 @@ mod tests {
     pub use super::*;
     pub use graph::*;
     pub use tests::*;
+    use itertools::Itertools;
+    use std::fmt::Debug;
 
-    pub fn e(u: u32, v: u32) -> CompleteEdge {
-        CompleteEdge::new(u, v)
+    fn assert_edge<E: EdgeImpl + Debug + Copy>(n: CVertex, u: CVertex, v: CVertex) {
+        let e = E::new(n, u, v);
+        let r = E::reverse(e, n);
+        assert_eq!((u, v), E::ends(e, n), "n = {}, e = {:?}", n, e);
+        assert_eq!((v, u), E::ends(r, n), "n = {}, e = {:?}, r = {:?}", n, e, r);
     }
 
     #[test]
-    fn test_edges() {
-        for n in 1..100 {
-            let g = CompleteGraph(n);
-            let mut r = vec![];
-            for u in 0..n {
-                for v in (u + 1)..n {
-                    r.push((u, v));
+    fn edge_impl() {
+        for n in 2..10 {
+            for (u, v) in (0..n).tuple_combinations() {
+                assert_edge::<UndirectedEdge>(n, u, v);
+                assert_edge::<UndirectedEdge>(n, v, u);
+
+                assert_edge::<DirectedEdge>(n, u, v);
+                assert_edge::<DirectedEdge>(n, v, u);
+            }
+        }
+    }
+
+    macro_rules! t {
+        ($m:ident, $n:expr, $G:ident, $v:expr, $e:expr) => (
+            mod $m {
+                use super::*;
+                use itertools::Itertools;
+
+                struct Test;
+
+                impl GraphTests for Test {
+                    type G = $G;
+
+                    fn new() -> (Self::G, VecVertex<Self::G>, VecEdge<Self::G>) {
+                        let e = $e.into_iter()
+                                  .map(|(u, v)| EdgeImpl::new($n, u, v))
+                                  .sorted();
+                        ($G::new($n), $v, e)
+                    }
                 }
+
+                graph_tests!{Test}
             }
-            let ind = g.edge_index();
-            for (i, e) in g.edges().enumerate() {
-                assert_eq!(i, ind.get(e));
-                assert_eq!(i, ind.get(g.reverse(e)));
-                assert_eq!(r[i].0, g.source(e));
-                assert_eq!(r[i].1, g.target(e));
-            }
-        }
+        )
     }
 
-    mod k0 {
-        use super::*;
+    // Undirected
 
-        struct Test;
+    t!{k0, 0, CompleteGraph, vec![], vec![]}
+    t!{k1, 1, CompleteGraph, vec![0], vec![]}
+    t!{k2, 2, CompleteGraph, vec![0, 1], vec![(0, 1)]}
 
-        impl GraphTests for Test {
-            type G = CompleteGraph;
+    t!{k3, 3,
+        CompleteGraph,
+        vec![0, 1, 2],
+        vec![(0, 1), (0, 2), (1, 2)]}
 
-            fn new() -> (Self::G, VecVertex<Self::G>, VecEdge<Self::G>) {
-                (CompleteGraph::new(0), vec![], vec![])
-            }
-        }
+    t!{k4, 4,
+        CompleteGraph,
+        vec![0, 1, 2, 3],
+        vec![(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]}
 
-        graph_tests!{Test}
-    }
 
-    mod k1 {
-        use super::*;
+    // Directed
 
-        struct Test;
+    t!{directed_k0, 0, CompleteDiGraph, vec![], vec![]}
+    t!{directed_k1, 1, CompleteDiGraph, vec![0], vec![]}
+    t!{directed_k2, 2, CompleteDiGraph, vec![0, 1], vec![(0, 1), (1, 0)]}
 
-        impl GraphTests for Test {
-            type G = CompleteGraph;
+    t!{directed_k3, 3,
+        CompleteDiGraph,
+        vec![0, 1, 2],
+        vec![(0, 1), (0, 2),
+             (1, 0), (1, 2),
+             (2, 0), (2, 1)]}
 
-            fn new() -> (Self::G, VecVertex<Self::G>, VecEdge<Self::G>) {
-                (CompleteGraph::new(1), vec![0], vec![])
-            }
-        }
-
-        graph_tests!{Test}
-    }
-
-    mod k2 {
-        use super::*;
-
-        struct Test;
-
-        impl GraphTests for Test {
-            type G = CompleteGraph;
-
-            fn new() -> (Self::G, VecVertex<Self::G>, VecEdge<Self::G>) {
-                (CompleteGraph::new(2), vec![0, 1], vec![e(0, 1)])
-            }
-        }
-
-        graph_tests!{Test}
-    }
-
-    mod k5 {
-        use super::*;
-
-        struct Test;
-
-        impl GraphTests for Test {
-            type G = CompleteGraph;
-
-            fn new() -> (Self::G, VecVertex<Self::G>, VecEdge<Self::G>) {
-                (CompleteGraph::new(5),
-                 vec![0, 1, 2, 3, 4],
-                 vec![e(0, 1), e(0, 2), e(0, 3), e(0, 4), e(1, 2), e(1, 3), e(1, 4), e(2, 3),
-                      e(2, 4), e(3, 4)])
-            }
-        }
-
-        graph_tests!{Test}
-    }
+    t!{directed_k4, 4,
+        CompleteDiGraph,
+        vec![0, 1, 2, 3],
+        vec![(0, 1), (0, 2), (0, 3),
+             (1, 0), (1, 2), (1, 3),
+             (2, 0), (2, 1), (2, 3),
+             (3, 0), (3, 1), (3, 2)]}
 }
