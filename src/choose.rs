@@ -5,7 +5,9 @@ use rand::Rng;
 // TODO: There is no vertex
 // TODO: There is no edge
 // TODO: There is no inc edge
-pub trait Choose: IncidenceGraph {
+// TODO: rename inc to out
+// TODO: rename if to iter and return a iterator
+pub trait Choose: WithEdge {
     fn choose_vertex<R>(&self, rng: &mut R) -> Vertex<Self> where R: Rng;
 
     fn choose_vertex_if<R, F>(&self, rng: &mut R, fun: F) -> Vertex<Self>
