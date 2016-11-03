@@ -39,7 +39,7 @@ pub trait FindPath: IncidenceGraph {
                                     let t = self.target(e);
                                     tree[t] = Self::edge_some(e);
                                     found = t == v;
-                                    !found
+                                    break_if(found)
                                 }));
         if found {
             self.find_path_on_parent_tree(&tree, u, v)
@@ -84,7 +84,7 @@ mod benchs {
 
     fn bench_find_path_n(b: &mut Bencher, n: usize) {
         let mut rng = StdRng::from_seed(&[123]);
-        let g = StaticGraph::tree(n, &mut rng);
+        let g = StaticGraph::random_tree(n, &mut rng);
         b.iter(|| {
             for e in g.edges() {
                 let (u, v) = g.ends(e);

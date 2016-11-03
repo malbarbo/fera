@@ -7,7 +7,7 @@ pub trait Props: IncidenceGraph {
         let mut acyclic = true;
         Dfs::new(self).traverse_all(&mut DiscoverBackEdge(|_| {
             acyclic = false;
-            false
+            Control::Break
         }));
         acyclic
     }
@@ -18,7 +18,7 @@ pub trait Props: IncidenceGraph {
             let mut count = 0;
             Dfs::new(self).traverse_all(&mut DiscoverRootVertex(|_| {
                 count += 1;
-                count == 1
+                break_if(count != 1)
             }));
             count == 1
         }
@@ -146,7 +146,7 @@ mod benchs {
 
     fn bench_is_acyclic(b: &mut Bencher, n: usize) {
         let mut rng = StdRng::from_seed(&[123]);
-        let g = StaticGraph::tree(n, &mut rng);
+        let g = StaticGraph::random_tree(n, &mut rng);
         b.iter(|| {
             assert!(g.is_acyclic());
         })
@@ -169,7 +169,7 @@ mod benchs {
 
     fn bench_is_connected(b: &mut Bencher, n: usize) {
         let mut rng = StdRng::from_seed(&[123]);
-        let g = StaticGraph::tree(n, &mut rng);
+        let g = StaticGraph::random_tree(n, &mut rng);
         b.iter(|| {
             assert!(g.is_connected());
         })

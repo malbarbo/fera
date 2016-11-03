@@ -1,50 +1,68 @@
 use graph::*;
 use std::collections::VecDeque;
 
-// Visitor
+#[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
+pub enum Control {
+    Continue,
+    Break,
+}
+
+impl From<()> for Control {
+    fn from(_: ()) -> Self {
+        Control::Continue
+    }
+}
+
+pub fn continue_if(x: bool) -> Control {
+    if x { Control::Continue } else { Control::Break }
+}
+
+pub fn break_if(x: bool) -> Control {
+    if x { Control::Break } else { Control::Continue }
+}
 
 // TODO: implement visitor for &mut Visitor
 pub trait Visitor<G>
     where G: WithVertex + WithEdge
 {
-    fn discover_root_vertex(&mut self, _g: &G, _v: Vertex<G>) -> bool {
-        true
+    fn discover_root_vertex(&mut self, _g: &G, _v: Vertex<G>) -> Control {
+        Control::Continue
     }
 
-    fn finish_root_vertex(&mut self, _g: &G, _v: Vertex<G>) -> bool {
-        true
+    fn finish_root_vertex(&mut self, _g: &G, _v: Vertex<G>) -> Control {
+        Control::Continue
     }
 
-    fn discover_vertex(&mut self, _g: &G, _v: Vertex<G>) -> bool {
-        true
+    fn discover_vertex(&mut self, _g: &G, _v: Vertex<G>) -> Control {
+        Control::Continue
     }
 
-    fn finish_vertex(&mut self, _g: &G, _v: Vertex<G>) -> bool {
-        true
+    fn finish_vertex(&mut self, _g: &G, _v: Vertex<G>) -> Control {
+        Control::Continue
     }
 
-    fn discover_edge(&mut self, _g: &G, _e: Edge<G>) -> bool {
-        true
+    fn discover_edge(&mut self, _g: &G, _e: Edge<G>) -> Control {
+        Control::Continue
     }
 
-    fn finish_edge(&mut self, _g: &G, _e: Edge<G>) -> bool {
-        true
+    fn finish_edge(&mut self, _g: &G, _e: Edge<G>) -> Control {
+        Control::Continue
     }
 
-    fn discover_tree_edge(&mut self, _g: &G, _e: Edge<G>) -> bool {
-        true
+    fn discover_tree_edge(&mut self, _g: &G, _e: Edge<G>) -> Control {
+        Control::Continue
     }
 
-    fn finish_tree_edge(&mut self, _g: &G, _e: Edge<G>) -> bool {
-        true
+    fn finish_tree_edge(&mut self, _g: &G, _e: Edge<G>) -> Control {
+        Control::Continue
     }
 
-    fn discover_back_edge(&mut self, _g: &G, _e: Edge<G>) -> bool {
-        true
+    fn discover_back_edge(&mut self, _g: &G, _e: Edge<G>) -> Control {
+        Control::Continue
     }
 
-    fn discover_cross_or_forward_edge(&mut self, _g: &G, _e: Edge<G>) -> bool {
-        true
+    fn discover_cross_or_forward_edge(&mut self, _g: &G, _e: Edge<G>) -> Control {
+        Control::Continue
     }
 }
 
@@ -64,48 +82,49 @@ pub enum TraverseEvent<G: WithVertex + WithEdge> {
 
 pub struct FnTraverseEvent<F>(F);
 
-impl<G, F> Visitor<G> for FnTraverseEvent<F>
+impl<G, F, R> Visitor<G> for FnTraverseEvent<F>
     where G: WithVertex + WithEdge,
-          F: FnMut(TraverseEvent<G>) -> bool
+          F: FnMut(TraverseEvent<G>) -> R,
+          R: Into<Control>
 {
-    fn discover_root_vertex(&mut self, _g: &G, v: Vertex<G>) -> bool {
-        (self.0)(TraverseEvent::DiscoverRootVertex(v))
+    fn discover_root_vertex(&mut self, _g: &G, v: Vertex<G>) -> Control {
+        (self.0)(TraverseEvent::DiscoverRootVertex(v)).into()
     }
 
-    fn finish_root_vertex(&mut self, _g: &G, v: Vertex<G>) -> bool {
-        (self.0)(TraverseEvent::FinishRootVertex(v))
+    fn finish_root_vertex(&mut self, _g: &G, v: Vertex<G>) -> Control {
+        (self.0)(TraverseEvent::FinishRootVertex(v)).into()
     }
 
-    fn discover_vertex(&mut self, _g: &G, v: Vertex<G>) -> bool {
-        (self.0)(TraverseEvent::DiscoverVertex(v))
+    fn discover_vertex(&mut self, _g: &G, v: Vertex<G>) -> Control {
+        (self.0)(TraverseEvent::DiscoverVertex(v)).into()
     }
 
-    fn finish_vertex(&mut self, _g: &G, v: Vertex<G>) -> bool {
-        (self.0)(TraverseEvent::FinishVertex(v))
+    fn finish_vertex(&mut self, _g: &G, v: Vertex<G>) -> Control {
+        (self.0)(TraverseEvent::FinishVertex(v)).into()
     }
 
-    fn discover_edge(&mut self, _g: &G, e: Edge<G>) -> bool {
-        (self.0)(TraverseEvent::DiscoverEdge(e))
+    fn discover_edge(&mut self, _g: &G, e: Edge<G>) -> Control {
+        (self.0)(TraverseEvent::DiscoverEdge(e)).into()
     }
 
-    fn finish_edge(&mut self, _g: &G, e: Edge<G>) -> bool {
-        (self.0)(TraverseEvent::FinishEdge(e))
+    fn finish_edge(&mut self, _g: &G, e: Edge<G>) -> Control {
+        (self.0)(TraverseEvent::FinishEdge(e)).into()
     }
 
-    fn discover_tree_edge(&mut self, _g: &G, e: Edge<G>) -> bool {
-        (self.0)(TraverseEvent::DiscoverTreeEdge(e))
+    fn discover_tree_edge(&mut self, _g: &G, e: Edge<G>) -> Control {
+        (self.0)(TraverseEvent::DiscoverTreeEdge(e)).into()
     }
 
-    fn finish_tree_edge(&mut self, _g: &G, e: Edge<G>) -> bool {
-        (self.0)(TraverseEvent::FinishTreeEdge(e))
+    fn finish_tree_edge(&mut self, _g: &G, e: Edge<G>) -> Control {
+        (self.0)(TraverseEvent::FinishTreeEdge(e)).into()
     }
 
-    fn discover_back_edge(&mut self, _g: &G, e: Edge<G>) -> bool {
-        (self.0)(TraverseEvent::DiscoverBackEdge(e))
+    fn discover_back_edge(&mut self, _g: &G, e: Edge<G>) -> Control {
+        (self.0)(TraverseEvent::DiscoverBackEdge(e)).into()
     }
 
-    fn discover_cross_or_forward_edge(&mut self, _g: &G, e: Edge<G>) -> bool {
-        (self.0)(TraverseEvent::DiscoverCrossOrForwardEdge(e))
+    fn discover_cross_or_forward_edge(&mut self, _g: &G, e: Edge<G>) -> Control {
+        (self.0)(TraverseEvent::DiscoverCrossOrForwardEdge(e)).into()
     }
 }
 
@@ -163,42 +182,45 @@ fn recursive_dfs_visit<G, V>(g: &G,
 
 pub struct DiscoverRootVertex<F>(pub F);
 
-impl<G, F> Visitor<G> for DiscoverRootVertex<F>
+impl<G, F, R> Visitor<G> for DiscoverRootVertex<F>
     where G: Graph,
-          F: FnMut(Vertex<G>) -> bool
+          F: FnMut(Vertex<G>) -> R,
+          R: Into<Control>
 {
-    fn discover_root_vertex(&mut self, _g: &G, v: Vertex<G>) -> bool {
-        self.0(v)
+    fn discover_root_vertex(&mut self, _g: &G, v: Vertex<G>) -> Control {
+        (self.0)(v).into()
     }
 }
 
 
 pub struct DiscoverTreeEdge<F>(pub F);
 
-impl<G, F> Visitor<G> for DiscoverTreeEdge<F>
+impl<G, F, R> Visitor<G> for DiscoverTreeEdge<F>
     where G: Graph,
-          F: FnMut(Edge<G>) -> bool
+          F: FnMut(Edge<G>) -> R,
+          R: Into<Control>
 {
-    fn discover_tree_edge(&mut self, _g: &G, e: Edge<G>) -> bool {
-        self.0(e)
+    fn discover_tree_edge(&mut self, _g: &G, e: Edge<G>) -> Control {
+        (self.0)(e).into()
     }
 }
 
 
 pub struct DiscoverBackEdge<F>(pub F);
 
-impl<G, F> Visitor<G> for DiscoverBackEdge<F>
+impl<G, F, R> Visitor<G> for DiscoverBackEdge<F>
     where G: Graph,
-          F: FnMut(Edge<G>) -> bool
+          F: FnMut(Edge<G>) -> R,
+          R: Into<Control>
 {
-    fn discover_back_edge(&mut self, _g: &G, e: Edge<G>) -> bool {
-        self.0(e)
+    fn discover_back_edge(&mut self, _g: &G, e: Edge<G>) -> Control {
+        (self.0)(e).into()
     }
 }
 
 macro_rules! return_unless {
     ($e:expr) => (
-        if !$e {
+        if $e == Control::Break  {
             return false;
         }
     )
@@ -206,7 +228,7 @@ macro_rules! return_unless {
 
 macro_rules! break_unless {
     ($e:expr) => (
-        if !$e {
+        if $e == Control::Break {
             break;
         }
     )
@@ -234,16 +256,16 @@ impl<G: Graph> DiscoverFinishTime<G> {
 }
 
 impl<G: Graph> Visitor<G> for DiscoverFinishTime<G> {
-    fn discover_vertex(&mut self, _g: &G, v: Vertex<G>) -> bool {
+    fn discover_vertex(&mut self, _g: &G, v: Vertex<G>) -> Control {
         self.discover[v] = self.time;
         self.time += 1;
-        true
+        Control::Continue
     }
 
-    fn finish_vertex(&mut self, _g: &G, v: Vertex<G>) -> bool {
+    fn finish_vertex(&mut self, _g: &G, v: Vertex<G>) -> Control {
         self.finish[v] = self.time;
         self.time += 1;
-        true
+        Control::Continue
     }
 }
 
@@ -270,7 +292,7 @@ pub trait Traverser<'a, G>
         for v in vertices {
             if !self.is_discovered(v) {
                 break_unless!(vis.discover_root_vertex(self.graph(), v));
-                break_unless!(self.traverse(v, vis));
+                break_unless!(continue_if(self.traverse(v, vis)));
             }
         }
     }
@@ -280,7 +302,7 @@ pub trait Traverser<'a, G>
         let mut back = None;
         self.traverse_all(&mut DiscoverBackEdge(|e| {
             back = Some(e);
-            false
+            Control::Break
         }));
         back
     }
@@ -291,7 +313,7 @@ pub trait Traverser<'a, G>
         let mut m = 0;
         self.traverse_all(&mut DiscoverTreeEdge(|_| {
             m += 1;
-            m + 1 != n
+            break_if(m + 1 == n)
         }));
     }
 }
@@ -561,11 +583,7 @@ mod tests {
         let v = g.vertices().into_vec();
         let e = |x: usize, y: usize| edge_by_ends(&g, v[x], v[y]);
         let mut v = vec![];
-        recursive_dfs(&g,
-                      FnTraverseEvent(|evt| {
-                          v.push(evt);
-                          true
-                      }));
+        recursive_dfs(&g, FnTraverseEvent(|evt| v.push(evt)));
         let expected = vec![
             DiscoverRootVertex(0),
             DiscoverVertex(0),
@@ -652,19 +670,19 @@ mod tests {
     impl<G> Visitor<G> for TestVisitor<G>
         where G: Graph
     {
-        fn discover_tree_edge(&mut self, g: &G, e: Edge<G>) -> bool {
+        fn discover_tree_edge(&mut self, g: &G, e: Edge<G>) -> Control {
             let (u, v) = g.ends(e);
             assert_eq!(0, self.edge_type[e]);
             self.parent[v] = g.reverse(e).into();
             self.depth[v] = self.depth[u] + 1;
             self.edge_type[e] = TREE;
-            true
+            Control::Continue
         }
 
-        fn discover_back_edge(&mut self, _: &G, e: Edge<G>) -> bool {
+        fn discover_back_edge(&mut self, _: &G, e: Edge<G>) -> Control {
             assert_eq!(0, self.edge_type[e]);
             self.edge_type[e] = BACK;
-            true
+            Control::Continue
         }
     }
 
@@ -696,7 +714,6 @@ mod tests {
         let mut start = vec![];
         Dfs::new(&g).traverse_all(&mut DiscoverRootVertex(|v| {
             start.push(v);
-            true
         }));
         let v = g.vertices().into_vec();
         assert_eq!(vec![v[0], v[4]], start);
@@ -708,7 +725,7 @@ mod tests {
         let mut edges = vec![];
         Dfs::new(&g).traverse_all(&mut DiscoverTreeEdge(|e| {
             edges.push(e);
-            edges.len() != 2
+            continue_if(edges.len() != 2)
         }));
         let e = g.edges().into_vec();
         assert_eq!(vec![e[0], e[2]], edges);
@@ -720,7 +737,7 @@ mod tests {
         let mut edges = vec![];
         Dfs::new(&g).traverse_all(&mut DiscoverBackEdge(|e| {
             edges.push(e);
-            edges.len() != 2
+            continue_if(edges.len() != 2)
         }));
         let e = g.edges().into_vec();
         assert_eq!(vec![e[1], e[3]], edges);
@@ -754,7 +771,6 @@ mod tests {
         let mut start = vec![];
         Bfs::new(&g).traverse_all(&mut DiscoverRootVertex(|v| {
             start.push(v);
-            true
         }));
         let v = g.vertices().into_vec();
         assert_eq!(vec![v[0], v[4]], start);
@@ -766,7 +782,7 @@ mod tests {
         let mut edges = vec![];
         Bfs::new(&g).traverse_all(&mut DiscoverTreeEdge(|e| {
             edges.push(e);
-            edges.len() != 2
+            continue_if(edges.len() != 2)
         }));
         let e = g.edges().into_vec();
         assert_eq!(vec![e[0], e[1]], edges);
@@ -778,7 +794,7 @@ mod tests {
         let mut edges = vec![];
         Bfs::new(&g).traverse_all(&mut DiscoverBackEdge(|e| {
             edges.push(e);
-            edges.len() != 2
+            continue_if(edges.len() != 2)
         }));
         let e = g.edges().into_vec();
         assert_eq!(vec![e[2], e[4]], edges);
@@ -793,35 +809,39 @@ mod benchs {
     use rand::{SeedableRng, StdRng};
     use test::Bencher;
 
-    fn bench_traverser<'a, T>(b: &mut Bencher, g: &'a StaticGraph)
-        where T: Traverser<'a, StaticGraph>
-    {
+    fn bench_dfs<'a>(b: &mut Bencher, g: &'a StaticGraph) {
         b.iter(|| {
-            T::new(g).traverse_all(&mut DiscoverTreeEdge(|_| true));
+            Dfs::new(g).traverse_all(&mut DiscoverTreeEdge(|_| Control::Continue));
+        });
+    }
+
+    fn bench_bfs<'a>(b: &mut Bencher, g: &'a StaticGraph) {
+        b.iter(|| {
+            Bfs::new(g).traverse_all(&mut DiscoverTreeEdge(|_| Control::Continue));
         });
     }
 
     #[bench]
     fn bench_dfs_complete(b: &mut Bencher) {
         let g = StaticGraph::complete(100);
-        bench_traverser::<Dfs<_>>(b, &g);
+        bench_dfs(b, &g);
     }
 
     #[bench]
     fn bench_dfs_tree(b: &mut Bencher) {
-        let g = StaticGraph::tree(100, &mut StdRng::from_seed(&[123]));
-        bench_traverser::<Dfs<_>>(b, &g);
+        let g = StaticGraph::random_tree(100, &mut StdRng::from_seed(&[123]));
+        bench_dfs(b, &g);
     }
 
     #[bench]
     fn bench_bfs_complete(b: &mut Bencher) {
         let g = StaticGraph::complete(100);
-        bench_traverser::<Bfs<_>>(b, &g);
+        bench_bfs(b, &g);
     }
 
     #[bench]
     fn bench_bfs_tree(b: &mut Bencher) {
-        let g = StaticGraph::tree(100, &mut StdRng::from_seed(&[123]));
-        bench_traverser::<Bfs<_>>(b, &g);
+        let g = StaticGraph::random_tree(100, &mut StdRng::from_seed(&[123]));
+        bench_bfs(b, &g);
     }
 }
