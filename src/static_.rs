@@ -1,5 +1,5 @@
 use graph::*;
-use fera::{IteratorExt, MapBind1};
+use fera::{IteratorExt, MapBind};
 use fera::optional::OptionalMax;
 use builder::{Builder, WithBuilder};
 use choose::Choose;
@@ -242,7 +242,7 @@ impl<V: Num, E: Num> WithEdge for StaticGraphGeneric<V, E> {
 impl<'a, V: Num, E: Num> VertexTypes<'a, StaticGraphGeneric<V, E>> for StaticGraphGeneric<V, E> {
     type VertexIter = V::Range;
     // TODO: Use IncidenceOutNeighborIter
-    type OutNeighborIter = MapBind1<'a, OutEdgeIter<'a, Self>, Self, Vertex<Self>>;
+    type OutNeighborIter = MapBind<OutEdgeIter<'a, Self>, &'a Self, fn(&Self, StaticEdge<E>) -> V>;
 }
 
 impl<'a, V: Num, E: Num> EdgeTypes<'a, StaticGraphGeneric<V, E>> for StaticGraphGeneric<V, E> {
@@ -274,7 +274,7 @@ impl<V: Num, E: Num> EdgeList for StaticGraphGeneric<V, E> {
 impl<V: Num, E: Num> Adjacency for StaticGraphGeneric<V, E> {
     #[inline(always)]
     fn out_neighbors(&self, v: Vertex<Self>) -> OutNeighborIter<Self> {
-        self.out_edges(v).map_bind1(self, Self::target)
+        self.out_edges(v).map_bind(self, Self::target)
     }
 
     #[inline(always)]
