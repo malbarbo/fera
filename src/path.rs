@@ -35,7 +35,7 @@ pub trait FindPath: IncidenceGraph {
         let mut found = false;
         let mut tree = self.default_vertex_prop(Self::edge_none());
         Dfs::new(self).traverse(u,
-                                &mut DiscoverTreeEdge(|e| {
+                                DiscoverTreeEdge(|e| {
                                     let t = self.target(e);
                                     tree[t] = Self::edge_some(e);
                                     found = t == v;
