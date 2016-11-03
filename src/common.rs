@@ -1,16 +1,17 @@
 use graph::*;
 
-pub struct IncidenceOutNeighborIter<I, G> {
+pub struct AdjacencyFromIncidence<I, G> {
     iter: I,
     g: *const G,
 }
 
-impl<I, G> IncidenceOutNeighborIter<I, G>
+impl<I, G> AdjacencyFromIncidence<I, G>
     where I: Iterator<Item = Edge<G>>,
           G: WithEdge
 {
+    // FIXME: make this pub(crate)
     pub fn new(iter: I, g: &G) -> Self {
-        IncidenceOutNeighborIter {
+        AdjacencyFromIncidence {
             iter: iter,
             g: g as *const _,
         }
@@ -18,7 +19,7 @@ impl<I, G> IncidenceOutNeighborIter<I, G>
 }
 
 
-impl<I, G> Iterator for IncidenceOutNeighborIter<I, G>
+impl<I, G> Iterator for AdjacencyFromIncidence<I, G>
     where I: Iterator<Item = Edge<G>>,
           G: WithEdge
 {
@@ -33,8 +34,11 @@ impl<I, G> Iterator for IncidenceOutNeighborIter<I, G>
     }
 }
 
-impl<I, G> ExactSizeIterator for IncidenceOutNeighborIter<I, G>
+impl<I, G> ExactSizeIterator for AdjacencyFromIncidence<I, G>
     where I: Iterator<Item = Edge<G>> + ExactSizeIterator,
           G: WithEdge
 {
+    fn len(&self) -> usize {
+        self.iter.len()
+    }
 }

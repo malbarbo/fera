@@ -1,6 +1,6 @@
 use graph::*;
 use choose::Choose;
-use common::IncidenceOutNeighborIter;
+use common::AdjacencyFromIncidence;
 use delegateprop::*;
 
 use fera::IteratorExt;
@@ -35,7 +35,7 @@ impl<'a, 'b, G> VertexTypes<'a, Subgraph<'b, G>> for Subgraph<'b, G>
     where G: 'b + Graph
 {
     type VertexIter = Cloned<slice::Iter<'a, Vertex<G>>>;
-    type OutNeighborIter = IncidenceOutNeighborIter<Cloned<slice::Iter<'a, Edge<G>>>, G>;
+    type OutNeighborIter = AdjacencyFromIncidence<Cloned<slice::Iter<'a, Edge<G>>>, G>;
 }
 
 impl<'a, G> WithVertex for Subgraph<'a, G>
@@ -116,7 +116,7 @@ impl<'a, G> Adjacency for Subgraph<'a, G>
     where G: 'a + Graph
 {
     fn out_neighbors(&self, v: Vertex<Self>) -> OutNeighborIter<Self> {
-        IncidenceOutNeighborIter::new(self.out_edges(v), self.g)
+        AdjacencyFromIncidence::new(self.out_edges(v), self.g)
     }
 
     fn out_degree(&self, v: Vertex<Self>) -> usize {
