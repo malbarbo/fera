@@ -22,6 +22,7 @@ pub mod graph;
 #[macro_use]
 pub mod builder;
 
+pub mod adjset;
 pub mod graph_ref;
 pub mod subgraph;
 pub mod complete;
