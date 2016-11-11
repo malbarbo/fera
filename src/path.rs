@@ -34,13 +34,13 @@ pub trait FindPath: IncidenceGraph {
         }
         let mut found = false;
         let mut tree = self.default_vertex_prop(Self::edge_none());
-        Dfs::new(self).traverse(u,
-                                DiscoverTreeEdge(|e| {
-                                    let t = self.target(e);
-                                    tree[t] = Self::edge_some(e);
-                                    found = t == v;
-                                    break_if(found)
-                                }));
+        self.dfs_with_root(u,
+                           DiscoverTreeEdge(|e| {
+                               let t = self.target(e);
+                               tree[t] = Self::edge_some(e);
+                               found = t == v;
+                               break_if(found)
+                           }));
         if found {
             self.find_path_on_parent_tree(&tree, u, v)
         } else {

@@ -414,3 +414,9 @@ pub enum Color {
     Gray,
     Black,
 }
+
+impl Default for Color {
+    fn default() -> Color {
+        Color::White
+    }
+}

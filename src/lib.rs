@@ -4,10 +4,11 @@
 #[cfg(all(feature = "nightly", test))]
 extern crate test;
 
-extern crate num;
-extern crate rand;
 #[cfg(test)]
 extern crate itertools;
+
+extern crate num;
+extern crate rand;
 
 #[macro_use]
 extern crate fera;
@@ -16,8 +17,11 @@ extern crate fera;
 #[macro_use]
 pub mod tests;
 
-// TODO: Create a DiGraph trait and implementations
+#[macro_use]
 pub mod graph;
+pub mod common;
+#[macro_use]
+pub mod params;
 
 #[macro_use]
 pub mod builder;
@@ -33,12 +37,11 @@ pub mod path;
 pub mod props;
 pub mod traverse;
 pub mod unionfind;
+
+pub mod arrayprop;
+pub mod delegateprop;
 pub mod fnprop;
 pub mod hashmapprop;
-pub mod arrayprop;
-
-pub mod common;
-pub mod delegateprop;
 
 pub mod prelude {
     pub use graph::*;

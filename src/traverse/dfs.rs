@@ -1,90 +1,147 @@
-use graph::*;
-use super::Traverser;
-use super::visitor::*;
-#[macro_use]
 use super::control::*;
+use super::visitor::*;
 
-pub struct Dfs<'a, G, C>
-    where G: 'a + Incidence,
-          C: VertexPropMut<G, Color>
-{
-    pub g: &'a G,
-    pub color: C,
-    pub stack: Vec<(OptionEdge<G>, Vertex<G>, OutEdgeIter<'a, G>)>,
-}
+use graph::*;
+use params::*;
 
-impl<'a, G> Dfs<'a, G, DefaultVertexPropMut<G, Color>>
-    where G: 'a + Incidence + WithVertexProp<Color>
-{
-    pub fn new(g: &'a G) -> Self {
-        Dfs {
-            g: g,
-            color: g.vertex_prop(Color::White),
-            stack: Vec::new(),
-        }
-    }
-}
-
-impl<'a, G, C> Traverser<'a, G> for Dfs<'a, G, C>
-    where G: 'a + Incidence,
-          C: VertexPropMut<G, Color>
-{
-    fn traverse<V: Visitor<G>>(&mut self, v: Vertex<G>, mut vis: V) -> bool {
-        self.stack.push((G::edge_none(), v, self.g.out_edges(v)));
-        self.color[v] = Color::Gray;
-        return_unless!(vis.discover_vertex(self.g, v));
-        'out: while let Some((from, u, mut inc)) = self.stack.pop() {
-            while let Some(e) = inc.next() {
-                let v = self.g.target(e);
-                if self.g.is_undirected_edge(e) && self.color[v] == Color::Black ||
-                   G::edge_some(e) == from {
-                    continue;
-                }
-                return_unless!(vis.discover_edge(self.g, e));
-                match self.color[v] {
-                    Color::White => {
-                        self.color[v] = Color::Gray;
-                        self.stack.push((from, u, inc));
-                        self.stack.push((e.into(), v, self.g.out_edges(v)));
-                        return_unless!(vis.discover_tree_edge(self.g, e));
-                        return_unless!(vis.discover_vertex(self.g, v));
-                        continue 'out;
-                    }
-                    Color::Gray => {
-                        return_unless!(vis.discover_back_edge(self.g, e));
-                    }
-                    Color::Black => {
-                        return_unless!(vis.discover_cross_or_forward_edge(self.g, e));
-                    }
-                }
-                return_unless!(vis.finish_edge(self.g, e));
-            }
-            self.color[u] = Color::Black;
-            return_unless!(vis.finish_vertex(self.g, u));
-            if let Some(from) = from.into_option() {
-                return_unless!(vis.finish_tree_edge(self.g, from));
-                return_unless!(vis.finish_edge(self.g, from));
-            }
-        }
-        true
-    }
-
-    fn traverse_all<V: Visitor<G>>(&mut self, vis: V)
-        where G: VertexList
+pub trait Dfs<V: Visitor<Self>>: Incidence {
+    fn dfs_with_params<'a, P>(&'a self, params: P, mut vis: V)
+        where Self: DfsWithParams<'a, P>
     {
-        self.traverse_vertices(self.g.vertices(), vis);
+        use std::borrow::BorrowMut;
+        let (mut color, mut stack, roots) = self.dfs_params(params);
+        let color = color.borrow_mut();
+        let stack = stack.borrow_mut();
+        for v in roots {
+            if color[v] == Color::White {
+                color[v] = Color::Gray;
+                stack.push((Self::edge_none(), v, self.out_edges(v)));
+                break_unless!(vis.discover_root_vertex(self, v));
+                break_unless!(vis.discover_vertex(self, v));
+                if !dfs_visit(self, color, stack, &mut vis) {
+                    break;
+                }
+                break_unless!(vis.finish_root_vertex(self, v));
+            }
+        }
     }
 
-    fn graph(&self) -> &G {
-        self.g
+    fn dfs(&self, vis: V)
+        where Self: DfsWithDefaultParams
+    {
+        self.dfs_with_params(DfsParams::new(), vis);
     }
 
-    fn is_discovered(&self, v: Vertex<G>) -> bool {
-        self.color[v] != Color::White
+    fn dfs_with_root(&self, root: Vertex<Self>, vis: V)
+        where Self: DfsWithRoot
+    {
+        use std::iter::once;
+        self.dfs_with_params(DfsParams::new().roots(once(root)), vis);
     }
 }
 
+pub fn dfs_visit<'a, G, C, V>(g: &'a G,
+                              color: &mut C,
+                              stack: &mut DfsStack<'a, G>,
+                              vis: &mut V)
+                              -> bool
+    where G: Incidence,
+          C: VertexPropMut<G, Color>,
+          V: Visitor<G>
+{
+    'out: while let Some((from, u, mut inc)) = stack.pop() {
+        while let Some(e) = inc.next() {
+            let v = g.target(e);
+            if g.is_undirected_edge(e) && color[v] == Color::Black || G::edge_some(e) == from {
+                continue;
+            }
+            return_unless!(vis.discover_edge(g, e));
+            match color[v] {
+                Color::White => {
+                    color[v] = Color::Gray;
+                    stack.push((from, u, inc));
+                    stack.push((e.into(), v, g.out_edges(v)));
+                    return_unless!(vis.discover_tree_edge(g, e));
+                    return_unless!(vis.discover_vertex(g, v));
+                    continue 'out;
+                }
+                Color::Gray => {
+                    return_unless!(vis.discover_back_edge(g, e));
+                }
+                Color::Black => {
+                    return_unless!(vis.discover_cross_or_forward_edge(g, e));
+                }
+            }
+            return_unless!(vis.finish_edge(g, e));
+        }
+        color[u] = Color::Black;
+        return_unless!(vis.finish_vertex(g, u));
+        if let Some(from) = from.into_option() {
+            return_unless!(vis.finish_tree_edge(g, from));
+            return_unless!(vis.finish_edge(g, from));
+        }
+    }
+    true
+}
 
+impl<G, V> Dfs<V> for G
+    where G: Incidence,
+          V: Visitor<G>
+{
+}
+
+
+// Params
+
+define_param!(DfsParams(color, stack, roots));
+
+impl DfsParams<NewVertexProp<Color>, NewDfsStack, AllVertices> {
+    pub fn new() -> Self {
+        Default::default()
+    }
+}
+
+trait_alias!(DfsWithDefaultParams = VertexList + Incidence + WithVertexProp<Color>);
+
+trait_alias!(DfsWithRoot = Incidence + WithVertexProp<Color>);
+
+pub trait DfsWithParams<'a, P>: 'a + WithEdge {
+    type Color: ParamVertexProp<Self, Color>;
+    type Stack: Param<'a, Self, DfsStack<'a, Self>>;
+    type Roots: ParamVertexIter<'a, Self>;
+
+    fn dfs_params(&'a self, params: P) -> (<Self::Color as ParamVertexProp<Self, Color>>::Output,
+                                           <Self::Stack as Param<'a, Self, DfsStack<'a, Self>>>::Output,
+                                           <Self::Roots as ParamVertexIter<'a, Self>>::Output);
+}
+
+impl<'a, G, C, S, R> DfsWithParams<'a, DfsParams<C, S, R>> for G
+    where G: 'a + WithEdge,
+          C: ParamVertexProp<G, Color>,
+          S: Param<'a, G, DfsStack<'a, G>>,
+          R: ParamVertexIter<'a, G>
+{
+    type Color = C;
+    type Stack = S;
+    type Roots = R;
+
+    fn dfs_params(&'a self, p: DfsParams<C, S, R>) -> (C::Output, S::Output, R::Output) {
+        (p.0.build(self), p.1.build(self), p.2.build(self))
+    }
+}
+
+pub type DfsStack<'a, G> = Vec<(OptionEdge<G>, Vertex<G>, OutEdgeIter<'a, G>)>;
+
+#[derive(Default)]
+pub struct NewDfsStack;
+
+impl<'a, G: 'a + WithEdge> Param<'a, G, DfsStack<'a, G>> for NewDfsStack {
+    type Output = DfsStack<'a, G>;
+
+    fn build(self, _g: &'a G) -> Self::Output {
+        DfsStack::<G>::new()
+    }
+}
 
 
 // Tests
@@ -131,8 +188,8 @@ mod tests {
     }
 
     #[test]
-    fn dfs() {
-        use super::super::visitor::TraverseEvent::*;
+    fn events() {
+        use traverse::visitor::TraverseEvent::*;
         let g = new();
         let v = g.vertices().into_vec();
         let e = |x: usize, y: usize| edge_by_ends(&g, v[x], v[y]);
@@ -192,7 +249,7 @@ mod tests {
         assert_eq!(expected, v);
 
         v.clear();
-        Dfs::new(&g).traverse_all(FnTraverseEvent(|evt| v.push(evt)));
+        g.dfs(FnTraverseEvent(|evt| v.push(evt)));
         assert_eq!(expected, v);
 
         // TODO: test recursive dfs vs dfs form random graphs
@@ -205,24 +262,24 @@ mod benchs {
     use static_::*;
     use builder::WithBuilder;
     use traverse::*;
-    use rand::{SeedableRng, StdRng};
+    use rand::XorShiftRng;
     use test::Bencher;
 
     fn bench_dfs<'a>(b: &mut Bencher, g: &'a StaticGraph) {
         b.iter(|| {
-            Dfs::new(g).traverse_all(DiscoverTreeEdge(|_| Control::Continue));
+            g.dfs(DiscoverTreeEdge(|_| Control::Continue));
         });
     }
 
     #[bench]
-    fn bench_dfs_complete(b: &mut Bencher) {
+    fn complete_graph(b: &mut Bencher) {
         let g = StaticGraph::complete(100);
         bench_dfs(b, &g);
     }
 
     #[bench]
-    fn bench_dfs_tree(b: &mut Bencher) {
-        let g = StaticGraph::random_tree(100, &mut StdRng::from_seed(&[123]));
+    fn tree(b: &mut Bencher) {
+        let g = StaticGraph::random_tree(100, XorShiftRng::new_unseeded());
         bench_dfs(b, &g);
     }
 }

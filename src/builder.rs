@@ -85,7 +85,7 @@ pub trait WithBuilder: Graph {
         complete_binary_tree::<Self>(height).finalize()
     }
 
-    fn random_tree<R: Rng>(n: usize, rng: &mut R) -> Self {
+    fn random_tree<R: Rng>(n: usize, rng: R) -> Self {
         random_tree::<Self, _>(n, rng).finalize()
     }
 }
@@ -110,7 +110,7 @@ fn complete_binary_tree<G: WithBuilder>(height: u32) -> G::Builder {
     b
 }
 
-fn random_tree<G, R>(n: usize, rng: &mut R) -> G::Builder
+fn random_tree<G, R>(n: usize, mut rng: R) -> G::Builder
     where G: WithBuilder,
           R: Rng
 {
@@ -121,10 +121,10 @@ fn random_tree<G, R>(n: usize, rng: &mut R) -> G::Builder
     let mut b = G::builder(n, n - 1);
     let mut visited = vec![false; n];
     let mut num_edges = 0;
-    let mut u = range.ind_sample(rng);
+    let mut u = range.ind_sample(&mut rng);
     visited[u] = true;
     while num_edges + 1 < n {
-        let v = range.ind_sample(rng);
+        let v = range.ind_sample(&mut rng);
         if visited[v] {
             u = v;
         } else {
