@@ -2,7 +2,7 @@ use graph::*;
 use super::visitor::*;
 
 pub fn recursive_dfs<G, V>(g: &G, mut vis: V)
-    where G: WithVertexProp<Color> + WithEdge + VertexList + Incidence,
+    where G: VertexList + Incidence + WithVertexProp<Color>,
           V: Visitor<G>
 {
     let mut color = g.default_vertex_prop(Color::White);
@@ -15,12 +15,12 @@ pub fn recursive_dfs<G, V>(g: &G, mut vis: V)
     }
 }
 
-fn recursive_dfs_visit<G, C, V>(g: &G,
-                                from: OptionEdge<G>,
-                                u: Vertex<G>,
-                                color: &mut C,
-                                vis: &mut V)
-    where G: WithEdge + Incidence,
+pub fn recursive_dfs_visit<G, C, V>(g: &G,
+                                    from: OptionEdge<G>,
+                                    u: Vertex<G>,
+                                    color: &mut C,
+                                    vis: &mut V)
+    where G: Incidence,
           C: VertexPropMut<G, Color>,
           V: Visitor<G>
 {
@@ -50,4 +50,3 @@ fn recursive_dfs_visit<G, C, V>(g: &G,
     color[u] = Color::Black;
     vis.finish_vertex(g, u);
 }
-
