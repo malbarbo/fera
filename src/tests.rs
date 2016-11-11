@@ -162,9 +162,9 @@ pub trait GraphTests {
     fn get_reverse()
         where Self::G: WithEdge
     {
-        use std::hash::{Hash, Hasher, SipHasher};
+        use std::hash::{Hash, Hasher};
         fn hash<T: Hash>(t: T) -> u64 {
-            let mut s = SipHasher::new();
+            let mut s = ::std::collections::hash_map::DefaultHasher::new();
             t.hash(&mut s);
             s.finish()
         }
