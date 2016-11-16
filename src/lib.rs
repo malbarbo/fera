@@ -17,31 +17,37 @@ extern crate fera;
 #[macro_use]
 pub mod tests;
 
-#[macro_use]
-pub mod graph;
-pub mod common;
-#[macro_use]
-pub mod params;
-
+// basic
 #[macro_use]
 pub mod builder;
-
-pub mod adjset;
-pub mod graph_ref;
-pub mod subgraph;
-pub mod complete;
-pub mod static_;
-pub mod choose;
-pub mod kruskal;
-pub mod path;
-pub mod props;
+#[macro_use]
+pub mod graph;
+#[macro_use]
+pub mod params;
 pub mod traverse;
-pub mod unionfind;
 
+// graphs
+pub mod adjset;
+pub mod common;
+pub mod complete;
+pub mod graph_ref;
+pub mod static_;
+pub mod subgraph;
+
+// props
 pub mod arrayprop;
 pub mod delegateprop;
 pub mod fnprop;
 pub mod hashmapprop;
+
+// algorithms
+pub mod kruskal;
+pub mod path;
+pub mod props;
+
+// others
+pub mod choose;
+pub mod unionfind;
 
 pub mod prelude {
     pub use graph::*;
