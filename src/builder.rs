@@ -1,5 +1,5 @@
 use graph::*;
-use props::*;
+use trees::*;
 
 use fera::{IteratorExt, VecExt};
 

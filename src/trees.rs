@@ -38,7 +38,7 @@ impl<G> Props for G where G: IncidenceGraph {}
 #[cfg(test)]
 mod tests {
     use static_::*;
-    use props::*;
+    use super::*;
 
     struct Case {
         g: StaticGraph,

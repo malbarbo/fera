@@ -43,7 +43,7 @@ pub mod hashmapprop;
 // algorithms
 pub mod kruskal;
 pub mod path;
-pub mod props;
+pub mod trees;
 
 // others
 pub mod choose;
