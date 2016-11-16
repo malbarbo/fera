@@ -1,85 +1,140 @@
-use graph::*;
-use super::Traverser;
-use super::visitor::*;
-#[macro_use]
 use super::control::*;
-use std::collections::VecDeque;
+use super::visitor::*;
 
-// TODO: make queue generic
-pub struct Bfs<'a, G, C>
-    where G: 'a + WithEdge,
-          C: VertexPropMut<G, Color>
-{
-    pub g: &'a G,
-    pub color: C,
-    pub queue: VecDeque<(OptionEdge<G>, Vertex<G>)>,
-}
+use graph::*;
+use params::*;
 
-impl<'a, G> Bfs<'a, G, DefaultVertexPropMut<G, Color>>
-    where G: 'a + WithEdge + WithVertexProp<Color>
-{
-    pub fn new(g: &'a G) -> Self {
-        Bfs {
-            g: g,
-            color: g.vertex_prop(Color::White),
-            queue: VecDeque::new(),
+pub trait Bfs<V: Visitor<Self>>: Incidence {
+    fn bfs_with_params<'a, P>(&'a self, params: P, mut vis: V)
+        where Self: BfsWithParams<'a, P>
+    {
+        use std::borrow::BorrowMut;
+        let (mut color, mut queue, roots) = self.bfs_params(params);
+        let color = color.borrow_mut();
+        let queue = queue.borrow_mut();
+        for v in roots {
+            if color[v] == Color::White {
+                color[v] = Color::Gray;
+                queue.push_back((Self::edge_none(), v));
+                break_unless!(vis.discover_root_vertex(self, v));
+                break_unless!(vis.discover_vertex(self, v));
+                if !bfs_visit(self, color, queue, &mut vis) {
+                    break;
+                }
+                break_unless!(vis.finish_root_vertex(self, v));
+            }
         }
+    }
+
+    fn bfs(&self, vis: V)
+        where Self: BfsWithDefaultParams
+    {
+        self.bfs_with_params(BfsParams::new(), vis);
+    }
+
+    fn bfs_with_root(&self, root: Vertex<Self>, vis: V)
+        where Self: BfsWithRoot
+    {
+        use std::iter::once;
+        self.bfs_with_params(BfsParams::new().roots(once(root)), vis);
     }
 }
 
-impl<'a, G, C> Traverser<'a, G> for Bfs<'a, G, C>
-    where G: 'a + IncidenceGraph,
-          C: VertexPropMut<G, Color>
+pub fn bfs_visit<G, C, V>(g: &G, color: &mut C, queue: &mut BfsQueue<G>, vis: &mut V) -> bool
+    where G: Incidence,
+          C: VertexPropMut<G, Color>,
+          V: Visitor<G>
 {
-    fn traverse<V: Visitor<G>>(&mut self, v: Vertex<G>, mut vis: V) -> bool {
-        self.queue.push_back((G::edge_none(), v));
-        self.color[v] = Color::Gray;
-        return_unless!(vis.discover_vertex(self.g, v));
-        while let Some((from, u)) = self.queue.pop_front() {
-            for e in self.g.out_edges(u) {
-                let v = self.g.target(e);
-                if self.g.is_undirected_edge(e) && self.color[v] == Color::Black ||
-                   G::edge_some(e) == from {
+    while let Some((from, u)) = queue.pop_front() {
+        for e in g.out_edges(u) {
+            let v = g.target(e);
+            if g.is_undirected_edge(e) && color[v] == Color::Black || G::edge_some(e) == from {
+                continue;
+            }
+            return_unless!(vis.discover_edge(g, e));
+            match color[v] {
+                Color::White => {
+                    color[v] = Color::Gray;
+                    queue.push_back((e.into(), v));
+                    return_unless!(vis.discover_tree_edge(g, e));
+                    return_unless!(vis.discover_vertex(g, v));
                     continue;
                 }
-                return_unless!(vis.discover_edge(self.g, e));
-                match self.color[v] {
-                    Color::White => {
-                        self.color[v] = Color::Gray;
-                        self.queue.push_back((e.into(), v));
-                        return_unless!(vis.discover_tree_edge(self.g, e));
-                        return_unless!(vis.discover_vertex(self.g, v));
-                        continue;
-                    }
-                    Color::Gray => {
-                        return_unless!(vis.discover_back_edge(self.g, e));
-                    }
-                    Color::Black => {
-                        return_unless!(vis.discover_cross_or_forward_edge(self.g, e));
-                    }
+                Color::Gray => {
+                    return_unless!(vis.discover_back_edge(g, e));
                 }
-                return_unless!(vis.finish_edge(self.g, e));
+                Color::Black => {
+                    return_unless!(vis.discover_cross_or_forward_edge(g, e));
+                }
             }
-            self.color[u] = Color::Black;
-            return_unless!(vis.finish_vertex(self.g, u));
-            if let Some(from) = from.into_option() {
-                return_unless!(vis.finish_tree_edge(self.g, from));
-                return_unless!(vis.finish_edge(self.g, from));
-            }
+            return_unless!(vis.finish_edge(g, e));
         }
-        true
+        color[u] = Color::Black;
+        return_unless!(vis.finish_vertex(g, u));
+        if let Some(from) = from.into_option() {
+            return_unless!(vis.finish_tree_edge(g, from));
+            return_unless!(vis.finish_edge(g, from));
+        }
     }
+    true
+}
 
-    fn traverse_all<V: Visitor<G>>(&mut self, vis: V) {
-        self.traverse_vertices(self.g.vertices(), vis);
+impl<G, V> Bfs<V> for G
+    where G: Incidence,
+          V: Visitor<G>
+{
+}
+
+
+// Params
+
+define_param!(BfsParams(color, queue, roots));
+
+impl BfsParams<NewVertexProp<Color>, NewBfsQueue, AllVertices> {
+    pub fn new() -> Self {
+        Default::default()
     }
+}
 
-    fn graph(&self) -> &G {
-        self.g
+trait_alias!(BfsWithDefaultParams = VertexList + Incidence + WithVertexProp<Color>);
+
+trait_alias!(BfsWithRoot = Incidence + WithVertexProp<Color>);
+
+pub trait BfsWithParams<'a, P>: 'a + WithEdge {
+    type Color: ParamVertexProp<Self, Color>;
+    type Queue: Param<'a, Self, BfsQueue<Self>>;
+    type Roots: ParamVertexIter<'a, Self>;
+
+    fn bfs_params(&'a self, params: P) -> (<Self::Color as ParamVertexProp<Self, Color>>::Output,
+                                           <Self::Queue as Param<'a, Self, BfsQueue<Self>>>::Output,
+                                           <Self::Roots as ParamVertexIter<'a, Self>>::Output);
+}
+
+impl<'a, G, C, S, R> BfsWithParams<'a, BfsParams<C, S, R>> for G
+    where G: 'a + WithEdge,
+          C: ParamVertexProp<G, Color>,
+          S: Param<'a, G, BfsQueue<G>>,
+          R: ParamVertexIter<'a, G>
+{
+    type Color = C;
+    type Queue = S;
+    type Roots = R;
+
+    fn bfs_params(&'a self, p: BfsParams<C, S, R>) -> (C::Output, S::Output, R::Output) {
+        (p.0.build(self), p.1.build(self), p.2.build(self))
     }
+}
 
-    fn is_discovered(&self, v: Vertex<G>) -> bool {
-        self.color[v] != Color::White
+pub type BfsQueue<G> = ::std::collections::VecDeque<(OptionEdge<G>, Vertex<G>)>;
+
+#[derive(Default)]
+pub struct NewBfsQueue;
+
+impl<'a, G: 'a + WithEdge> Param<'a, G, BfsQueue<G>> for NewBfsQueue {
+    type Output = BfsQueue<G>;
+
+    fn build(self, _g: &'a G) -> Self::Output {
+        BfsQueue::<G>::new()
     }
 }
 
@@ -128,8 +183,8 @@ mod tests {
     }
 
     #[test]
-    fn bfs() {
-        use super::super::visitor::TraverseEvent::*;
+    fn events() {
+        use traverse::TraverseEvent::*;
         let g = new();
         let v = g.vertices().into_vec();
         let e = |x: usize, y: usize| edge_by_ends(&g, v[x], v[y]);
@@ -185,7 +240,7 @@ mod tests {
         ];
 
         let mut v = vec![];
-        Bfs::new(&g).traverse_all(FnTraverseEvent(|evt| v.push(evt)));
+        g.bfs(FnTraverseEvent(|evt| v.push(evt)));
         assert_eq!(expected, v);
     }
 }
@@ -195,24 +250,24 @@ mod benchs {
     use static_::*;
     use builder::WithBuilder;
     use traverse::*;
-    use rand::{SeedableRng, StdRng};
+    use rand::XorShiftRng;
     use test::Bencher;
 
     fn bench_bfs<'a>(b: &mut Bencher, g: &'a StaticGraph) {
         b.iter(|| {
-            Bfs::new(g).traverse_all(DiscoverTreeEdge(|_| Control::Continue));
+            g.bfs(DiscoverTreeEdge(|_| Control::Continue));
         });
     }
 
     #[bench]
-    fn bench_bfs_complete(b: &mut Bencher) {
+    fn complete_graph(b: &mut Bencher) {
         let g = StaticGraph::complete(100);
         bench_bfs(b, &g);
     }
 
     #[bench]
-    fn bench_bfs_tree(b: &mut Bencher) {
-        let g = StaticGraph::random_tree(100, &mut StdRng::from_seed(&[123]));
+    fn tree(b: &mut Bencher) {
+        let g = StaticGraph::random_tree(100, XorShiftRng::new_unseeded());
         bench_bfs(b, &g);
     }
 }
