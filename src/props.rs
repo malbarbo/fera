@@ -5,7 +5,7 @@ use traverse::*;
 pub trait Props: IncidenceGraph {
     fn is_acyclic(&self) -> bool {
         let mut acyclic = true;
-        self.dfs(DiscoverBackEdge(|_| {
+        self.dfs(OnDiscoverBackEdge(|_| {
             acyclic = false;
             Control::Break
         }));
@@ -16,7 +16,7 @@ pub trait Props: IncidenceGraph {
         self.num_vertices() == 0 ||
         {
             let mut count = 0;
-            self.dfs(DiscoverRootVertex(|_| {
+            self.dfs(OnDiscoverRootVertex(|_| {
                 count += 1;
                 break_if(count != 1)
             }));

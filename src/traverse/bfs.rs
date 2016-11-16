@@ -240,7 +240,7 @@ mod tests {
         ];
 
         let mut v = vec![];
-        g.bfs(FnTraverseEvent(|evt| v.push(evt)));
+        g.bfs(OnTraverseEvent(|evt| v.push(evt)));
         assert_eq!(expected, v);
     }
 }
@@ -255,7 +255,7 @@ mod benchs {
 
     fn bench_bfs<'a>(b: &mut Bencher, g: &'a StaticGraph) {
         b.iter(|| {
-            g.bfs(DiscoverTreeEdge(|_| Control::Continue));
+            g.bfs(OnDiscoverTreeEdge(|_| Control::Continue));
         });
     }
 

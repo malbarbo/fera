@@ -245,11 +245,11 @@ mod tests {
         ];
 
         let mut v = vec![];
-        recursive_dfs(&g, FnTraverseEvent(|evt| v.push(evt)));
+        recursive_dfs(&g, OnTraverseEvent(|evt| v.push(evt)));
         assert_eq!(expected, v);
 
         v.clear();
-        g.dfs(FnTraverseEvent(|evt| v.push(evt)));
+        g.dfs(OnTraverseEvent(|evt| v.push(evt)));
         assert_eq!(expected, v);
 
         // TODO: test recursive dfs vs dfs form random graphs
@@ -267,7 +267,7 @@ mod benchs {
 
     fn bench_dfs<'a>(b: &mut Bencher, g: &'a StaticGraph) {
         b.iter(|| {
-            g.dfs(DiscoverTreeEdge(|_| Control::Continue));
+            g.dfs(OnDiscoverTreeEdge(|_| Control::Continue));
         });
     }
 
