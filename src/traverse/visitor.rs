@@ -3,6 +3,14 @@ use super::control::*;
 
 // TODO: check if event names make sense for both dfs and bfs
 pub trait Visitor<G: WithEdge> {
+    fn start(&mut self, _g: &G) -> Control {
+        Control::Continue
+    }
+
+    fn finish(&mut self, _g: &G) -> Control {
+        Control::Continue
+    }
+
     fn discover_root_vertex(&mut self, _g: &G, _v: Vertex<G>) -> Control {
         Control::Continue
     }
@@ -48,6 +56,14 @@ impl<'a, G, V> Visitor<G> for &'a mut V
     where G: WithEdge,
           V: Visitor<G>
 {
+    fn start(&mut self, g: &G) -> Control {
+        V::start(self, g)
+    }
+
+    fn finish(&mut self, g: &G) -> Control {
+        V::start(self, g)
+    }
+
     fn discover_root_vertex(&mut self, g: &G, v: Vertex<G>) -> Control {
         V::discover_root_vertex(self, g, v)
     }
@@ -139,6 +155,8 @@ def_visitor_tuple!(A, B, C, D);
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum TraverseEvent<G: WithEdge> {
+    Start,
+    Finish,
     DiscoverRootVertex(Vertex<G>),
     FinishRootVertex(Vertex<G>),
     DiscoverVertex(Vertex<G>),
@@ -158,6 +176,14 @@ impl<G, F, R> Visitor<G> for OnTraverseEvent<F>
           F: FnMut(TraverseEvent<G>) -> R,
           R: Into<Control>
 {
+    fn start(&mut self, _g: &G) -> Control {
+        (self.0)(TraverseEvent::Start).into()
+    }
+
+    fn finish(&mut self, _g: &G) -> Control {
+        (self.0)(TraverseEvent::Finish).into()
+    }
+
     fn discover_root_vertex(&mut self, _g: &G, v: Vertex<G>) -> Control {
         (self.0)(TraverseEvent::DiscoverRootVertex(v)).into()
     }

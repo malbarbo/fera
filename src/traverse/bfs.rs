@@ -5,9 +5,10 @@ use graph::*;
 use params::*;
 
 pub trait Bfs<V: Visitor<Self>>: Incidence {
-    fn bfs_with_params<'a, P>(&'a self, params: P, mut vis: V)
+    fn bfs_with_params<'a, P>(&'a self, params: P, mut vis: V) -> Control
         where Self: BfsWithParams<'a, P>
     {
+        return_unless!(vis.start(self));
         use std::borrow::BorrowMut;
         let (mut color, mut queue, roots) = self.bfs_params(params);
         let color = color.borrow_mut();
@@ -18,29 +19,28 @@ pub trait Bfs<V: Visitor<Self>>: Incidence {
                 queue.push_back((Self::edge_none(), v));
                 break_unless!(vis.discover_root_vertex(self, v));
                 break_unless!(vis.discover_vertex(self, v));
-                if !bfs_visit(self, color, queue, &mut vis) {
-                    break;
-                }
+                break_unless!(bfs_visit(self, color, queue, &mut vis));
                 break_unless!(vis.finish_root_vertex(self, v));
             }
         }
+        vis.finish(self)
     }
 
-    fn bfs(&self, vis: V)
+    fn bfs(&self, vis: V) -> Control
         where Self: BfsWithDefaultParams
     {
-        self.bfs_with_params(BfsParams::new(), vis);
+        self.bfs_with_params(BfsParams::new(), vis)
     }
 
-    fn bfs_with_root(&self, root: Vertex<Self>, vis: V)
+    fn bfs_with_root(&self, root: Vertex<Self>, vis: V) -> Control
         where Self: BfsWithRoot
     {
         use std::iter::once;
-        self.bfs_with_params(BfsParams::new().roots(once(root)), vis);
+        self.bfs_with_params(BfsParams::new().roots(once(root)), vis)
     }
 }
 
-pub fn bfs_visit<G, C, V>(g: &G, color: &mut C, queue: &mut BfsQueue<G>, vis: &mut V) -> bool
+pub fn bfs_visit<G, C, V>(g: &G, color: &mut C, queue: &mut BfsQueue<G>, vis: &mut V) -> Control
     where G: Incidence,
           C: VertexPropMut<G, Color>,
           V: Visitor<G>
@@ -76,7 +76,7 @@ pub fn bfs_visit<G, C, V>(g: &G, color: &mut C, queue: &mut BfsQueue<G>, vis: &m
             return_unless!(vis.finish_edge(g, from));
         }
     }
-    true
+    Control::Continue
 }
 
 impl<G, V> Bfs<V> for G
@@ -189,6 +189,8 @@ mod tests {
         let v = g.vertices().into_vec();
         let e = |x: usize, y: usize| edge_by_ends(&g, v[x], v[y]);
         let expected = vec![
+            Start,
+
             DiscoverRootVertex(0),
             DiscoverVertex(0),
             DiscoverEdge(e(0, 1)),
@@ -237,6 +239,8 @@ mod tests {
             FinishTreeEdge(e(4, 6)),
             FinishEdge(e(4, 6)),
             FinishRootVertex(4),
+
+            Finish,
         ];
 
         let mut v = vec![];

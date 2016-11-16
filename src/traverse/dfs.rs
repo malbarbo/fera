@@ -5,9 +5,10 @@ use graph::*;
 use params::*;
 
 pub trait Dfs<V: Visitor<Self>>: Incidence {
-    fn dfs_with_params<'a, P>(&'a self, params: P, mut vis: V)
+    fn dfs_with_params<'a, P>(&'a self, params: P, mut vis: V) -> Control
         where Self: DfsWithParams<'a, P>
     {
+        return_unless!(vis.start(self));
         use std::borrow::BorrowMut;
         let (mut color, mut stack, roots) = self.dfs_params(params);
         let color = color.borrow_mut();
@@ -16,27 +17,26 @@ pub trait Dfs<V: Visitor<Self>>: Incidence {
             if color[v] == Color::White {
                 color[v] = Color::Gray;
                 stack.push((Self::edge_none(), v, self.out_edges(v)));
-                break_unless!(vis.discover_root_vertex(self, v));
-                break_unless!(vis.discover_vertex(self, v));
-                if !dfs_visit(self, color, stack, &mut vis) {
-                    break;
-                }
-                break_unless!(vis.finish_root_vertex(self, v));
+                return_unless!(vis.discover_root_vertex(self, v));
+                return_unless!(vis.discover_vertex(self, v));
+                return_unless!(dfs_visit(self, color, stack, &mut vis));
+                return_unless!(vis.finish_root_vertex(self, v));
             }
         }
+        vis.finish(self)
     }
 
-    fn dfs(&self, vis: V)
+    fn dfs(&self, vis: V) -> Control
         where Self: DfsWithDefaultParams
     {
-        self.dfs_with_params(DfsParams::new(), vis);
+        self.dfs_with_params(DfsParams::new(), vis)
     }
 
-    fn dfs_with_root(&self, root: Vertex<Self>, vis: V)
+    fn dfs_with_root(&self, root: Vertex<Self>, vis: V) -> Control
         where Self: DfsWithRoot
     {
         use std::iter::once;
-        self.dfs_with_params(DfsParams::new().roots(once(root)), vis);
+        self.dfs_with_params(DfsParams::new().roots(once(root)), vis)
     }
 }
 
@@ -44,7 +44,7 @@ pub fn dfs_visit<'a, G, C, V>(g: &'a G,
                               color: &mut C,
                               stack: &mut DfsStack<'a, G>,
                               vis: &mut V)
-                              -> bool
+                              -> Control
     where G: Incidence,
           C: VertexPropMut<G, Color>,
           V: Visitor<G>
@@ -81,7 +81,7 @@ pub fn dfs_visit<'a, G, C, V>(g: &'a G,
             return_unless!(vis.finish_edge(g, from));
         }
     }
-    true
+    Control::Continue
 }
 
 impl<G, V> Dfs<V> for G
@@ -194,6 +194,8 @@ mod tests {
         let v = g.vertices().into_vec();
         let e = |x: usize, y: usize| edge_by_ends(&g, v[x], v[y]);
         let expected = vec![
+            Start,
+
             DiscoverRootVertex(0),
             DiscoverVertex(0),
             DiscoverEdge(e(0, 1)),
@@ -242,6 +244,8 @@ mod tests {
             FinishEdge(e(4, 5)),
             FinishVertex(4),
             FinishRootVertex(4),
+
+            Finish,
         ];
 
         let mut v = vec![];

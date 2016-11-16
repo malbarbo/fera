@@ -5,6 +5,7 @@ pub fn recursive_dfs<G, V>(g: &G, mut vis: V)
     where G: VertexList + Incidence + WithVertexProp<Color>,
           V: Visitor<G>
 {
+    vis.start(g);
     let mut color = g.default_vertex_prop(Color::White);
     for v in g.vertices() {
         if color[v] == Color::White {
@@ -13,6 +14,7 @@ pub fn recursive_dfs<G, V>(g: &G, mut vis: V)
             vis.finish_root_vertex(g, v);
         }
     }
+    vis.finish(g);
 }
 
 pub fn recursive_dfs_visit<G, C, V>(g: &G,
