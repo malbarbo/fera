@@ -44,6 +44,8 @@ pub mod hashmapprop;
 pub mod kruskal;
 pub mod path;
 pub mod trees;
+pub mod cycles;
+pub mod components;
 
 // others
 pub mod choose;
