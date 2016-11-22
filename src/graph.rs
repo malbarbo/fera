@@ -76,6 +76,7 @@ pub trait UniformEdgeKind: EdgeKind {
 }
 
 
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub enum Directed {}
 
 impl EdgeKind for Directed {}
@@ -87,6 +88,7 @@ impl UniformEdgeKind for Directed {
 }
 
 
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub enum Undirected {}
 
 impl EdgeKind for Undirected {}
@@ -99,6 +101,7 @@ impl UniformEdgeKind for Undirected {
 
 
 // TODO: write a graph with mixed edges and test it
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub enum Mixed {}
 
 impl EdgeKind for Mixed {}
