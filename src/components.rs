@@ -2,6 +2,14 @@ use graph::*;
 use traverse::*;
 
 pub trait Components: Incidence {
+    fn num_components(&self) -> u64
+        where Self: DfsWithDefaultParams
+    {
+        let mut num = 0;
+        self.dfs_with_params(DfsParams::new(), NumComponents(&mut num));
+        num
+    }
+
     fn is_connected(&self) -> bool
         where Self: DfsWithDefaultParams
     {
@@ -43,4 +51,10 @@ impl<'a, G: WithEdge> Visitor<G> for IsConnected<'a> {
             Control::Continue
         }
     }
+}
+
+
+#[allow(non_snake_case)]
+pub fn NumComponents<'a>(num: &'a mut u64) -> OnDiscoverRootVertex<Count<'a>> {
+    OnDiscoverRootVertex(Count(num))
 }
