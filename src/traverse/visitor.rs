@@ -309,6 +309,35 @@ def_on_edge_visitor!(OnDiscoverCrossOrBackEdge, discover_cross_or_forward_edge);
 
 use std::cell::Cell;
 
+pub struct Count<'a> {
+    count: &'a mut u64
+}
+
+#[allow(non_snake_case)]
+pub fn Count<'a>(mut count: &'a mut u64) -> Count<'a> {
+    *count = 0;
+    Count { count: count }
+}
+
+impl<'a, G> VisitVertex<G> for Count<'a>
+    where G: WithEdge
+{
+    fn visit_vertex(&mut self, _g: &G, _v: Vertex<G>) -> Control {
+        *self.count += 1;
+        Control::Continue
+    }
+}
+
+impl<'a, G> VisitEdge<G> for Count<'a>
+    where G: WithEdge
+{
+    fn visit_edge(&mut self, _g: &G, _e: Edge<G>) -> Control {
+        *self.count += 1;
+        Control::Continue
+    }
+}
+
+
 #[derive(Default)]
 pub struct Time {
     cur: Cell<u64>,
