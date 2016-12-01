@@ -340,7 +340,7 @@ impl<V: Num, E: Num> Choose for StaticGraphGeneric<V, E> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{StaticGraph, StaticEdge};
     use graph::*;
     use builder::*;
     use tests::*;
@@ -374,13 +374,15 @@ mod tests {
     graph_tests!{Test}
 
     mod with_builder {
-        use builder::BuilderTests;
-        use static_::*;
+        use super::super::StaticGraph;
+        use builder::*;
 
-        impl BuilderTests for StaticGraph {
-            type G = Self;
+        struct Test;
+
+        impl BuilderTests for Test {
+            type G = StaticGraph;
         }
 
-        graph_builder_tests!{StaticGraph}
+        graph_builder_tests!{Test}
     }
 }

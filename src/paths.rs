@@ -48,9 +48,9 @@ impl<'a, G: WithEdge> Visitor<G> for RecordPath<'a, G> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::Paths;
+    use static_::StaticGraph;
     use graph::*;
-    use static_::*;
     use fera::IteratorExt;
 
     #[test]
@@ -70,10 +70,10 @@ mod tests {
 
 #[cfg(all(feature = "nightly", test))]
 mod benchs {
-    use super::*;
-    use static_::*;
+    use super::Paths;
+    use static_::StaticGraph;
     use graph::*;
-    use builder::WithBuilder;
+    use builder::*;
     use rand::{SeedableRng, StdRng};
     use test::Bencher;
 

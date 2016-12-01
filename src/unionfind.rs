@@ -24,7 +24,7 @@ impl<G> WithUnionFind for G where G: Graph {}
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{UnionFind, WithUnionFind};
     use graph::*;
     use static_::*;
     use fera::IteratorExt;
