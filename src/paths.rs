@@ -53,10 +53,10 @@ impl<G> FindPath for G where G: IncidenceGraph {}
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use graph::*;
     use static_::*;
     use fera::IteratorExt;
-    use path::*;
 
     #[test]
     fn find_path() {
