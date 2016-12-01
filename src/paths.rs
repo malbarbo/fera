@@ -1,55 +1,50 @@
 use graph::*;
 use traverse::*;
 
-pub type Path<G> = VecEdge<G>;
-
-pub type ParentTree<G> = DefaultVertexPropMut<G, OptionEdge<G>>;
-
-pub trait FindPath: IncidenceGraph {
-    fn find_path_on_parent_tree(&self,
-                                tree: &ParentTree<Self>,
-                                u: Vertex<Self>,
-                                v: Vertex<Self>)
-                                -> Option<Path<Self>> {
+pub trait Paths: WithEdge {
+    fn find_path(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<VecEdge<Self>>
+        where Self: DfsWithDefaultParams
+    {
         if u == v {
             return None;
         }
-        let mut v = v;
         let mut path = vec![];
-        // TODO: detect loop
-        while let Some(&e) = tree[v].to_option_ref() {
-            v = self.source(e);
-            path.push(e);
-            if v == u {
-                path.reverse();
-                return Some(path);
-            }
-        }
-        None
-    }
-
-    fn find_path(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Path<Self>> {
-        if u == v {
-            return None;
-        }
-        let mut found = false;
-        let mut tree = self.default_vertex_prop(Self::edge_none());
-        self.dfs_with_root(u,
-                           OnDiscoverTreeEdge(|e| {
-                               let t = self.target(e);
-                               tree[t] = Self::edge_some(e);
-                               found = t == v;
-                               break_if(found)
-                           }));
-        if found {
-            self.find_path_on_parent_tree(&tree, u, v)
-        } else {
-            None
-        }
+        self.dfs_with_root(u, RecordPath(&mut path, v));
+        if path.is_empty() { None } else { Some(path) }
     }
 }
 
-impl<G> FindPath for G where G: IncidenceGraph {}
+impl<G> Paths for G where G: Incidence {}
+
+
+pub struct RecordPath<'a, G: WithEdge> {
+    path: &'a mut Vec<Edge<G>>,
+    target: Vertex<G>,
+}
+
+#[allow(non_snake_case)]
+pub fn RecordPath<'a, G>(path: &'a mut Vec<Edge<G>>, target: Vertex<G>) -> RecordPath<'a, G>
+    where G: WithEdge
+{
+    RecordPath {
+        path: path,
+        target: target,
+    }
+}
+
+impl<'a, G: WithEdge> Visitor<G> for RecordPath<'a, G> {
+    fn discover_tree_edge(&mut self, g: &G, e: Edge<G>) -> Control {
+        self.path.push(e);
+        break_if(g.target(e) == self.target)
+    }
+
+    fn finish_tree_edge(&mut self, _g: &G, e: Edge<G>) -> Control {
+        let r = self.path.pop();
+        debug_assert_eq!(Some(e), r);
+        Control::Continue
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
