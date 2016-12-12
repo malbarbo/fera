@@ -271,7 +271,16 @@ impl<P, G, T> VertexProp<G, T> for P
 pub trait VertexPropMut<G, T>: IndexMut<Vertex<G>, Output = T>
     where G: WithVertex
 {
-    // TODO: add a way to reset the property, like: set(&mut self, value: T)
+    // TODO: Write test
+    // FIXME: What happen if the graph changes
+    fn reset(&mut self, g: &G, value: T)
+        where G: VertexList,
+              T: Clone
+    {
+        for v in g.vertices() {
+            self[v].clone_from(&value);
+        }
+    }
 }
 
 impl<P, G, T> VertexPropMut<G, T> for P
@@ -321,7 +330,18 @@ impl<P, G, T> EdgeProp<G, T> for P
 {
 }
 
-pub trait EdgePropMut<G, T>: IndexMut<Edge<G>, Output = T> where G: WithEdge {}
+pub trait EdgePropMut<G, T>: IndexMut<Edge<G>, Output = T>
+    where G: WithEdge
+{
+    fn reset(&mut self, g: &G, value: T)
+        where G: EdgeList,
+              T: Clone
+    {
+        for e in g.edges() {
+            self[e].clone_from(&value);
+        }
+    }
+}
 
 impl<P, G, T> EdgePropMut<G, T> for P
     where G: WithEdge,
