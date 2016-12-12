@@ -14,7 +14,7 @@ pub trait Trees: Incidence {
 impl<G: Incidence> Trees for G {}
 
 
-pub struct IsTree<'a>{
+pub struct IsTree<'a> {
     tree: &'a mut bool,
     saw_root: bool,
 }

@@ -315,7 +315,7 @@ def_on_edge_visitor!(OnDiscoverCrossOrBackEdge, discover_cross_or_forward_edge);
 use std::cell::Cell;
 
 pub struct Count<'a> {
-    count: &'a mut u64
+    count: &'a mut u64,
 }
 
 #[allow(non_snake_case)]

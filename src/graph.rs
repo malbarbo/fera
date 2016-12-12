@@ -309,7 +309,7 @@ pub trait WithVertexProp<T>: WithVertex {
         where Self: VertexList,
               P: VertexPropMutNew<Self, T>,
               F: FnMut(Vertex<Self>) -> T,
-              T: Default + Clone,
+              T: Default + Clone
     {
         // FIXME: Can we remove T: Default + Clone?
         let mut p: P = self.vertex_prop(T::default());
@@ -329,7 +329,7 @@ pub trait WithVertexProp<T>: WithVertex {
         where Self: VertexList,
               P: VertexPropMutNew<Self, T>,
               F: FnMut(Vertex<Self>) -> T,
-              T: Default + Clone,
+              T: Default + Clone
     {
         self.vertex_prop_from_fn(fun)
     }
@@ -392,7 +392,7 @@ pub trait WithEdgeProp<T>: WithEdge {
         where Self: EdgeList,
               P: EdgePropMutNew<Self, T>,
               F: FnMut(Edge<Self>) -> T,
-              T: Default + Clone,
+              T: Default + Clone
     {
         let mut p: P = self.edge_prop(T::default());
         for e in self.edges() {
@@ -411,7 +411,7 @@ pub trait WithEdgeProp<T>: WithEdge {
         where Self: EdgeList,
               P: EdgePropMutNew<Self, T>,
               F: FnMut(Edge<Self>) -> T,
-              T: Default + Clone,
+              T: Default + Clone
     {
         self.edge_prop_from_fn(fun)
     }
