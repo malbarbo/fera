@@ -182,8 +182,8 @@ mod tests {
 
     #[test]
     fn events() {
-        use traverse::visitor::TraverseEvent::*;
-        use traverse::recursive_dfs;
+        use traverse::TraverseEvent::*;
+        use traverse::RecursiveDfs;
         let g = new();
         let v = g.vertices().into_vec();
         let e = |x: usize, y: usize| edge_by_ends(&g, v[x], v[y]);
@@ -243,14 +243,14 @@ mod tests {
         ];
 
         let mut v = vec![];
-        recursive_dfs(&g, OnTraverseEvent(|evt| v.push(evt)));
+        g.recursive_dfs(OnTraverseEvent(|evt| v.push(evt)));
         assert_eq!(expected, v);
 
         v.clear();
         g.dfs(OnTraverseEvent(|evt| v.push(evt)));
         assert_eq!(expected, v);
 
-        // TODO: test recursive dfs vs dfs form random graphs
+        // TODO: test recursive dfs vs dfs for random graphs
         // TODO: test each edge and vertex is visited exatly once
     }
 }
