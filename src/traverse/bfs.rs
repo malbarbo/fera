@@ -4,39 +4,78 @@ use super::visitor::*;
 use graph::*;
 use params::*;
 
-pub trait Bfs<V: Visitor<Self>>: Incidence {
-    fn bfs_with_params<'a, P>(&'a self, params: P, mut vis: V) -> Control
-        where Self: BfsWithParams<'a, P>
+use std::borrow::BorrowMut;
+use std::collections::VecDeque;
+use std::iter;
+
+trait_alias!(BfsWithRoot = Incidence + WithVertexProp<Color>);
+trait_alias!(BfsDefault = Incidence + VertexList + WithVertexProp<Color>);
+
+pub trait Bfs: WithEdge {
+    fn bfs<V>(&self, vis: V) -> Control
+        where Self: BfsDefault,
+              V: Visitor<Self>
     {
-        return_unless!(vis.start(self));
-        use std::borrow::BorrowMut;
-        let (mut color, mut queue, roots) = self.bfs_params(params);
+        self.bfs_()
+            .visitor(vis)
+            .run()
+    }
+
+    fn bfs_with_root<V>(&self, root: Vertex<Self>, vis: V) -> Control
+        where Self: BfsWithRoot,
+              V: Visitor<Self>
+    {
+        self.bfs_()
+            .visitor(vis)
+            .root(root)
+            .run()
+    }
+
+    fn bfs_(&self) -> BfsAlg<&Self, EmptyVisitor, AllVertices, NewVertexProp<Color>, NewBfsQueue> {
+        BfsAlg(self,
+               EmptyVisitor,
+               AllVertices,
+               NewVertexProp(Color::White),
+               NewBfsQueue)
+    }
+}
+
+impl<G: WithEdge> Bfs for G {}
+
+
+generic_struct!(BfsAlg(graph, visitor, roots, color, queue));
+
+impl<'a, G, V, R, C, Q> BfsAlg<&'a G, V, R, C, Q> {
+    pub fn run(self) -> Control
+        where G: Incidence,
+              V: Visitor<G>,
+              R: ParamIterator<'a, G, Item = Vertex<G>>,
+              C: ParamVertexProp<G, Color>,
+              Q: Param<'a, G, BfsQueue<G>>
+    {
+        let BfsAlg(g, mut vis, roots, color, queue) = self;
+        return_unless!(vis.start(g));
+        let mut color = color.build(g);
         let color = color.borrow_mut();
+        let mut queue = queue.build(g);
         let queue = queue.borrow_mut();
-        for v in roots {
+        for v in roots.build(g) {
             if color[v] == Color::White {
                 color[v] = Color::Gray;
-                queue.push_back((Self::edge_none(), v));
-                break_unless!(vis.discover_root_vertex(self, v));
-                break_unless!(vis.discover_vertex(self, v));
-                break_unless!(bfs_visit(self, color, queue, &mut vis));
-                break_unless!(vis.finish_root_vertex(self, v));
+                queue.push_back((G::edge_none(), v));
+                break_unless!(vis.discover_root_vertex(g, v));
+                break_unless!(vis.discover_vertex(g, v));
+                break_unless!(bfs_visit(g, color, queue, &mut vis));
+                break_unless!(vis.finish_root_vertex(g, v));
             }
         }
-        vis.finish(self)
+        vis.finish(g)
     }
 
-    fn bfs(&self, vis: V) -> Control
-        where Self: BfsWithDefaultParams
+    pub fn root(self, root: Vertex<G>) -> BfsAlg<&'a G, V, iter::Once<Vertex<G>>, C, Q>
+        where G: WithVertex
     {
-        self.bfs_with_params(BfsParams::new(), vis)
-    }
-
-    fn bfs_with_root(&self, root: Vertex<Self>, vis: V) -> Control
-        where Self: BfsWithRoot
-    {
-        use std::iter::once;
-        self.bfs_with_params(BfsParams::new().roots(once(root)), vis)
+        self.roots(iter::once(root))
     }
 }
 
@@ -79,53 +118,8 @@ pub fn bfs_visit<G, C, V>(g: &G, color: &mut C, queue: &mut BfsQueue<G>, vis: &m
     Control::Continue
 }
 
-impl<G, V> Bfs<V> for G
-    where G: Incidence,
-          V: Visitor<G>
-{
-}
 
-
-// Params
-
-define_param!(BfsParams(color, queue, roots));
-
-impl BfsParams<NewVertexProp<Color>, NewBfsQueue, AllVertices> {
-    pub fn new() -> Self {
-        Default::default()
-    }
-}
-
-trait_alias!(BfsWithDefaultParams = VertexList + Incidence + WithVertexProp<Color>);
-
-trait_alias!(BfsWithRoot = Incidence + WithVertexProp<Color>);
-
-pub trait BfsWithParams<'a, P>: 'a + WithEdge {
-    type Color: ParamVertexProp<Self, Color>;
-    type Queue: Param<'a, Self, BfsQueue<Self>>;
-    type Roots: ParamIterator<'a, Self, Item = Vertex<Self>>;
-
-    fn bfs_params(&'a self, params: P) -> (<Self::Color as ParamVertexProp<Self, Color>>::Output,
-                                           <Self::Queue as Param<'a, Self, BfsQueue<Self>>>::Output,
-                                           <Self::Roots as ParamIterator<'a, Self>>::Output);
-}
-
-impl<'a, G, C, S, R> BfsWithParams<'a, BfsParams<C, S, R>> for G
-    where G: 'a + WithEdge,
-          C: ParamVertexProp<G, Color>,
-          S: Param<'a, G, BfsQueue<G>>,
-          R: ParamIterator<'a, G, Item = Vertex<G>>
-{
-    type Color = C;
-    type Queue = S;
-    type Roots = R;
-
-    fn bfs_params(&'a self, p: BfsParams<C, S, R>) -> (C::Output, S::Output, R::Output) {
-        (p.0.build(self), p.1.build(self), p.2.build(self))
-    }
-}
-
-pub type BfsQueue<G> = ::std::collections::VecDeque<(OptionEdge<G>, Vertex<G>)>;
+pub type BfsQueue<G> = VecDeque<(OptionEdge<G>, Vertex<G>)>;
 
 #[derive(Default)]
 pub struct NewBfsQueue;

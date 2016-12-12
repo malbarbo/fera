@@ -2,7 +2,7 @@ use graph::*;
 
 use std::borrow::BorrowMut;
 
-macro_rules! define_param {
+macro_rules! generic_struct {
     ($S:ident($zero:ident)) => (
         #[derive(Default)]
         pub struct $S<A>(pub A);

@@ -3,7 +3,7 @@ use traverse::*;
 
 pub trait Paths: WithEdge {
     fn find_path(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<VecEdge<Self>>
-        where Self: DfsWithDefaultParams
+        where Self: DfsDefault
     {
         if u == v {
             return None;

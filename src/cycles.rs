@@ -3,23 +3,23 @@ use traverse::*;
 
 pub trait Cycles: Incidence {
     fn is_acyclic(&self) -> bool
-        where Self: DfsWithDefaultParams
+        where Self: DfsDefault
     {
         let mut acyclic = true;
-        self.dfs_with_params(DfsParams::new(), IsAcyclic(&mut acyclic));
+        self.dfs(IsAcyclic(&mut acyclic));
         acyclic
     }
 
     fn is_dag(&self) -> bool
-        where Self: DfsWithDefaultParams
+        where Self: DfsDefault
     {
         let mut dag = true;
-        self.dfs_with_params(DfsParams::new(), IsDag(&mut dag));
+        self.dfs(IsDag(&mut dag));
         dag
     }
 }
 
-impl<G: Incidence> Cycles for G { }
+impl<G: Incidence> Cycles for G {}
 
 
 pub struct IsAcyclic<'a>(pub &'a mut bool);

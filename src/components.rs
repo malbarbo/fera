@@ -3,18 +3,18 @@ use traverse::*;
 
 pub trait Components: Incidence {
     fn num_components(&self) -> u64
-        where Self: DfsWithDefaultParams
+        where Self: DfsDefault
     {
         let mut num = 0;
-        self.dfs_with_params(DfsParams::new(), NumComponents(&mut num));
+        self.dfs(NumComponents(&mut num));
         num
     }
 
     fn is_connected(&self) -> bool
-        where Self: DfsWithDefaultParams
+        where Self: DfsDefault
     {
         let mut con = true;
-        self.dfs_with_params(DfsParams::new(), IsConnected(&mut con));
+        self.dfs(IsConnected(&mut con));
         con
     }
 }

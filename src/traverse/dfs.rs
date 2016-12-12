@@ -4,39 +4,77 @@ use super::visitor::*;
 use graph::*;
 use params::*;
 
-pub trait Dfs<V: Visitor<Self>>: Incidence {
-    fn dfs_with_params<'a, P>(&'a self, params: P, mut vis: V) -> Control
-        where Self: DfsWithParams<'a, P>
+use std::borrow::BorrowMut;
+use std::iter;
+
+trait_alias!(DfsWithRoot = Incidence + WithVertexProp<Color>);
+trait_alias!(DfsDefault = Incidence + VertexList + WithVertexProp<Color>);
+
+pub trait Dfs: WithEdge {
+    fn dfs<V>(&self, vis: V) -> Control
+        where Self: DfsDefault,
+              V: Visitor<Self>
     {
-        return_unless!(vis.start(self));
-        use std::borrow::BorrowMut;
-        let (mut color, mut stack, roots) = self.dfs_params(params);
+        self.dfs_()
+            .visitor(vis)
+            .run()
+    }
+
+    fn dfs_with_root<V>(&self, root: Vertex<Self>, vis: V) -> Control
+        where Self: DfsWithRoot,
+              V: Visitor<Self>
+    {
+        self.dfs_()
+            .visitor(vis)
+            .root(root)
+            .run()
+    }
+
+    fn dfs_(&self) -> DfsAlg<&Self, EmptyVisitor, AllVertices, NewVertexProp<Color>, NewDfsStack> {
+        DfsAlg(self,
+               EmptyVisitor,
+               AllVertices,
+               NewVertexProp(Color::White),
+               NewDfsStack)
+    }
+}
+
+impl<G: WithEdge> Dfs for G {}
+
+
+generic_struct!(DfsAlg(graph, visitor, roots, color, stack));
+
+impl<'a, G, V, R, C, S> DfsAlg<&'a G, V, R, C, S> {
+    pub fn run(self) -> Control
+        where G: Incidence,
+              V: Visitor<G>,
+              R: ParamIterator<'a, G, Item = Vertex<G>>,
+              C: ParamVertexProp<G, Color>,
+              S: Param<'a, G, DfsStack<'a, G>>
+    {
+        let DfsAlg(g, mut vis, roots, color, stack) = self;
+        return_unless!(vis.start(g));
+        let mut color = color.build(g);
         let color = color.borrow_mut();
+        let mut stack = stack.build(g);
         let stack = stack.borrow_mut();
-        for v in roots {
+        for v in roots.build(g) {
             if color[v] == Color::White {
                 color[v] = Color::Gray;
-                stack.push((Self::edge_none(), v, self.out_edges(v)));
-                return_unless!(vis.discover_root_vertex(self, v));
-                return_unless!(vis.discover_vertex(self, v));
-                return_unless!(dfs_visit(self, color, stack, &mut vis));
-                return_unless!(vis.finish_root_vertex(self, v));
+                stack.push((G::edge_none(), v, g.out_edges(v)));
+                return_unless!(vis.discover_root_vertex(g, v));
+                return_unless!(vis.discover_vertex(g, v));
+                return_unless!(dfs_visit(g, color, stack, &mut vis));
+                return_unless!(vis.finish_root_vertex(g, v));
             }
         }
-        vis.finish(self)
+        vis.finish(g)
     }
 
-    fn dfs(&self, vis: V) -> Control
-        where Self: DfsWithDefaultParams
+    pub fn root(self, root: Vertex<G>) -> DfsAlg<&'a G, V, iter::Once<Vertex<G>>, C, S>
+        where G: WithVertex
     {
-        self.dfs_with_params(DfsParams::new(), vis)
-    }
-
-    fn dfs_with_root(&self, root: Vertex<Self>, vis: V) -> Control
-        where Self: DfsWithRoot
-    {
-        use std::iter::once;
-        self.dfs_with_params(DfsParams::new().roots(once(root)), vis)
+        self.roots(iter::once(root))
     }
 }
 
@@ -84,51 +122,6 @@ pub fn dfs_visit<'a, G, C, V>(g: &'a G,
     Control::Continue
 }
 
-impl<G, V> Dfs<V> for G
-    where G: Incidence,
-          V: Visitor<G>
-{
-}
-
-
-// Params
-
-define_param!(DfsParams(color, stack, roots));
-
-impl DfsParams<NewVertexProp<Color>, NewDfsStack, AllVertices> {
-    pub fn new() -> Self {
-        Default::default()
-    }
-}
-
-trait_alias!(DfsWithDefaultParams = VertexList + Incidence + WithVertexProp<Color>);
-
-trait_alias!(DfsWithRoot = Incidence + WithVertexProp<Color>);
-
-pub trait DfsWithParams<'a, P>: 'a + WithEdge {
-    type Color: ParamVertexProp<Self, Color>;
-    type Stack: Param<'a, Self, DfsStack<'a, Self>>;
-    type Roots: ParamIterator<'a, Self, Item = Vertex<Self>>;
-
-    fn dfs_params(&'a self, params: P) -> (<Self::Color as ParamVertexProp<Self, Color>>::Output,
-                                           <Self::Stack as Param<'a, Self, DfsStack<'a, Self>>>::Output,
-                                           <Self::Roots as ParamIterator<'a, Self>>::Output);
-}
-
-impl<'a, G, C, S, R> DfsWithParams<'a, DfsParams<C, S, R>> for G
-    where G: 'a + WithEdge,
-          C: ParamVertexProp<G, Color>,
-          S: Param<'a, G, DfsStack<'a, G>>,
-          R: ParamIterator<'a, G, Item = Vertex<G>>
-{
-    type Color = C;
-    type Stack = S;
-    type Roots = R;
-
-    fn dfs_params(&'a self, p: DfsParams<C, S, R>) -> (C::Output, S::Output, R::Output) {
-        (p.0.build(self), p.1.build(self), p.2.build(self))
-    }
-}
 
 pub type DfsStack<'a, G> = Vec<(OptionEdge<G>, Vertex<G>, OutEdgeIter<'a, G>)>;
 

@@ -3,7 +3,7 @@ use traverse::*;
 
 pub trait Trees: Incidence {
     fn is_tree(&self) -> bool
-        where Self: EdgeList + DfsWithDefaultParams
+        where Self: EdgeList + DfsDefault
     {
         let mut tree = true;
         self.dfs(IsTree(&mut tree));
