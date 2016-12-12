@@ -1,25 +1,43 @@
 use graph::*;
 
-use fera::unionfind;
+use fera::unionfind::UnionFind as InnerUnionFind;
 
-pub type UnionFind<G> = unionfind::UnionFind<Vertex<G>,
-                                             DefaultVertexPropMut<G, Vertex<G>>,
-                                             DefaultVertexPropMut<G, usize>>;
+pub struct UnionFind<G: Graph> {
+    inner: InnerUnionFind<Vertex<G>,
+                          DefaultVertexPropMut<G, Vertex<G>>,
+                          DefaultVertexPropMut<G, usize>>,
+}
 
-pub trait WithUnionFind: Graph {
-    fn new_unionfind(&self) -> UnionFind<Self> {
-        let mut ds = UnionFind::<Self>::with_parent_rank(self.vertex_prop(self.vertices()
-                                                             .next()
-                                                             .unwrap()),
-                                                         self.vertex_prop(0usize));
-        for v in self.vertices() {
-            ds.make_set(v);
+impl<G: Graph> UnionFind<G> {
+    #[inline]
+    pub fn union(&mut self, u: Vertex<G>, v: Vertex<G>) {
+        self.inner.union(u, v)
+    }
+
+    #[inline]
+    pub fn in_same_set(&mut self, u: Vertex<G>, v: Vertex<G>) -> bool {
+        self.inner.in_same_set(u, v)
+    }
+
+    pub fn reset(&mut self, g: &G) {
+        for v in g.vertices() {
+            self.inner.make_set(v)
         }
-        ds
     }
 }
 
-impl<G> WithUnionFind for G where G: Graph {}
+pub trait WithUnionFind: Graph {
+    fn new_unionfind(&self) -> UnionFind<Self> {
+        let v = self.vertices().next().unwrap();
+        let mut ds = InnerUnionFind::with_parent_rank(self.vertex_prop(v), self.vertex_prop(0));
+        for v in self.vertices() {
+            ds.make_set(v);
+        }
+        UnionFind { inner: ds }
+    }
+}
+
+impl<G: Graph> WithUnionFind for G {}
 
 
 #[cfg(test)]

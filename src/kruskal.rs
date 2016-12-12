@@ -1,9 +1,12 @@
 use graph::*;
 use fera::{IteratorExt, VecExt};
 use unionfind::{UnionFind, WithUnionFind};
-use std::vec;
+use params::*;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+use std::vec;
+use std::borrow::BorrowMut;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Accept {
     Yes,
     No,
@@ -15,6 +18,15 @@ pub trait Visitor<G>
     fn visit(&mut self, e: Edge<G>) -> Accept;
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct AcceptAll;
+
+impl<G: Graph> Visitor<G> for AcceptAll {
+    fn visit(&mut self, _: Edge<G>) -> Accept {
+        Accept::Yes
+    }
+}
+
 impl<F, G> Visitor<G> for F
     where G: Graph,
           F: FnMut(Edge<G>) -> Accept
@@ -24,37 +36,30 @@ impl<F, G> Visitor<G> for F
     }
 }
 
-// TODO: implemets Visitor for &mut V where V: Visitor
-
-impl<G: Graph> Visitor<G> for Accept {
-    fn visit(&mut self, _: Edge<G>) -> Accept {
-        *self
-    }
-}
-
-// TODO: allow reuse of KruskalIter
-pub struct KruskalIter<'a, G: 'a + Graph, I, V> {
+pub struct Iter<'a, G: 'a, E, V = AcceptAll, U = UnionFind<G>> {
     g: &'a G,
-    ds: UnionFind<G>,
-    edges: I,
+    edges: E,
     visitor: V,
+    ds: U,
     // TODO: move num_sets to UnionFind
     num_sets: usize,
 }
 
-impl<'a, G, I, V> Iterator for KruskalIter<'a, G, I, V>
-    where G: 'a + Graph,
-          I: Iterator<Item = Edge<G>>,
-          V: Visitor<G>
+impl<'a, G, E, V, U> Iterator for Iter<'a, G, E, V, U>
+    where G: 'a + WithUnionFind,
+          E: Iterator<Item = Edge<G>>,
+          V: Visitor<G>,
+          U: BorrowMut<UnionFind<G>>
 {
     type Item = Edge<G>;
 
     fn next(&mut self) -> Option<Edge<G>> {
         if self.num_sets > 1 {
-            for e in &mut self.edges {
+            let ds = self.ds.borrow_mut();
+            for e in self.edges.by_ref() {
                 let (u, v) = self.g.ends(e);
-                if !self.ds.in_same_set(u, v) && self.visitor.visit(e) == Accept::Yes {
-                    self.ds.union(u, v);
+                if !ds.in_same_set(u, v) && self.visitor.visit(e) == Accept::Yes {
+                    ds.union(u, v);
                     self.num_sets -= 1;
                     return Some(e);
                 }
@@ -64,46 +69,67 @@ impl<'a, G, I, V> Iterator for KruskalIter<'a, G, I, V>
     }
 }
 
-
-pub trait Kruskal: IncidenceGraph {
-    fn kruskal_with_edges<I, V>(&self, edges: I, visitor: V) -> KruskalIter<Self, I, V>
-        where I: Iterator<Item = Edge<Self>>,
-              V: Visitor<Self>
-    {
-        KruskalIter {
-            g: self,
-            ds: self.new_unionfind(),
-            edges: edges,
-            visitor: visitor,
-            num_sets: self.num_vertices(),
-        }
-    }
-
-    fn kruskal<T, W, V>(&self,
-                        weight: &W,
-                        visitor: V)
-                        -> KruskalIter<Self, vec::IntoIter<Edge<Self>>, V>
-        where W: EdgePropGet<Self, T>,
-              T: PartialOrd,
-              V: Visitor<Self>
-    {
-        let edges = self.edges()
-            .into_vec()
-            .partial_ord_sorted_by_key(|&e| weight.get(e));
-
-        self.kruskal_with_edges(edges.into_iter(), visitor)
-    }
-
-    fn kruskal_mst<T, W>(&self, weight: &W) -> KruskalIter<Self, vec::IntoIter<Edge<Self>>, Accept>
+pub trait Kruskal: WithUnionFind {
+    fn kruskal_mst<T, W>(&self, weight: &W) -> Iter<Self, vec::IntoIter<Edge<Self>>>
         where W: EdgePropGet<Self, T>,
               T: PartialOrd
     {
-        self.kruskal(weight, Accept::Yes)
+        self.kruskal_()
+            .weight(weight)
+            .run()
+    }
+
+    fn kruskal_(&self) -> KruskalAlg<&Self, AllEdges, AcceptAll, NewUnionFind> {
+        KruskalAlg(self, AllEdges, AcceptAll, NewUnionFind)
     }
 }
 
-impl<G> Kruskal for G where G: IncidenceGraph {}
+impl<G: WithUnionFind> Kruskal for G {}
 
+
+generic_struct!(KruskalAlg(graph, edges, visitor, unionfind));
+
+impl<'a, G, E, V, U> KruskalAlg<&'a G, E, V, U>
+    where G: WithUnionFind
+{
+    pub fn weight<W, T>(self, w: &W) -> KruskalAlg<&'a G, Vec<Edge<G>>, V, U>
+        where W: EdgePropGet<G, T>,
+              T: PartialOrd
+    {
+        let edges = self.0
+            .edges()
+            .into_vec()
+            .partial_ord_sorted_by_key(|&e| w.get(e));
+
+        self.edges(edges)
+    }
+
+    pub fn run(self) -> Iter<'a, G, E::Output, V, U::Output>
+        where E: ParamIterator<'a, G, Item = Edge<G>>,
+              V: Visitor<G>,
+              U: Param<'a, G, UnionFind<G>>
+    {
+        let KruskalAlg(g, edges, visitor, ds) = self;
+        Iter {
+            g: g,
+            edges: edges.build(g),
+            visitor: visitor,
+            ds: ds.build(g),
+            num_sets: g.num_vertices(),
+        }
+    }
+}
+
+#[derive(Default)]
+pub struct NewUnionFind;
+
+impl<'a, G: 'a + WithUnionFind> Param<'a, G, UnionFind<G>> for NewUnionFind {
+    type Output = UnionFind<G>;
+
+    fn build(self, g: &'a G) -> Self::Output {
+        g.new_unionfind()
+    }
+}
 
 #[cfg(test)]
 mod tests {

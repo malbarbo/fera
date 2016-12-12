@@ -123,13 +123,13 @@ pub trait ParamIterator<'a, Input: 'a> {
 
 impl<'a, Input, I> ParamIterator<'a, Input> for I
     where Input: 'a,
-          I: Iterator
+          I: IntoIterator
 {
     type Item = I::Item;
-    type Output = I;
+    type Output = I::IntoIter;
 
     fn build(self, _input: &'a Input) -> Self::Output {
-        self
+        self.into_iter()
     }
 }
 
