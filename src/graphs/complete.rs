@@ -1,6 +1,6 @@
 use graph::*;
 use choose::Choose;
-use arrayprop::{VecEdgeProp, VecVertexProp};
+use props::{VecEdgeProp, VecVertexProp};
 
 use fera::optional::{BuildNone, Optioned, OptionalMax};
 

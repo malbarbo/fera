@@ -26,9 +26,11 @@ impl<G: WithVertexProp<T>, T> IndexMut<Vertex<G>> for DelegateVertexProp<G, T> {
 
 impl<G, D, T> VertexPropMutNew<G, T> for DelegateVertexProp<D, T>
     where G: WithVertex<Vertex = Vertex<D>, OptionVertex = OptionVertex<D>> + DelegateProp<D>,
-          D: WithVertexProp<T>,
+          D: WithVertexProp<T>
 {
-    fn new_vertex_prop(g: &G, value: T) -> Self where T: Clone {
+    fn new_vertex_prop(g: &G, value: T) -> Self
+        where T: Clone
+    {
         DelegateVertexProp(g.delegate_prop().vertex_prop(value))
     }
 }
@@ -54,9 +56,11 @@ impl<G: WithEdgeProp<T>, T> IndexMut<Edge<G>> for DelegateEdgeProp<G, T> {
 
 impl<G, D, T> EdgePropMutNew<G, T> for DelegateEdgeProp<D, T>
     where G: WithEdge<Edge = Edge<D>, OptionEdge = OptionEdge<D>> + DelegateProp<D>,
-          D: WithEdgeProp<T>,
+          D: WithEdgeProp<T>
 {
-    fn new_edge_prop(g: &G, value: T) -> Self where T: Clone {
+    fn new_edge_prop(g: &G, value: T) -> Self
+        where T: Clone
+    {
         DelegateEdgeProp(g.delegate_prop().edge_prop(value))
     }
 }

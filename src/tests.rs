@@ -1,6 +1,6 @@
 use graph::*;
 use builder::*;
-use hashmapprop::*;
+use props::HashMapProp;
 
 use std::collections::HashSet;
 

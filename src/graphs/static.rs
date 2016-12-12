@@ -3,8 +3,7 @@ use fera::{IteratorExt, MapBind};
 use fera::optional::OptionalMax;
 use builder::{Builder, WithBuilder};
 use choose::Choose;
-use arrayprop::*;
-use fnprop::*;
+use props::{VecEdgeProp, VecVertexProp, FnProp};
 
 use std::iter::{Cloned, Map};
 use std::ops::{Index, Range};

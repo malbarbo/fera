@@ -1,7 +1,7 @@
 use graph::*;
 use choose::Choose;
 use common::AdjacencyFromIncidence;
-use delegateprop::*;
+use props::{DelegateEdgeProp, DelegateVertexProp, DelegateProp};
 
 use fera::IteratorExt;
 

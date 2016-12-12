@@ -30,19 +30,10 @@ pub mod graph;
 pub mod params;
 pub mod traverse;
 
-// graphs
-pub mod adjset;
-pub mod common;
-pub mod complete;
-pub mod graph_ref;
-pub mod static_;
-pub mod subgraph;
+mod graphs;
+pub use graphs::*;
 
-// props
-pub mod arrayprop;
-pub mod delegateprop;
-pub mod fnprop;
-pub mod hashmapprop;
+pub mod props;
 
 // algorithms
 pub mod components;
@@ -57,8 +48,8 @@ pub mod unionfind;
 
 pub mod prelude {
     pub use graph::*;
-    pub use subgraph::{Subgraph, WithSubgraph};
-    pub use complete::CompleteGraph;
     pub use builder::{Builder, WithBuilder};
-    pub use static_::*;
+    pub use complete::CompleteGraph;
+    pub use static_::StaticGraph;
+    pub use subgraph::{Subgraph, WithSubgraph};
 }
