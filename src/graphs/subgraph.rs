@@ -275,9 +275,9 @@ impl<G: Graph> WithSubgraph<G> for G {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use graph::*;
-    use static_::*;
+    use static_::StaticGraph;
+    use super::WithSubgraph;
     use fera::IteratorExt;
 
     fn new_graph
