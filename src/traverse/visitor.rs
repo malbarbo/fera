@@ -105,6 +105,11 @@ impl<'a, G, V> Visitor<G> for &'a mut V
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct EmptyVisitor;
+
+
+impl<G: WithEdge> Visitor<G> for EmptyVisitor {}
 
 macro_rules! def_visitor_tuple_m {
     ($t:ident, $m:ident, $($name:ident),*) => (
