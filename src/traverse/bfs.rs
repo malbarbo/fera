@@ -103,18 +103,18 @@ trait_alias!(BfsWithRoot = Incidence + WithVertexProp<Color>);
 pub trait BfsWithParams<'a, P>: 'a + WithEdge {
     type Color: ParamVertexProp<Self, Color>;
     type Queue: Param<'a, Self, BfsQueue<Self>>;
-    type Roots: ParamVertexIter<'a, Self>;
+    type Roots: ParamIterator<'a, Self, Item = Vertex<Self>>;
 
     fn bfs_params(&'a self, params: P) -> (<Self::Color as ParamVertexProp<Self, Color>>::Output,
                                            <Self::Queue as Param<'a, Self, BfsQueue<Self>>>::Output,
-                                           <Self::Roots as ParamVertexIter<'a, Self>>::Output);
+                                           <Self::Roots as ParamIterator<'a, Self>>::Output);
 }
 
 impl<'a, G, C, S, R> BfsWithParams<'a, BfsParams<C, S, R>> for G
     where G: 'a + WithEdge,
           C: ParamVertexProp<G, Color>,
           S: Param<'a, G, BfsQueue<G>>,
-          R: ParamVertexIter<'a, G>
+          R: ParamIterator<'a, G, Item = Vertex<G>>
 {
     type Color = C;
     type Queue = S;

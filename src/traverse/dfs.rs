@@ -108,18 +108,18 @@ trait_alias!(DfsWithRoot = Incidence + WithVertexProp<Color>);
 pub trait DfsWithParams<'a, P>: 'a + WithEdge {
     type Color: ParamVertexProp<Self, Color>;
     type Stack: Param<'a, Self, DfsStack<'a, Self>>;
-    type Roots: ParamVertexIter<'a, Self>;
+    type Roots: ParamIterator<'a, Self, Item = Vertex<Self>>;
 
     fn dfs_params(&'a self, params: P) -> (<Self::Color as ParamVertexProp<Self, Color>>::Output,
                                            <Self::Stack as Param<'a, Self, DfsStack<'a, Self>>>::Output,
-                                           <Self::Roots as ParamVertexIter<'a, Self>>::Output);
+                                           <Self::Roots as ParamIterator<'a, Self>>::Output);
 }
 
 impl<'a, G, C, S, R> DfsWithParams<'a, DfsParams<C, S, R>> for G
     where G: 'a + WithEdge,
           C: ParamVertexProp<G, Color>,
           S: Param<'a, G, DfsStack<'a, G>>,
-          R: ParamVertexIter<'a, G>
+          R: ParamIterator<'a, G, Item = Vertex<G>>
 {
     type Color = C;
     type Stack = S;
@@ -190,6 +190,7 @@ mod tests {
     #[test]
     fn events() {
         use traverse::visitor::TraverseEvent::*;
+        use traverse::recursive_dfs;
         let g = new();
         let v = g.vertices().into_vec();
         let e = |x: usize, y: usize| edge_by_ends(&g, v[x], v[y]);
