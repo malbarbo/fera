@@ -1,6 +1,6 @@
 use graph::*;
-use fera::{IteratorExt, VecExt};
 use unionfind::{UnionFind, WithUnionFind};
+use sort::SortByProp;
 use params::*;
 
 use std::vec;
@@ -72,7 +72,7 @@ impl<'a, G, E, V, U> Iterator for Iter<'a, G, E, V, U>
 pub trait Kruskal: WithUnionFind {
     fn kruskal_mst<T, W>(&self, weight: &W) -> Iter<Self, vec::IntoIter<Edge<Self>>>
         where W: EdgePropGet<Self, T>,
-              T: PartialOrd
+              T: Ord
     {
         self.kruskal_()
             .weight(weight)
@@ -94,13 +94,10 @@ impl<'a, G, E, V, U> KruskalAlg<&'a G, E, V, U>
 {
     pub fn weight<W, T>(self, w: &W) -> KruskalAlg<&'a G, Vec<Edge<G>>, V, U>
         where W: EdgePropGet<G, T>,
-              T: PartialOrd
+              T: Ord
     {
-        let edges = self.0
-            .edges()
-            .into_vec()
-            .partial_ord_sorted_by_key(|&e| w.get(e));
-
+        let mut edges: Vec<_> = self.0.edges().collect();
+        edges.sort_by_prop(w);
         self.edges(edges)
     }
 

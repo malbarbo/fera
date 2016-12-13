@@ -40,6 +40,7 @@ pub mod components;
 pub mod cycles;
 pub mod kruskal;
 pub mod paths;
+pub mod sort;
 pub mod trees;
 
 // others
@@ -50,6 +51,7 @@ pub mod prelude {
     pub use graph::*;
     pub use builder::{Builder, WithBuilder};
     pub use complete::CompleteGraph;
+    pub use sort::SortByProp;
     pub use static_::StaticGraph;
     pub use subgraph::{Subgraph, WithSubgraph};
 }
