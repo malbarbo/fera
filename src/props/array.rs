@@ -1,4 +1,4 @@
-use graph::*;
+use prelude::*;
 use fera::array::{Array, VecArray};
 
 use std::ops::{Deref, Index, IndexMut};

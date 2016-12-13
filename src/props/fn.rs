@@ -1,4 +1,4 @@
-use graph::*;
+use props::PropGet;
 
 #[derive(Clone, Copy)]
 pub struct FnProp<F>(pub F);

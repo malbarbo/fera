@@ -1,4 +1,4 @@
-use graph::*;
+use prelude::*;
 use choose::Choose;
 use props::{VecEdgeProp, VecVertexProp};
 
@@ -400,11 +400,11 @@ impl EdgeImpl for DirectedEdge {
 
 #[cfg(test)]
 mod tests {
-    pub use super::*;
-    pub use graph::*;
-    pub use tests::*;
-    use itertools::Itertools;
-    use std::fmt::Debug;
+    pub use super::{CVertex, EdgeImpl, UndirectedEdge, DirectedEdge};
+    pub use prelude::*;
+    pub use tests::GraphTests;
+    pub use itertools::Itertools;
+    pub use std::fmt::Debug;
 
     fn assert_edge<E: EdgeImpl + Debug + Copy>(n: CVertex, u: CVertex, v: CVertex) {
         let e = E::new(n, u, v);
@@ -430,7 +430,6 @@ mod tests {
         ($m:ident, $n:expr, $G:ident, $v:expr, $e:expr) => (
             mod $m {
                 use super::*;
-                use itertools::Itertools;
 
                 struct Test;
 

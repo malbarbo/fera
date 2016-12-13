@@ -1,7 +1,6 @@
-use super::control::*;
-use super::visitor::*;
-
-use graph::*;
+use prelude::*;
+use props::Color;
+use traverse::*;
 use params::*;
 
 use std::borrow::BorrowMut;
@@ -141,10 +140,9 @@ impl<'a, G: 'a + WithEdge> Param<'a, G, DfsStack<'a, G>> for NewDfsStack {
 
 #[cfg(test)]
 mod tests {
-    use graph::*;
-    use static_::*;
-    use fera::IteratorExt;
+    use prelude::*;
     use traverse::*;
+    use fera::IteratorExt;
 
     fn new() -> StaticGraph {
         //    1
@@ -257,8 +255,7 @@ mod tests {
 
 #[cfg(all(feature = "nightly", test))]
 mod benchs {
-    use static_::*;
-    use builder::WithBuilder;
+    use prelude::*;
     use traverse::*;
     use rand::XorShiftRng;
     use test::Bencher;

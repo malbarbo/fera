@@ -1,10 +1,9 @@
-use graph::*;
-use builder::*;
+use prelude::*;
 use props::HashMapProp;
 
-use std::collections::HashSet;
-
 use itertools::{cloned, enumerate};
+
+use std::collections::HashSet;
 
 macro_rules! delegate_tests {
     ($T: ident, $($names: ident),+) => (

@@ -1,3 +1,4 @@
+pub mod adjset;
 pub mod common;
 pub mod complete;
 #[path = "ref.rs"]

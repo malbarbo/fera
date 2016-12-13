@@ -1,4 +1,4 @@
-use graph::*;
+use prelude::*;
 use choose::Choose;
 use common::AdjacencyFromIncidence;
 use props::{DelegateEdgeProp, DelegateVertexProp, DelegateProp};
@@ -116,7 +116,7 @@ impl<'a, G> Adjacency for Subgraph<'a, G>
     where G: 'a + Graph
 {
     fn out_neighbors(&self, v: Vertex<Self>) -> OutNeighborIter<Self> {
-        AdjacencyFromIncidence::new(self.out_edges(v), self.g)
+        unsafe { AdjacencyFromIncidence::new(self.out_edges(v), self.g) }
     }
 
     fn out_degree(&self, v: Vertex<Self>) -> usize {
@@ -275,9 +275,7 @@ impl<G: Graph> WithSubgraph<G> for G {
 
 #[cfg(test)]
 mod tests {
-    use graph::*;
-    use static_::StaticGraph;
-    use super::WithSubgraph;
+    use prelude::*;
     use fera::IteratorExt;
 
     fn new_graph

@@ -1,4 +1,4 @@
-use graph::*;
+use prelude::*;
 
 use rand::Rng;
 

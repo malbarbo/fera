@@ -1,7 +1,6 @@
-use graph::*;
-use unionfind::{UnionFind, WithUnionFind};
-use sort::SortByProp;
+use prelude::*;
 use params::*;
+use unionfind::{UnionFind, WithUnionFind};
 
 use std::vec;
 use std::borrow::BorrowMut;
@@ -130,10 +129,9 @@ impl<'a, G: 'a + WithUnionFind> Param<'a, G, UnionFind<G>> for NewUnionFind {
 
 #[cfg(test)]
 mod tests {
-    use graph::*;
-    use static_::*;
+    use super::Kruskal;
+    use prelude::*;
     use fera::IteratorExt;
-    use kruskal::*;
 
     #[test]
     #[cfg_attr(rustfmt, rustfmt_skip)]

@@ -1,7 +1,6 @@
-use super::control::*;
-use super::visitor::*;
-
-use graph::*;
+use prelude::*;
+use props::Color;
+use traverse::*;
 use params::*;
 
 use std::borrow::BorrowMut;
@@ -112,8 +111,7 @@ pub fn recursive_dfs_visit<G, C, V>(g: &G,
 
 #[cfg(all(feature = "nightly", test))]
 mod benchs {
-    use static_::*;
-    use builder::WithBuilder;
+    use prelude::*;
     use traverse::*;
     use rand::XorShiftRng;
     use test::Bencher;

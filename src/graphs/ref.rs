@@ -1,6 +1,5 @@
-
+use prelude::*;
 use choose::Choose;
-use graph::*;
 
 use rand::Rng;
 use std::ops::{Index, IndexMut};

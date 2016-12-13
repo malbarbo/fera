@@ -1,7 +1,6 @@
-use graph::*;
+use prelude::*;
 use fera::{IteratorExt, MapBind};
 use fera::optional::OptionalMax;
-use builder::{Builder, WithBuilder};
 use choose::Choose;
 use props::{VecEdgeProp, VecVertexProp, FnProp};
 
@@ -339,10 +338,9 @@ impl<V: Num, E: Num> Choose for StaticGraphGeneric<V, E> {
 
 #[cfg(test)]
 mod tests {
-    use super::{StaticGraph, StaticEdge};
-    use graph::*;
-    use builder::*;
-    use tests::*;
+    pub use super::StaticEdge;
+    pub use prelude::*;
+    use tests::GraphTests;
 
     #[test]
     fn builder() {
@@ -373,8 +371,8 @@ mod tests {
     graph_tests!{Test}
 
     mod with_builder {
-        use super::super::StaticGraph;
-        use builder::*;
+        use super::*;
+        use builder::BuilderTests;
 
         struct Test;
 

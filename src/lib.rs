@@ -48,9 +48,13 @@ pub mod choose;
 pub mod unionfind;
 
 pub mod prelude {
+    pub use fera::optional::Optional;
     pub use graph::*;
+    pub use props::{PropGet, BasicProps, VertexPropGet, VertexProp, VertexPropMut,
+                    VertexPropMutNew, BasicVertexProps, WithVertexProp, EdgePropGet, EdgeProp,
+                    EdgePropMut, EdgePropMutNew, BasicEdgeProps, WithEdgeProp};
     pub use builder::{Builder, WithBuilder};
-    pub use complete::CompleteGraph;
+    pub use complete::{CompleteGraph, CompleteDiGraph};
     pub use sort::SortByProp;
     pub use static_::StaticGraph;
     pub use subgraph::{Subgraph, WithSubgraph};

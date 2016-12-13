@@ -1,4 +1,4 @@
-use graph::*;
+use prelude::*;
 use traverse::*;
 
 pub trait Paths: WithEdge {
@@ -71,9 +71,7 @@ mod tests {
 #[cfg(all(feature = "nightly", test))]
 mod benchs {
     use super::Paths;
-    use static_::StaticGraph;
-    use graph::*;
-    use builder::*;
+    use prelude::*;
     use rand::{SeedableRng, StdRng};
     use test::Bencher;
 

@@ -1,4 +1,4 @@
-use graph::*;
+use prelude::*;
 
 pub struct AdjacencyFromIncidence<I, G> {
     iter: I,
@@ -9,8 +9,7 @@ impl<I, G> AdjacencyFromIncidence<I, G>
     where I: Iterator<Item = Edge<G>>,
           G: WithEdge
 {
-    // FIXME: make this pub(crate)
-    pub fn new(iter: I, g: &G) -> Self {
+    pub unsafe fn new(iter: I, g: &G) -> Self {
         AdjacencyFromIncidence {
             iter: iter,
             g: g as *const _,
@@ -26,6 +25,7 @@ impl<I, G> Iterator for AdjacencyFromIncidence<I, G>
     type Item = Vertex<G>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        // TODO: explain when this is safe
         self.iter.next().map(|e| unsafe { (&*self.g).target(e) })
     }
 

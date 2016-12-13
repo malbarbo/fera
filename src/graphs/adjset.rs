@@ -1,5 +1,5 @@
-use graph::*;
-use hashmapprop::HashMapProp;
+use prelude::*;
+use props::HashMapProp;
 
 use fera::collections::{HashMapFnv, HashSetFnv};
 use fera::{IteratorExt, MapBind};
@@ -335,9 +335,8 @@ impl<'a, V, K> Iterator for Edges<'a, V, K>
 #[cfg(test)]
 mod tests {
     pub use super::*;
-    pub use graph::*;
-    pub use builder::*;
-    pub use tests::*;
+    pub use prelude::*;
+    pub use tests::GraphTests;
     pub use fera::{IteratorExt, VecExt};
 
     mod undirected {

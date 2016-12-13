@@ -1,4 +1,4 @@
-use graph::*;
+use prelude::*;
 
 use fera::unionfind::UnionFind as InnerUnionFind;
 
@@ -43,8 +43,7 @@ impl<G: Graph> WithUnionFind for G {}
 #[cfg(test)]
 mod tests {
     use super::{UnionFind, WithUnionFind};
-    use graph::*;
-    use static_::*;
+    use prelude::*;
     use fera::IteratorExt;
 
     fn check_groups(ds: &mut UnionFind<StaticGraph>, groups: &[&[Vertex<StaticGraph>]]) {

@@ -1,4 +1,4 @@
-use graph::PropGet;
+use props::PropGet;
 
 pub trait SortByProp<K> {
     fn sort_by_prop<P>(&mut self, p: &P)

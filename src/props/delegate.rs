@@ -1,4 +1,4 @@
-use graph::*;
+use prelude::*;
 
 use std::ops::{Index, IndexMut};
 

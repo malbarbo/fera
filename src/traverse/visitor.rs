@@ -1,4 +1,5 @@
 use graph::*;
+use props::*;
 use super::control::*;
 
 // TODO: check if event names make sense for both dfs and bfs
