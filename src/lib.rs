@@ -12,6 +12,8 @@ extern crate quickcheck;
 extern crate itertools;
 
 extern crate num;
+extern crate num_traits;
+extern crate ordered_float;
 extern crate rand;
 
 #[macro_use]

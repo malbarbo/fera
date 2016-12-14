@@ -1,4 +1,5 @@
 use prelude::*;
+use num_traits::float::Float;
 use std::ops::{Index, IndexMut};
 
 mod array;
@@ -12,13 +13,38 @@ pub use self::delegate::*;
 pub use self::fn_::*;
 pub use self::hashmap::*;
 
-// TODO: explain why the trait repetition for VertexProp and EdgeProp
-
-pub trait PropGet<I> {
-    // FIXME: Rename to Value
+pub trait PropGet<K> {
     type Output: Sized;
-    fn get(&self, key: I) -> Self::Output;
+
+    fn get(&self, key: K) -> Self::Output;
+
+    #[inline]
+    fn map<F, O>(self, fun: F) -> Map<Self, F>
+        where Self: Sized,
+              F: FnMut(Self::Output) -> O
+    {
+        Map(self, fun)
+    }
+
+    #[inline]
+    unsafe fn map_unchecked_not_nan(self) -> UncheckedNotNan<Self>
+        where Self: Sized,
+              Self::Output: Float
+    {
+        UncheckedNotNan(self)
+    }
 }
+
+impl<'a, K, P: PropGet<K>> PropGet<K> for &'a P {
+    type Output = P::Output;
+
+    fn get(&self, key: K) -> Self::Output {
+        P::get(self, key)
+    }
+}
+
+
+// TODO: explain why the trait repetition for VertexProp and EdgeProp (missing trait alias?)
 
 // Vertex
 
@@ -45,7 +71,7 @@ pub trait VertexPropMut<G, T>: IndexMut<Vertex<G>, Output = T>
     where G: WithVertex
 {
     // TODO: Write test
-    // FIXME: What happen if the graph changes
+    // FIXME: What happen if the graph changes?
     fn reset(&mut self, g: &G, value: T)
         where G: VertexList,
               T: Clone
@@ -259,5 +285,35 @@ pub enum Color {
 impl Default for Color {
     fn default() -> Color {
         Color::White
+    }
+}
+
+
+// Adaptors
+
+pub struct Map<P, F>(pub P, pub F);
+
+impl<K, P, F, O> PropGet<K> for Map<P, F>
+    where P: PropGet<K>,
+          F: Fn(P::Output) -> O,
+{
+    type Output = O;
+
+    fn get(&self, k: K) -> Self::Output {
+        (self.1)(self.0.get(k))
+    }
+}
+
+
+pub struct UncheckedNotNan<P>(P);
+
+impl<K, P: PropGet<K>> PropGet<K> for UncheckedNotNan<P>
+    where P::Output: Float
+{
+    type Output = ::ordered_float::NotNaN<P::Output>;
+
+    #[inline]
+    fn get(&self, k: K) -> Self::Output {
+        unsafe { ::ordered_float::NotNaN::unchecked_new(self.0.get(k)) }
     }
 }
