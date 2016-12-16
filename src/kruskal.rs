@@ -12,7 +12,7 @@ pub enum Accept {
 }
 
 pub trait Visitor<G>
-    where G: Graph
+    where G: WithEdge
 {
     fn visit(&mut self, e: Edge<G>) -> Accept;
 }
@@ -20,14 +20,16 @@ pub trait Visitor<G>
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct AcceptAll;
 
-impl<G: Graph> Visitor<G> for AcceptAll {
+impl<G> Visitor<G> for AcceptAll
+    where G: WithEdge
+{
     fn visit(&mut self, _: Edge<G>) -> Accept {
         Accept::Yes
     }
 }
 
 impl<F, G> Visitor<G> for F
-    where G: Graph,
+    where G: WithEdge,
           F: FnMut(Edge<G>) -> Accept
 {
     fn visit(&mut self, e: Edge<G>) -> Accept {
@@ -69,7 +71,7 @@ impl<'a, G, E, V, U> Iterator for Iter<'a, G, E, V, U>
 }
 
 pub trait Kruskal: WithUnionFind {
-    fn kruskal_mst<T, W>(&self, weight: &W) -> Iter<Self, vec::IntoIter<Edge<Self>>>
+    fn kruskal_mst<T, W>(&self, weight: W) -> Iter<Self, vec::IntoIter<Edge<Self>>>
         where W: EdgePropGet<Self, T>,
               T: Ord
     {
@@ -91,12 +93,12 @@ generic_struct!(KruskalAlg(graph, edges, visitor, unionfind));
 impl<'a, G, E, V, U> KruskalAlg<&'a G, E, V, U>
     where G: WithUnionFind
 {
-    pub fn weight<W, T>(self, w: &W) -> KruskalAlg<&'a G, Vec<Edge<G>>, V, U>
+    pub fn weight<W, T>(self, w: W) -> KruskalAlg<&'a G, Vec<Edge<G>>, V, U>
         where W: EdgePropGet<G, T>,
               T: Ord
     {
         let mut edges: Vec<_> = self.0.edges().collect();
-        edges.sort_by_prop(w);
+        edges.sort_by_prop(&w);
         self.edges(edges)
     }
 
