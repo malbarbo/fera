@@ -21,9 +21,14 @@ pub trait PropGet<K> {
     #[inline]
     fn map<F, O>(self, fun: F) -> Map<Self, F>
         where Self: Sized,
-              F: FnMut(Self::Output) -> O
+              F: Fn(Self::Output) -> O
     {
         Map(self, fun)
+    }
+
+    #[inline]
+    fn by_ref(&self) -> &Self {
+        self
     }
 
     #[inline]
@@ -42,6 +47,34 @@ impl<'a, K, P: PropGet<K>> PropGet<K> for &'a P {
         P::get(self, key)
     }
 }
+
+
+// Indexable props
+
+pub trait PropIndexMut<Idx>: IndexMut<Idx> {
+    fn set_values_from<P, I>(&mut self, iter: I, source: &P)
+        where I: IntoIterator,
+              I::Item: Into<Idx> + Copy,
+              P: Index<Idx, Output = Self::Output>,
+              Self::Output: Clone
+    {
+        for v in iter {
+            self[v.into()].clone_from(&source[v.into()]);
+        }
+    }
+
+    fn set_values<I>(&mut self, iter: I, value: Self::Output)
+        where I: IntoIterator,
+              I::Item: Into<Idx> + Copy,
+              Self::Output: Clone
+    {
+        for v in iter {
+            self[v.into()].clone_from(&value);
+        }
+    }
+}
+
+impl<P: IndexMut<Idx>, Idx> PropIndexMut<Idx> for P {}
 
 
 // TODO: explain why the trait repetition for VertexProp and EdgeProp (missing trait alias?)
@@ -67,7 +100,7 @@ impl<P, G, T> VertexProp<G, T> for P
 {
 }
 
-pub trait VertexPropMut<G, T>: IndexMut<Vertex<G>, Output = T>
+pub trait VertexPropMut<G, T>: PropIndexMut<Vertex<G>, Output = T>
     where G: WithVertex
 {
     // TODO: Write test
@@ -152,7 +185,7 @@ impl<P, G, T> EdgeProp<G, T> for P
 {
 }
 
-pub trait EdgePropMut<G, T>: IndexMut<Edge<G>, Output = T>
+pub trait EdgePropMut<G, T>: PropIndexMut<Edge<G>, Output = T>
     where G: WithEdge
 {
     fn reset(&mut self, g: &G, value: T)
@@ -295,7 +328,7 @@ pub struct Map<P, F>(pub P, pub F);
 
 impl<K, P, F, O> PropGet<K> for Map<P, F>
     where P: PropGet<K>,
-          F: Fn(P::Output) -> O,
+          F: Fn(P::Output) -> O
 {
     type Output = O;
 

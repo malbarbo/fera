@@ -42,6 +42,7 @@ pub mod components;
 pub mod cycles;
 pub mod kruskal;
 pub mod paths;
+// TODO: add a cmp mod with functions max_prop, max_by_prop, ..
 pub mod sort;
 pub mod trees;
 
@@ -54,7 +55,7 @@ pub mod prelude {
     pub use graph::*;
     pub use props::{PropGet, BasicProps, VertexPropGet, VertexProp, VertexPropMut,
                     VertexPropMutNew, BasicVertexProps, WithVertexProp, EdgePropGet, EdgeProp,
-                    EdgePropMut, EdgePropMutNew, BasicEdgeProps, WithEdgeProp};
+                    EdgePropMut, EdgePropMutNew, BasicEdgeProps, WithEdgeProp, PropIndexMut};
     pub use builder::{Builder, WithBuilder};
     pub use complete::{CompleteGraph, CompleteDiGraph};
     pub use sort::SortByProp;
