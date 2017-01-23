@@ -48,6 +48,17 @@ pub trait Choose: WithEdge {
         let e = self.choose_inc_edge_if(rng, v, |e| fun(self.target(e)));
         self.target(e)
     }
+
+    fn random_walk<R>(&self, mut rng: R) -> RandomWalk<Self, R>
+        where R: Rng,
+    {
+        let cur = self.choose_vertex(&mut rng);
+        RandomWalk {
+            g: self,
+            cur: cur,
+            rng: rng,
+        }
+    }
 }
 
 fn choose<Y: Copy, G: FnMut() -> Y, F: FnMut(Y) -> bool>(mut gen: G, mut fun: F) -> Y {
@@ -57,6 +68,25 @@ fn choose<Y: Copy, G: FnMut() -> Y, F: FnMut(Y) -> bool>(mut gen: G, mut fun: F)
         if fun(e) {
             return e;
         }
+    }
+}
+
+pub struct RandomWalk<'a, G: 'a + WithVertex, R> {
+    g: &'a G,
+    cur: Vertex<G>,
+    rng: R,
+}
+
+impl<'a, G, R> Iterator for RandomWalk<'a, G, R>
+    where G: 'a + Choose,
+          R: Rng
+{
+    type Item = Edge<G>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let e = self.g.choose_inc_edge(&mut self.rng, self.cur);
+        self.cur = self.g.target(e);
+        Some(e)
     }
 }
 
