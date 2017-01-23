@@ -291,36 +291,36 @@ mod tests {
         let (g, _, e02, e12, _) = new_graph();
         let s = g.spanning_subgraph(vec![e02, e12]);
         assert_eq!(vec![0, 1, 2, 3, 4], vec(s.vertices()));
-        assert_eq!(set![HashSet, e02, e12], set(s.edges()));
-        assert_eq!(set![HashSet, e02], set(s.out_edges(0)));
-        assert_eq!(set![HashSet, e12], set(s.out_edges(1)));
-        assert_eq!(set![HashSet, e02, e12], set(s.out_edges(2)));
-        assert_eq!(set![HashSet], set(s.out_edges(3)));
-        assert_eq!(set![HashSet], set(s.out_edges(4)));
+        assert_eq!(set(vec![e02, e12]), set(s.edges()));
+        assert_eq!(set(vec![e02]), set(s.out_edges(0)));
+        assert_eq!(set(vec![e12]), set(s.out_edges(1)));
+        assert_eq!(set(vec![e02, e12]), set(s.out_edges(2)));
+        assert!(set(s.out_edges(3)).is_empty());
+        assert!(set(s.out_edges(4)).is_empty());
     }
 
     #[test]
     fn test_edge_induced_subgraph() {
         let (g, e01, e02, _, _) = new_graph();
         let s = g.edge_induced_subgraph(vec![e01, e02]);
-        assert_eq!(set![HashSet, 0, 1, 2], set(s.vertices()));
-        assert_eq!(set![HashSet, e01, e02], set(s.edges()));
-        assert_eq!(set![HashSet, e01, e02], set(s.out_edges(0)));
-        assert_eq!(set![HashSet, 1, 2], set(s.out_neighbors(0)));
-        assert_eq!(set![HashSet, e01], set(s.out_edges(1)));
-        assert_eq!(set![HashSet, 0], set(s.out_neighbors(1)));
-        assert_eq!(set![HashSet, e02], set(s.out_edges(2)));
-        assert_eq!(set![HashSet, 0], set(s.out_neighbors(2)));
+        assert_eq!(set(vec![0, 1, 2]), set(s.vertices()));
+        assert_eq!(set(vec![e01, e02]), set(s.edges()));
+        assert_eq!(set(vec![e01, e02]), set(s.out_edges(0)));
+        assert_eq!(set(vec![1, 2]), set(s.out_neighbors(0)));
+        assert_eq!(set(vec![e01]), set(s.out_edges(1)));
+        assert_eq!(set(vec![0]), set(s.out_neighbors(1)));
+        assert_eq!(set(vec![e02]), set(s.out_edges(2)));
+        assert_eq!(set(vec![0]), set(s.out_neighbors(2)));
     }
 
     #[test]
     fn test_induced_subgraph() {
         let (g, e01, e02, e12, _) = new_graph();
         let s = g.induced_subgraph(vec![0, 1, 2]);
-        assert_eq!(set![HashSet, 0, 1, 2], set(s.vertices()));
-        assert_eq!(set![HashSet, e01, e02, e12], set(s.edges()));
-        assert_eq!(set![HashSet, e01, e02], set(s.out_edges(0)));
-        assert_eq!(set![HashSet, e01, e12], set(s.out_edges(1)));
-        assert_eq!(set![HashSet, e02, e12], set(s.out_edges(2)));
+        assert_eq!(set(vec![0, 1, 2]), set(s.vertices()));
+        assert_eq!(set(vec![e01, e02, e12]), set(s.edges()));
+        assert_eq!(set(vec![e01, e02]), set(s.out_edges(0)));
+        assert_eq!(set(vec![e01, e12]), set(s.out_edges(1)));
+        assert_eq!(set(vec![e02, e12]), set(s.out_edges(2)));
     }
 }

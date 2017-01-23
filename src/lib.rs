@@ -11,11 +11,9 @@ extern crate quickcheck;
 #[cfg(test)]
 extern crate itertools;
 
+extern crate fera;
 extern crate num;
 extern crate rand;
-
-#[macro_use]
-extern crate fera;
 
 #[cfg(test)]
 #[macro_use]
