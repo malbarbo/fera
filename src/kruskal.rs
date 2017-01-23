@@ -133,7 +133,7 @@ impl<'a, G: 'a + WithUnionFind> Param<'a, G, UnionFind<G>> for NewUnionFind {
 mod tests {
     use super::Kruskal;
     use prelude::*;
-    use fera::IteratorExt;
+    use utils::vec;
 
     #[test]
     #[cfg_attr(rustfmt, rustfmt_skip)]
@@ -149,8 +149,8 @@ mod tests {
         for (e, &w) in g.edges().zip(&[1, 2, 3, 4, 5, 6, 7]) {
             weight[e] = w;
         }
-        let e = g.edges().into_vec();
-        assert_eq!(vec![e[0], e[1], e[2], e[4]], g.kruskal_mst(&weight).into_vec());
+        let e = vec(g.edges());
+        assert_eq!(vec![e[0], e[1], e[2], e[4]], vec(g.kruskal_mst(&weight)));
     }
 }
 

@@ -1,7 +1,6 @@
 use prelude::*;
 use trees::Trees;
-
-use fera::{IteratorExt, VecExt};
+use utils::set;
 
 use rand::{Rng, SeedableRng, StdRng};
 use rand::distributions::{IndependentSample, Range};
@@ -181,7 +180,7 @@ pub trait BuilderTests {
             let (g, v, _) = complete::<Self::G>(n).finalize_();
             assert_eq!(n, g.num_vertices());
             assert_eq!(m, g.num_edges());
-            assert_eq!(v.to_hash_set(), g.vertices().into_hash_set());
+            assert_eq!(set(v), set(g.vertices()));
         }
     }
 
@@ -194,7 +193,7 @@ pub trait BuilderTests {
         assert_eq!(3, g.num_vertices());
         assert_eq!(2, g.num_edges());
         assert_eq!(set![HashSet, (v[0], v[1]), (v[0], v[2])],
-                   g.out_edges(v[0]).map(|e| g.ends(e)).into_hash_set());
+                   set(g.out_edges(v[0]).map(|e| g.ends(e))));
 
         for h in 2..10 {
             let (g, v, _) = complete_binary_tree::<Self::G>(h).finalize_();

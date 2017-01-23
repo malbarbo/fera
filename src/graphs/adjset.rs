@@ -337,7 +337,8 @@ mod tests {
     pub use super::*;
     pub use prelude::*;
     pub use tests::GraphTests;
-    pub use fera::{IteratorExt, VecExt};
+    pub use fera::VecExt;
+    pub use utils::vec;
 
     mod undirected {
         use super::*;
@@ -353,8 +354,8 @@ mod tests {
                 g.add_edge(3, 4);
                 g.add_edge(4, 1);
                 g.add_edge(7, 4);
-                let v = g.vertices().into_vec();
-                let ee = g.edges().into_vec();
+                let v = vec(g.vertices());
+                let ee = vec(g.edges());
                 assert_eq!(v.clone().sorted(), vec![1, 2, 3, 4, 7]);
                 assert_eq!(ee.clone().sorted(),
                            vec![e(1, 2), e(1, 4), e(3, 4), e(4, 7)]);
@@ -378,8 +379,8 @@ mod tests {
                 g.add_edge(3, 4);
                 g.add_edge(4, 1);
                 g.add_edge(7, 4);
-                let v = g.vertices().into_vec();
-                let e = g.edges().into_vec();
+                let v = vec(g.vertices());
+                let e = vec(g.edges());
                 assert_eq!(v.clone().sorted(), vec![1, 2, 3, 4, 7]);
                 assert_eq!(e.clone().sorted(), vec![(1, 2), (3, 4), (4, 1), (7, 4)]);
                 (g, v, e)

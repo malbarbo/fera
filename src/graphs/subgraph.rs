@@ -2,8 +2,7 @@ use prelude::*;
 use choose::Choose;
 use common::AdjacencyFromIncidence;
 use props::{DelegateEdgeProp, DelegateVertexProp, DelegateProp};
-
-use fera::IteratorExt;
+use utils::vec;
 
 use std::borrow::Borrow;
 use std::iter::Cloned;
@@ -188,7 +187,7 @@ impl<G: Graph> WithSubgraph<G> for G {
         let mut inc;
         {
             let g: &G = self.borrow();
-            vertices = g.vertices().into_vec();
+            vertices = vec(g.vertices());
             inc = g.default_vertex_prop(Vec::<Edge<G>>::new());
             for &e in &edges {
                 let (u, v) = g.ends(e);
@@ -276,14 +275,14 @@ impl<G: Graph> WithSubgraph<G> for G {
 #[cfg(test)]
 mod tests {
     use prelude::*;
-    use fera::IteratorExt;
+    use utils::{set, vec};
 
     fn new_graph
         ()
         -> (StaticGraph, Edge<StaticGraph>, Edge<StaticGraph>, Edge<StaticGraph>, Edge<StaticGraph>)
     {
         let g = graph!(StaticGraph, 5, (0, 1), (0, 2), (1, 2), (3, 4));
-        let e = g.edges().into_vec();
+        let e = vec(g.edges());
         (g, e[0], e[1], e[2], e[3])
     }
 
@@ -291,37 +290,37 @@ mod tests {
     fn test_spanning_subgraph() {
         let (g, _, e02, e12, _) = new_graph();
         let s = g.spanning_subgraph(vec![e02, e12]);
-        assert_eq!(vec![0, 1, 2, 3, 4], s.vertices().into_vec());
-        assert_eq!(set![HashSet, e02, e12], s.edges().into_hash_set());
-        assert_eq!(set![HashSet, e02], s.out_edges(0).into_hash_set());
-        assert_eq!(set![HashSet, e12], s.out_edges(1).into_hash_set());
-        assert_eq!(set![HashSet, e02, e12], s.out_edges(2).into_hash_set());
-        assert_eq!(set![HashSet], s.out_edges(3).into_hash_set());
-        assert_eq!(set![HashSet], s.out_edges(4).into_hash_set());
+        assert_eq!(vec![0, 1, 2, 3, 4], vec(s.vertices()));
+        assert_eq!(set![HashSet, e02, e12], set(s.edges()));
+        assert_eq!(set![HashSet, e02], set(s.out_edges(0)));
+        assert_eq!(set![HashSet, e12], set(s.out_edges(1)));
+        assert_eq!(set![HashSet, e02, e12], set(s.out_edges(2)));
+        assert_eq!(set![HashSet], set(s.out_edges(3)));
+        assert_eq!(set![HashSet], set(s.out_edges(4)));
     }
 
     #[test]
     fn test_edge_induced_subgraph() {
         let (g, e01, e02, _, _) = new_graph();
         let s = g.edge_induced_subgraph(vec![e01, e02]);
-        assert_eq!(set![HashSet, 0, 1, 2], s.vertices().into_hash_set());
-        assert_eq!(set![HashSet, e01, e02], s.edges().into_hash_set());
-        assert_eq!(set![HashSet, e01, e02], s.out_edges(0).into_hash_set());
-        assert_eq!(set![HashSet, 1, 2], s.out_neighbors(0).into_hash_set());
-        assert_eq!(set![HashSet, e01], s.out_edges(1).into_hash_set());
-        assert_eq!(set![HashSet, 0], s.out_neighbors(1).into_hash_set());
-        assert_eq!(set![HashSet, e02], s.out_edges(2).into_hash_set());
-        assert_eq!(set![HashSet, 0], s.out_neighbors(2).into_hash_set());
+        assert_eq!(set![HashSet, 0, 1, 2], set(s.vertices()));
+        assert_eq!(set![HashSet, e01, e02], set(s.edges()));
+        assert_eq!(set![HashSet, e01, e02], set(s.out_edges(0)));
+        assert_eq!(set![HashSet, 1, 2], set(s.out_neighbors(0)));
+        assert_eq!(set![HashSet, e01], set(s.out_edges(1)));
+        assert_eq!(set![HashSet, 0], set(s.out_neighbors(1)));
+        assert_eq!(set![HashSet, e02], set(s.out_edges(2)));
+        assert_eq!(set![HashSet, 0], set(s.out_neighbors(2)));
     }
 
     #[test]
     fn test_induced_subgraph() {
         let (g, e01, e02, e12, _) = new_graph();
         let s = g.induced_subgraph(vec![0, 1, 2]);
-        assert_eq!(set![HashSet, 0, 1, 2], s.vertices().into_hash_set());
-        assert_eq!(set![HashSet, e01, e02, e12], s.edges().into_hash_set());
-        assert_eq!(set![HashSet, e01, e02], s.out_edges(0).into_hash_set());
-        assert_eq!(set![HashSet, e01, e12], s.out_edges(1).into_hash_set());
-        assert_eq!(set![HashSet, e02, e12], s.out_edges(2).into_hash_set());
+        assert_eq!(set![HashSet, 0, 1, 2], set(s.vertices()));
+        assert_eq!(set![HashSet, e01, e02, e12], set(s.edges()));
+        assert_eq!(set![HashSet, e01, e02], set(s.out_edges(0)));
+        assert_eq!(set![HashSet, e01, e12], set(s.out_edges(1)));
+        assert_eq!(set![HashSet, e02, e12], set(s.out_edges(2)));
     }
 }

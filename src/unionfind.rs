@@ -44,7 +44,7 @@ impl<G: Graph> WithUnionFind for G {}
 mod tests {
     use super::{UnionFind, WithUnionFind};
     use prelude::*;
-    use fera::IteratorExt;
+    use utils::vec;
 
     fn check_groups(ds: &mut UnionFind<StaticGraph>, groups: &[&[Vertex<StaticGraph>]]) {
         for group in groups.iter() {
@@ -57,7 +57,7 @@ mod tests {
     #[test]
     fn unionfind() {
         let g = graph!(StaticGraph, 5);
-        let v = g.vertices().into_vec();
+        let v = vec(g.vertices());
         let mut ds = g.new_unionfind();
         ds.union(v[0], v[2]);
         check_groups(&mut ds, &[&[v[0], v[2]]]);

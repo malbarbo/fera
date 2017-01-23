@@ -142,7 +142,7 @@ impl<'a, G: 'a + WithEdge> Param<'a, G, DfsStack<'a, G>> for NewDfsStack {
 mod tests {
     use prelude::*;
     use traverse::*;
-    use fera::IteratorExt;
+    use utils::vec;
 
     fn new() -> StaticGraph {
         //    1
@@ -183,7 +183,7 @@ mod tests {
         use traverse::TraverseEvent::*;
         use traverse::RecursiveDfs;
         let g = new();
-        let v = g.vertices().into_vec();
+        let v = vec(g.vertices());
         let e = |x: usize, y: usize| edge_by_ends(&g, v[x], v[y]);
         let expected = vec![
             Start,

@@ -51,12 +51,12 @@ mod tests {
     use super::Paths;
     use static_::StaticGraph;
     use graph::*;
-    use fera::IteratorExt;
+    use utils::vec;
 
     #[test]
     fn find_path() {
         let g = graph!(StaticGraph, 6, (0, 1), (0, 2), (1, 4), (2, 3), (2, 4));
-        let e = g.edges().into_vec();
+        let e = vec(g.edges());
 
         assert_eq!(None, g.find_path(0, 0));
 

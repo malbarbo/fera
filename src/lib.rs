@@ -36,6 +36,7 @@ pub use graphs::*;
 pub mod props;
 
 pub mod extensions;
+pub mod utils;
 
 // algorithms
 pub mod components;

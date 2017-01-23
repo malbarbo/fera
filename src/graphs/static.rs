@@ -3,6 +3,7 @@ use fera::{IteratorExt, MapBind};
 use fera::optional::OptionalMax;
 use choose::Choose;
 use props::{VecEdgeProp, VecVertexProp, FnProp};
+use utils::vec;
 
 use std::iter::{Cloned, Map};
 use std::ops::{Index, Range};
@@ -192,8 +193,8 @@ impl<V: Num, E: Num> Builder for StaticGraphGenericBuilder<V, E> {
     fn finalize_(self) -> (Self::Graph, VecVertex<Self::Graph>, VecEdge<Self::Graph>) {
         // TODO: test this assert
         assert!(E::is_valid(self.g.ends.len()));
-        let v = self.g.vertices().into_vec();
-        let e = self.g.edges().into_vec();
+        let v = vec(self.g.vertices());
+        let e = vec(self.g.edges());
         (self.g, v, e)
     }
 }
