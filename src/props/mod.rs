@@ -1,5 +1,4 @@
 use prelude::*;
-use num_traits::float::Float;
 use std::ops::{Index, IndexMut};
 
 mod array;
@@ -12,6 +11,8 @@ pub use self::array::*;
 pub use self::delegate::*;
 pub use self::fn_::*;
 pub use self::hashmap::*;
+
+use extensions::IntoOwned;
 
 pub trait PropGet<K> {
     type Output: Sized;
@@ -30,14 +31,6 @@ pub trait PropGet<K> {
     fn by_ref(&self) -> &Self {
         self
     }
-
-    #[inline]
-    unsafe fn map_unchecked_not_nan(self) -> UncheckedNotNan<Self>
-        where Self: Sized,
-              Self::Output: Float
-    {
-        UncheckedNotNan(self)
-    }
 }
 
 impl<'a, K, P: PropGet<K>> PropGet<K> for &'a P {
@@ -54,22 +47,24 @@ impl<'a, K, P: PropGet<K>> PropGet<K> for &'a P {
 pub trait PropIndexMut<Idx>: IndexMut<Idx> {
     fn set_values_from<P, I>(&mut self, iter: I, source: &P)
         where I: IntoIterator,
-              I::Item: Into<Idx> + Copy,
+              I::Item: IntoOwned<Idx>,
+              Idx: Clone,
               P: Index<Idx, Output = Self::Output>,
               Self::Output: Clone
     {
         for v in iter {
-            self[v.into()].clone_from(&source[v.into()]);
+            let v = v.into_owned();
+            self[v.clone()].clone_from(&source[v]);
         }
     }
 
     fn set_values<I>(&mut self, iter: I, value: Self::Output)
         where I: IntoIterator,
-              I::Item: Into<Idx> + Copy,
+              I::Item: IntoOwned<Idx>,
               Self::Output: Clone
     {
         for v in iter {
-            self[v.into()].clone_from(&value);
+            self[v.into_owned()].clone_from(&value);
         }
     }
 }
@@ -334,19 +329,5 @@ impl<K, P, F, O> PropGet<K> for Map<P, F>
 
     fn get(&self, k: K) -> Self::Output {
         (self.1)(self.0.get(k))
-    }
-}
-
-
-pub struct UncheckedNotNan<P>(P);
-
-impl<K, P: PropGet<K>> PropGet<K> for UncheckedNotNan<P>
-    where P::Output: Float
-{
-    type Output = ::ordered_float::NotNaN<P::Output>;
-
-    #[inline]
-    fn get(&self, k: K) -> Self::Output {
-        unsafe { ::ordered_float::NotNaN::unchecked_new(self.0.get(k)) }
     }
 }

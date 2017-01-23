@@ -10,8 +10,6 @@ clippy = []
 
 [dependencies]
 num = "0.1"
-num-traits = "0.1"
-ordered-float = "0.3"
 rand = "0.3"
 fera = { path = "../fera/" }
 

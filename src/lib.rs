@@ -12,8 +12,6 @@ extern crate quickcheck;
 extern crate itertools;
 
 extern crate num;
-extern crate num_traits;
-extern crate ordered_float;
 extern crate rand;
 
 #[macro_use]
@@ -37,13 +35,13 @@ pub use graphs::*;
 
 pub mod props;
 
+pub mod extensions;
+
 // algorithms
 pub mod components;
 pub mod cycles;
 pub mod kruskal;
 pub mod paths;
-// TODO: add a cmp mod with functions max_prop, max_by_prop, ..
-pub mod sort;
 pub mod trees;
 
 // others
@@ -58,7 +56,7 @@ pub mod prelude {
                     EdgePropMut, EdgePropMutNew, BasicEdgeProps, WithEdgeProp, PropIndexMut};
     pub use builder::{Builder, WithBuilder};
     pub use complete::{CompleteGraph, CompleteDiGraph};
-    pub use sort::SortByProp;
     pub use static_::StaticGraph;
     pub use subgraph::{Subgraph, WithSubgraph};
+    pub use extensions::{GraphsIteratorExt, GraphsSliceExt, GraphsVecExt};
 }
