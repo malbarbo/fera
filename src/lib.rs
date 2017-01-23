@@ -12,6 +12,7 @@ extern crate quickcheck;
 extern crate itertools;
 
 extern crate fera;
+extern crate fnv;
 extern crate num;
 extern crate rand;
 

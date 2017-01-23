@@ -11,6 +11,7 @@ clippy = []
 [dependencies]
 num = "0.1"
 rand = "0.3"
+fnv = "1.0"
 fera = { path = "../fera/" }
 
 [dev-dependencies]

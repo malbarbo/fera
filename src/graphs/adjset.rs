@@ -1,14 +1,19 @@
 use prelude::*;
 use props::HashMapProp;
 
-use fera::collections::{HashMapFnv, HashSetFnv};
 use fera::{IteratorExt, MapBind};
 
 use std::collections::hash_map;
+use std::collections::{HashMap, HashSet};
 use std::collections::hash_set;
+use std::hash::BuildHasherDefault;
 use std::hash::{Hash, Hasher};
 use std::iter::Cloned;
 use std::marker::PhantomData;
+use fnv::FnvHasher;
+
+type HashMapFnv<K, V> = HashMap<K, V, BuildHasherDefault<FnvHasher>>;
+type HashSetFnv<K> = HashSet<K, BuildHasherDefault<FnvHasher>>;
 
 pub type AdjSetGraph<V> = AdjSet<V, Undirected>;
 
@@ -337,8 +342,13 @@ mod tests {
     pub use super::*;
     pub use prelude::*;
     pub use tests::GraphTests;
-    pub use fera::VecExt;
     pub use utils::vec;
+
+    fn sorted<T: Clone + Ord>(xs: &[T]) -> Vec<T> {
+        let mut v = xs.to_vec();
+        v.sort();
+        v
+    }
 
     mod undirected {
         use super::*;
@@ -356,9 +366,8 @@ mod tests {
                 g.add_edge(7, 4);
                 let v = vec(g.vertices());
                 let ee = vec(g.edges());
-                assert_eq!(v.clone().sorted(), vec![1, 2, 3, 4, 7]);
-                assert_eq!(ee.clone().sorted(),
-                           vec![e(1, 2), e(1, 4), e(3, 4), e(4, 7)]);
+                assert_eq!(sorted(&v), vec![1, 2, 3, 4, 7]);
+                assert_eq!(sorted(&ee), vec![e(1, 2), e(1, 4), e(3, 4), e(4, 7)]);
                 (g, v, ee)
             }
         }
@@ -380,10 +389,10 @@ mod tests {
                 g.add_edge(4, 1);
                 g.add_edge(7, 4);
                 let v = vec(g.vertices());
-                let e = vec(g.edges());
-                assert_eq!(v.clone().sorted(), vec![1, 2, 3, 4, 7]);
-                assert_eq!(e.clone().sorted(), vec![(1, 2), (3, 4), (4, 1), (7, 4)]);
-                (g, v, e)
+                let ee = vec(g.edges());
+                assert_eq!(sorted(&v), vec![1, 2, 3, 4, 7]);
+                assert_eq!(sorted(&ee), vec![(1, 2), (3, 4), (4, 1), (7, 4)]);
+                (g, v, ee)
             }
         }
 

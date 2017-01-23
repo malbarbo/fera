@@ -1,8 +1,11 @@
 use prelude::*;
 
-use fera::collections::HashMapFnv;
-
+use std::collections::HashMap;
+use std::hash::BuildHasherDefault;
 use std::ops::{Index, IndexMut};
+use fnv::FnvHasher;
+
+type HashMapFnv<K, V> = HashMap<K, V, BuildHasherDefault<FnvHasher>>;
 
 // TODO: explain what happens when default has interior mutability
 pub struct HashMapProp<I: GraphItem, T: Clone> {
