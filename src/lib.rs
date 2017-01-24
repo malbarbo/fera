@@ -1,9 +1,3 @@
-#![cfg_attr(all(feature = "nightly", test), feature(test))]
-#![cfg_attr(feature="clippy", allow(inline_always))]
-
-#[cfg(all(feature = "nightly", test))]
-extern crate test;
-
 #[cfg(test)]
 #[macro_use]
 extern crate quickcheck;

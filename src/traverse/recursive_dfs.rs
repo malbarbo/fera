@@ -107,30 +107,3 @@ pub fn recursive_dfs_visit<G, C, V>(g: &G,
     return_unless!(vis.finish_vertex(g, u));
     Control::Continue
 }
-
-
-#[cfg(all(feature = "nightly", test))]
-mod benchs {
-    use prelude::*;
-    use traverse::*;
-    use rand::XorShiftRng;
-    use test::Bencher;
-
-    fn bench_dfs<'a>(b: &mut Bencher, g: &'a StaticGraph) {
-        b.iter(|| {
-            g.recursive_dfs(OnDiscoverTreeEdge(|_| Control::Continue));
-        });
-    }
-
-    #[bench]
-    fn complete_graph(b: &mut Bencher) {
-        let g = StaticGraph::complete(100);
-        bench_dfs(b, &g);
-    }
-
-    #[bench]
-    fn tree(b: &mut Bencher) {
-        let g = StaticGraph::random_tree(100, XorShiftRng::new_unseeded());
-        bench_dfs(b, &g);
-    }
-}
