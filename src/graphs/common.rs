@@ -10,10 +10,7 @@ impl<'a, G, I> OutNeighborFromOutEdge<'a, G, I>
           G: 'a + WithEdge
 {
     pub fn new(g: &'a G, iter: I) -> Self {
-        OutNeighborFromOutEdge {
-            g: g,
-            iter: iter,
-        }
+        OutNeighborFromOutEdge { g: g, iter: iter }
     }
 }
 

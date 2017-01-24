@@ -35,7 +35,7 @@ impl<I, P, D> PropGet<I> for ArrayProp<P, D>
 
 impl<I, P, D> Index<I> for ArrayProp<P, D>
     where P: PropGet<I, Output = usize>,
-          D: Index<usize>,
+          D: Index<usize>
 {
     type Output = D::Output;
 
@@ -63,7 +63,7 @@ impl<T, G> VertexPropMutNew<G, T> for ArrayProp<VertexIndexProp<G>, Vec<T>>
     {
         ArrayProp {
             index: g.vertex_index(),
-            data: vec![value; g.num_vertices()]
+            data: vec![value; g.num_vertices()],
         }
     }
 }
@@ -76,7 +76,7 @@ impl<T, G> EdgePropMutNew<G, T> for ArrayProp<EdgeIndexProp<G>, Vec<T>>
     {
         ArrayProp {
             index: g.edge_index(),
-            data: vec![value; g.num_edges()]
+            data: vec![value; g.num_edges()],
         }
     }
 }

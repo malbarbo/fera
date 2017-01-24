@@ -14,68 +14,76 @@ struct Case {
 }
 
 fn cases() -> Vec<Case> {
-    vec![
-        Case { // 0
-            g: graph!(StaticGraph),
-            is_connected: true,
-            is_acyclic: true,
-            is_tree: true,
-        },
-        Case { // 1
-            g: graph!(StaticGraph, 1),
-            is_connected: true,
-            is_acyclic: true,
-            is_tree: true,
-        },
-        Case { // 2
-            g: graph!(StaticGraph, 2),
-            is_connected: false,
-            is_acyclic: true,
-            is_tree: false,
-        },
-        Case { // 3
-            g: graph!(StaticGraph, 2, (0, 1)),
-            is_connected: true,
-            is_acyclic: true,
-            is_tree: true,
-        },
-        Case { // 4
-            g: graph!(StaticGraph, 3, (2, 1)),
-            is_connected: false,
-            is_acyclic: true,
-            is_tree: false,
-        },
-        Case { // 5
-            g: graph!(StaticGraph, 3, (2, 1)),
-            is_connected: false,
-            is_acyclic: true,
-            is_tree: false,
-        },
-        Case { // 6
-            g: graph!(StaticGraph, 3, (0, 1), (1, 2)),
-            is_connected: true,
-            is_acyclic: true,
-            is_tree: true,
-        },
-        Case { // 7
-            g: graph!(StaticGraph, 3, (0, 1), (0, 2), (1, 2)),
-            is_connected: true,
-            is_acyclic: false,
-            is_tree: false,
-        },
-        Case { // 8
-            g: graph!(StaticGraph, 4, (0, 1), (0, 2)),
-            is_connected: false,
-            is_acyclic: true,
-            is_tree: false,
-        },
-        Case { // 9
-            g: graph!(StaticGraph, 4, (1, 2), (2, 3), (3, 1)),
-            is_connected: false,
-            is_acyclic: false,
-            is_tree: false,
-        },
-    ]
+    vec![Case {
+             // 0
+             g: graph!(StaticGraph),
+             is_connected: true,
+             is_acyclic: true,
+             is_tree: true,
+         },
+         Case {
+             // 1
+             g: graph!(StaticGraph, 1),
+             is_connected: true,
+             is_acyclic: true,
+             is_tree: true,
+         },
+         Case {
+             // 2
+             g: graph!(StaticGraph, 2),
+             is_connected: false,
+             is_acyclic: true,
+             is_tree: false,
+         },
+         Case {
+             // 3
+             g: graph!(StaticGraph, 2, (0, 1)),
+             is_connected: true,
+             is_acyclic: true,
+             is_tree: true,
+         },
+         Case {
+             // 4
+             g: graph!(StaticGraph, 3, (2, 1)),
+             is_connected: false,
+             is_acyclic: true,
+             is_tree: false,
+         },
+         Case {
+             // 5
+             g: graph!(StaticGraph, 3, (2, 1)),
+             is_connected: false,
+             is_acyclic: true,
+             is_tree: false,
+         },
+         Case {
+             // 6
+             g: graph!(StaticGraph, 3, (0, 1), (1, 2)),
+             is_connected: true,
+             is_acyclic: true,
+             is_tree: true,
+         },
+         Case {
+             // 7
+             g: graph!(StaticGraph, 3, (0, 1), (0, 2), (1, 2)),
+             is_connected: true,
+             is_acyclic: false,
+             is_tree: false,
+         },
+         Case {
+             // 8
+             g: graph!(StaticGraph, 4, (0, 1), (0, 2)),
+             is_connected: false,
+             is_acyclic: true,
+             is_tree: false,
+         },
+         Case {
+             // 9
+             g: graph!(StaticGraph, 4, (1, 2), (2, 3), (3, 1)),
+             is_connected: false,
+             is_acyclic: false,
+             is_tree: false,
+         }]
 }
 
 #[test]

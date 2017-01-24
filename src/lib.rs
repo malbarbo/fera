@@ -47,9 +47,9 @@ pub mod unionfind;
 pub mod prelude {
     pub use fera::optional::Optional;
     pub use graph::*;
-    pub use props::{PropGet, BasicProps, VertexPropGet, VertexProp, VertexPropMut,
-                    VertexPropMutNew, BasicVertexProps, WithVertexProp, EdgePropGet, EdgeProp,
-                    EdgePropMut, EdgePropMutNew, BasicEdgeProps, WithEdgeProp, PropIndexMut};
+    pub use props::{PropGet, BasicProps, VertexPropGet, VertexProp, VertexPropMut, VertexPropMutNew,
+                    BasicVertexProps, WithVertexProp, EdgePropGet, EdgeProp, EdgePropMut,
+                    EdgePropMutNew, BasicEdgeProps, WithEdgeProp, PropIndexMut};
     pub use builder::{Builder, WithBuilder};
     pub use complete::{CompleteGraph, CompleteDiGraph};
     pub use static_::StaticGraph;

@@ -321,12 +321,10 @@ impl EdgeImpl for UndirectedEdge {
 
     fn new(n: CVertex, u: CVertex, v: CVertex) -> Self {
         let (n, u, v) = (n as usize, u as usize, v as usize);
-        let id = |u, v| {
-            if u < (n - 1) / 2 {
-                u * n + v
-            } else {
-                (n - u - 1) * n - v - 1
-            }
+        let id = |u, v| if u < (n - 1) / 2 {
+            u * n + v
+        } else {
+            (n - u - 1) * n - v - 1
         };
 
         if u < v {

@@ -50,7 +50,7 @@ pub trait Choose: WithEdge {
     }
 
     fn random_walk<R>(&self, mut rng: R) -> RandomWalk<Self, R>
-        where R: Rng,
+        where R: Rng
     {
         let cur = self.choose_vertex(&mut rng);
         RandomWalk {
