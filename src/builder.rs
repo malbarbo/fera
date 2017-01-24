@@ -158,16 +158,16 @@ pub trait BuilderTests {
         let (g, w) = graph!(
             Self::G,
             5,
-            (1, 2) -> 3.2,
-            (4, 0) -> 4.5f64,
+            (1, 2) -> 3,
+            (4, 0) -> 4u32,
         );
         assert_eq!(5, g.num_vertices());
         assert_eq!(2, g.num_edges());
-        let mut sum = 0.0;
+        let mut sum = 0;
         for e in g.edges() {
             sum += w[e];
         }
-        assert_eq!(7.7, sum);
+        assert_eq!(7, sum);
     }
 
     fn complete() {
@@ -184,6 +184,7 @@ pub trait BuilderTests {
         }
     }
 
+    #[cfg_attr(feature = "cargo-clippy", allow(needless_range_loop))]
     fn complete_binary_tree() {
         let (g, _, _) = complete_binary_tree::<Self::G>(0).finalize_();
         assert_eq!(1, g.num_vertices());

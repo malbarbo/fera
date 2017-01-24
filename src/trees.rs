@@ -20,7 +20,7 @@ pub struct IsTree<'a> {
 }
 
 #[allow(non_snake_case)]
-pub fn IsTree<'a>(tree: &'a mut bool) -> IsTree<'a> {
+pub fn IsTree(tree: &mut bool) -> IsTree {
     IsTree {
         tree: tree,
         saw_root: false,

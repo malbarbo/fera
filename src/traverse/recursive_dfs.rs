@@ -10,7 +10,7 @@ trait_alias!(RecursiveDfsDefault = VertexList + Incidence + WithVertexProp<Color
 trait_alias!(RecursiveDfsWithRoot = Incidence + WithVertexProp<Color>);
 
 pub trait RecursiveDfs: WithEdge {
-    fn recursive_dfs<'a, V>(&'a self, vis: V) -> Control
+    fn recursive_dfs<V>(&self, vis: V) -> Control
         where Self: RecursiveDfsDefault,
               V: Visitor<Self>
     {

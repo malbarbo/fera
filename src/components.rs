@@ -39,7 +39,7 @@ pub struct IsConnected<'a> {
 }
 
 #[allow(non_snake_case)]
-pub fn IsConnected<'a>(con: &'a mut bool) -> IsConnected<'a> {
+pub fn IsConnected(con: &mut bool) -> IsConnected {
     IsConnected {
         connected: con,
         saw_root: false,
@@ -66,7 +66,7 @@ impl<'a, G: WithEdge> Visitor<G> for IsConnected<'a> {
 
 
 #[allow(non_snake_case)]
-pub fn NumComponents<'a>(num: &'a mut u64) -> OnDiscoverRootVertex<Count<'a>> {
+pub fn NumComponents(num: &mut u64) -> OnDiscoverRootVertex<Count> {
     OnDiscoverRootVertex(Count(num))
 }
 

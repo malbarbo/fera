@@ -1,3 +1,5 @@
+#![cfg_attr(feature = "cargo-clippy", allow(inline_always))]
+
 #[cfg(test)]
 #[macro_use]
 extern crate quickcheck;

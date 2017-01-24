@@ -23,7 +23,7 @@ pub struct RecordPath<'a, G: WithEdge> {
 }
 
 #[allow(non_snake_case)]
-pub fn RecordPath<'a, G>(path: &'a mut Vec<Edge<G>>, target: Vertex<G>) -> RecordPath<'a, G>
+pub fn RecordPath<G>(path: &mut Vec<Edge<G>>, target: Vertex<G>) -> RecordPath<G>
     where G: WithEdge
 {
     RecordPath {

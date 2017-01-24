@@ -66,7 +66,7 @@ pub trait GraphsIteratorExt: Sized + IntoIterator {
     }
 
     #[inline]
-    fn ends<'a, G>(self, g: &'a G) -> Ends<'a, G, Self::IntoIter>
+    fn ends<G>(self, g: &G) -> Ends<G, Self::IntoIter>
         where G: WithEdge,
               Self::Item: IntoOwned<Edge<G>>
     {

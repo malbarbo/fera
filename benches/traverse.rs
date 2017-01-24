@@ -9,7 +9,7 @@ use graphs::traverse::*;
 use rand::XorShiftRng;
 use test::Bencher;
 
-fn bfs<'a>(b: &mut Bencher, g: &'a StaticGraph) {
+fn bfs(b: &mut Bencher, g: &StaticGraph) {
     b.iter(|| {
         g.bfs(OnDiscoverTreeEdge(|_| Control::Continue));
     });
@@ -28,7 +28,7 @@ fn bfs_tree(b: &mut Bencher) {
 }
 
 
-fn dfs<'a>(b: &mut Bencher, g: &'a StaticGraph) {
+fn dfs(b: &mut Bencher, g: &StaticGraph) {
     b.iter(|| {
         g.dfs(OnDiscoverTreeEdge(|_| Control::Continue));
     });
@@ -47,7 +47,7 @@ fn dfs_tree(b: &mut Bencher) {
 }
 
 
-fn recursive_dfs<'a>(b: &mut Bencher, g: &'a StaticGraph) {
+fn recursive_dfs(b: &mut Bencher, g: &StaticGraph) {
     b.iter(|| {
         g.recursive_dfs(OnDiscoverTreeEdge(|_| Control::Continue));
     });

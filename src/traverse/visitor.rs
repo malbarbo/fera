@@ -115,6 +115,7 @@ impl<G: WithEdge> Visitor<G> for EmptyVisitor {}
 macro_rules! def_visitor_tuple_m {
     ($t:ident, $m:ident, $($name:ident),*) => (
         #[allow(non_snake_case)]
+        #[cfg_attr(feature = "cargo-clippy", allow(let_and_return))]
         fn $m(&mut self, g: &G, item: $t<G>) -> Control {
             let ($(ref mut $name),*) = *self;
             let r = Control::Continue;
@@ -320,7 +321,7 @@ pub struct Count<'a> {
 }
 
 #[allow(non_snake_case)]
-pub fn Count<'a>(mut count: &'a mut u64) -> Count<'a> {
+pub fn Count(mut count: &mut u64) -> Count {
     *count = 0;
     Count { count: count }
 }
