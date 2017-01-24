@@ -1,8 +1,6 @@
 use prelude::*;
 use props::HashMapProp;
 
-use fera::{IteratorExt, MapBind};
-
 use std::collections::hash_map;
 use std::collections::{HashMap, HashSet};
 use std::collections::hash_set;
@@ -12,12 +10,11 @@ use std::iter::Cloned;
 use std::marker::PhantomData;
 use fnv::FnvHasher;
 
+pub type AdjSetGraph<V> = AdjSet<V, Undirected>;
+pub type AdjSetDiGraph<V> = AdjSet<V, Directed>;
+
 type HashMapFnv<K, V> = HashMap<K, V, BuildHasherDefault<FnvHasher>>;
 type HashSetFnv<K> = HashSet<K, BuildHasherDefault<FnvHasher>>;
-
-pub type AdjSetGraph<V> = AdjSet<V, Undirected>;
-
-pub type AdjSetDiGraph<V> = AdjSet<V, Directed>;
 
 pub struct AdjSet<V: AdjSetVertex, K: AdjSetEdgeKind<V>> {
     adj: HashMapFnv<V, HashSetFnv<V>>,
@@ -146,7 +143,7 @@ impl<'a, V, K> EdgeTypes<'a, AdjSet<V, K>> for AdjSet<V, K>
           K: AdjSetEdgeKind<V>
 {
     type EdgeIter = Edges<'a, V, K>;
-    type OutEdgeIter = MapBind<Cloned<hash_set::Iter<'a, V>>, V, fn(V, V) -> K::Edge>;
+    type OutEdgeIter = OutEdges<'a, V, K>;
 }
 
 impl<V, K> WithEdge for AdjSet<V, K>
@@ -222,7 +219,11 @@ impl<V, K> Incidence for AdjSet<V, K>
           K: AdjSetEdgeKind<V>
 {
     fn out_edges(&self, v: Vertex<Self>) -> OutEdgeIter<Self> {
-        self.out_neighbors(v).map_bind(v, K::Edge::new)
+        OutEdges {
+            source: v,
+            adj: self.out_neighbors_(v).iter(),
+            _marker: PhantomData,
+        }
     }
 }
 
@@ -247,10 +248,12 @@ impl<V, K> AdjSet<V, K>
             panic!("Multiedge not supported");
         }
 
-        // insert (u, v)
+        // insert u and (u, v)
         self.adj.entry(u).or_insert_with(Default::default).insert(v);
 
+        // insert v
         let mut entry = self.adj.entry(v).or_insert_with(Default::default);
+
         if K::is_undirected() {
             // insert (v, u)
             entry.insert(u);
@@ -335,7 +338,45 @@ impl<'a, V, K> Iterator for Edges<'a, V, K>
             }
         }
     }
+
+    // TODO: implements size_hint and ExactSizeIterator
 }
+
+
+pub struct OutEdges<'a, V, K>
+    where V: AdjSetVertex,
+          K: AdjSetEdgeKind<V>
+{
+    source: V,
+    adj: hash_set::Iter<'a, V>,
+    _marker: PhantomData<K>,
+}
+
+impl<'a, V, K> Iterator for OutEdges<'a, V, K>
+    where V: AdjSetVertex,
+          K: AdjSetEdgeKind<V>
+{
+    type Item = K::Edge;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let source = self.source;
+        self.adj.next().map(|target| K::Edge::new(source, *target))
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.adj.size_hint()
+    }
+}
+
+impl<'a, V, K> ExactSizeIterator for OutEdges<'a, V, K>
+    where V: AdjSetVertex,
+          K: AdjSetEdgeKind<V>
+{
+    fn len(&self) -> usize {
+        self.adj.len()
+    }
+}
+
 
 #[cfg(test)]
 mod tests {

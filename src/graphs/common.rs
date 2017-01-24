@@ -1,43 +1,44 @@
 use prelude::*;
 
-pub struct AdjacencyFromIncidence<I, G> {
+pub struct OutNeighborFromOutEdge<'a, G: 'a, I> {
+    g: &'a G,
     iter: I,
-    g: *const G,
 }
 
-impl<I, G> AdjacencyFromIncidence<I, G>
+impl<'a, G, I> OutNeighborFromOutEdge<'a, G, I>
     where I: Iterator<Item = Edge<G>>,
-          G: WithEdge
+          G: 'a + WithEdge
 {
-    pub unsafe fn new(iter: I, g: &G) -> Self {
-        AdjacencyFromIncidence {
+    pub fn new(g: &'a G, iter: I) -> Self {
+        OutNeighborFromOutEdge {
+            g: g,
             iter: iter,
-            g: g as *const _,
         }
     }
 }
 
-
-impl<I, G> Iterator for AdjacencyFromIncidence<I, G>
+impl<'a, G, I> Iterator for OutNeighborFromOutEdge<'a, G, I>
     where I: Iterator<Item = Edge<G>>,
-          G: WithEdge
+          G: 'a + WithEdge
 {
     type Item = Vertex<G>;
 
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        // TODO: explain when this is safe
-        self.iter.next().map(|e| unsafe { (&*self.g).target(e) })
+        self.iter.next().map(|e| self.g.target(e))
     }
 
+    #[inline]
     fn size_hint(&self) -> (usize, Option<usize>) {
         self.iter.size_hint()
     }
 }
 
-impl<I, G> ExactSizeIterator for AdjacencyFromIncidence<I, G>
+impl<'a, G, I> ExactSizeIterator for OutNeighborFromOutEdge<'a, G, I>
     where I: Iterator<Item = Edge<G>> + ExactSizeIterator,
-          G: WithEdge
+          G: 'a + WithEdge
 {
+    #[inline]
     fn len(&self) -> usize {
         self.iter.len()
     }
