@@ -1,0 +1,7 @@
+[package]
+name = "fera-optional"
+version = "0.1.0"
+authors = ["Marco A L Barbosa <malbarbo@gmail.com>"]
+
+[dependencies]
+num = "0.1"
