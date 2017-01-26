@@ -55,13 +55,13 @@
 //! assert!(*x.to_option_ref().unwrap());
 //! ```
 
-extern crate num;
+extern crate num_traits;
 
 use std::marker::PhantomData;
 use std::mem;
 use std::fmt;
 
-use num::Bounded;
+use num_traits::bounds::Bounded;
 
 /// An `Optional` that uses `T::max_value()` as `None`.
 pub type OptionalMax<T> = Optioned<T, MaxNone<T>>;
@@ -306,7 +306,7 @@ mod tests {
     }
 
     mod optional_bool {
-        use ::*;
+        use *;
         struct T;
 
         impl OptionalTest for T {
@@ -332,7 +332,7 @@ mod tests {
     }
 
     mod optioned_u32 {
-        use ::*;
+        use *;
         struct T;
 
         impl OptionalTest for T {
