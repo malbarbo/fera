@@ -7,7 +7,9 @@ authors = ["Marco A L Barbosa <malbarbo@gmail.com>"]
 num = "0.1"
 rand = "0.3"
 fnv = "1.0"
-fera = { path = "../../fera/" }
+fera-fun = { path = "../fun/" }
+fera-optional = { path = "../optional/" }
+fera-unionfind = { path = "../unionfind/" }
 
 [dev-dependencies]
 itertools = "0.5"

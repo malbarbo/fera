@@ -133,7 +133,7 @@ impl<'a, G: 'a + WithUnionFind> Param<'a, G, UnionFind<G>> for NewUnionFind {
 mod tests {
     use super::Kruskal;
     use prelude::*;
-    use utils::vec;
+    use fera_fun::vec;
 
     #[test]
     #[cfg_attr(rustfmt, rustfmt_skip)]

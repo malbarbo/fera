@@ -1,6 +1,6 @@
 use prelude::*;
 use trees::Trees;
-use utils::set;
+use fera_fun::set;
 
 use rand::{Rng, SeedableRng, StdRng};
 use rand::distributions::{IndependentSample, Range};

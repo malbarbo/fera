@@ -2,7 +2,8 @@ use prelude::*;
 use choose::Choose;
 use common::OutNeighborFromOutEdge;
 use props::{DelegateEdgeProp, DelegateVertexProp, DelegateProp};
-use utils::vec;
+
+use fera_fun::vec;
 
 use std::borrow::Borrow;
 use std::iter::Cloned;
@@ -275,7 +276,7 @@ impl<G: Graph> WithSubgraph<G> for G {
 #[cfg(test)]
 mod tests {
     use prelude::*;
-    use utils::{set, vec};
+    use fera_fun::{set, vec};
 
     fn new_graph
         ()

@@ -383,9 +383,9 @@ mod tests {
     pub use super::*;
     pub use prelude::*;
     pub use tests::GraphTests;
-    pub use utils::vec;
+    pub use fera_fun::vec;
 
-    fn sorted<T: Clone + Ord>(xs: &[T]) -> Vec<T> {
+    pub fn sorted<T: Clone + Ord>(xs: &[T]) -> Vec<T> {
         let mut v = xs.to_vec();
         v.sort();
         v

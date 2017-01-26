@@ -1,13 +1,11 @@
 #![cfg_attr(feature = "cargo-clippy", allow(inline_always))]
 
 #[cfg(test)]
-#[macro_use]
-extern crate quickcheck;
-
-#[cfg(test)]
 extern crate itertools;
 
-extern crate fera;
+extern crate fera_fun;
+extern crate fera_optional;
+extern crate fera_unionfind;
 extern crate fnv;
 extern crate num;
 extern crate rand;
@@ -31,7 +29,6 @@ pub use graphs::*;
 pub mod props;
 
 pub mod extensions;
-pub mod utils;
 
 // algorithms
 pub mod components;
@@ -45,7 +42,7 @@ pub mod choose;
 pub mod unionfind;
 
 pub mod prelude {
-    pub use fera::optional::Optional;
+    pub use fera_optional::Optional;
     pub use graph::*;
     pub use props::{PropGet, BasicProps, VertexPropGet, VertexProp, VertexPropMut, VertexPropMutNew,
                     BasicVertexProps, WithVertexProp, EdgePropGet, EdgeProp, EdgePropMut,

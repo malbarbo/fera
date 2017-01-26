@@ -257,7 +257,7 @@ impl<K, V> IndexMut<K> for IndexedHashMap<K, V>
 
 #[cfg(test)]
 mod tests {
-    use ::*;
+    use *;
 
     type UF = UnionFind<usize, Vec<usize>, Vec<usize>>;
 

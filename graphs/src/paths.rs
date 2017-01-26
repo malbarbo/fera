@@ -51,7 +51,7 @@ mod tests {
     use super::Paths;
     use static_::StaticGraph;
     use graph::*;
-    use utils::vec;
+    use fera_fun::vec;
 
     #[test]
     fn find_path() {

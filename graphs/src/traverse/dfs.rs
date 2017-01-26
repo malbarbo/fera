@@ -142,7 +142,7 @@ impl<'a, G: 'a + WithEdge> Param<'a, G, DfsStack<'a, G>> for NewDfsStack {
 mod tests {
     use prelude::*;
     use traverse::*;
-    use utils::vec;
+    use fera_fun::vec;
 
     fn new() -> StaticGraph {
         //    1

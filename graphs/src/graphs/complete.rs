@@ -2,7 +2,7 @@ use prelude::*;
 use choose::Choose;
 use props::{VecEdgeProp, VecVertexProp};
 
-use fera::optional::{BuildNone, Optioned, OptionalMax};
+use fera_optional::{BuildNone, Optioned, OptionalMax};
 
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};

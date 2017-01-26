@@ -1,9 +1,10 @@
 use choose::Choose;
-use fera::optional::OptionalMax;
 use graphs::common::OutNeighborFromOutEdge;
 use prelude::*;
 use props::{VecEdgeProp, VecVertexProp, FnProp};
-use utils::vec;
+
+use fera_fun::vec;
+use fera_optional::OptionalMax;
 
 use std::iter::{Cloned, Map};
 use std::ops::{Index, Range};

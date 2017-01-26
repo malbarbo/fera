@@ -1,6 +1,6 @@
 use prelude::*;
 
-use fera::unionfind::UnionFind as InnerUnionFind;
+use fera_unionfind::UnionFind as InnerUnionFind;
 
 pub struct UnionFind<G: Graph> {
     inner: InnerUnionFind<Vertex<G>,
@@ -44,7 +44,7 @@ impl<G: Graph> WithUnionFind for G {}
 mod tests {
     use super::{UnionFind, WithUnionFind};
     use prelude::*;
-    use utils::vec;
+    use fera_fun::vec;
 
     fn check_groups(ds: &mut UnionFind<StaticGraph>, groups: &[&[Vertex<StaticGraph>]]) {
         for group in groups.iter() {

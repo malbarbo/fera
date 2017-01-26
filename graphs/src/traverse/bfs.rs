@@ -138,7 +138,7 @@ impl<'a, G: 'a + WithEdge> Param<'a, G, BfsQueue<G>> for NewBfsQueue {
 mod tests {
     use prelude::*;
     use traverse::*;
-    use utils::vec;
+    use fera_fun::vec;
 
     fn new() -> StaticGraph {
         //    1
