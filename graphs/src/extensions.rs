@@ -1,6 +1,8 @@
 use prelude::*;
 use std::iter::Sum;
 
+// TODO: Create an IntoIteratorOwned
+// FIXME: move to other module
 pub trait IntoOwned<Owned> {
     fn into_owned(self) -> Owned;
 }
@@ -13,6 +15,13 @@ impl<T> IntoOwned<T> for T {
 }
 
 impl<'a, T: Clone> IntoOwned<T> for &'a T {
+    #[inline]
+    fn into_owned(self) -> T {
+        T::clone(self)
+    }
+}
+
+impl<'a, T: Clone> IntoOwned<T> for &'a mut T {
     #[inline]
     fn into_owned(self) -> T {
         T::clone(self)
