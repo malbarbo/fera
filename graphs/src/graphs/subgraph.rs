@@ -2,10 +2,9 @@ use prelude::*;
 use choose::Choose;
 use common::OutNeighborFromOutEdge;
 use props::{DelegateEdgeProp, DelegateVertexProp, DelegateProp};
+use graphs::spanning_subgraph::SpanningSubgraph;
+use extensions::IntoOwned;
 
-use fera_fun::vec;
-
-use std::borrow::Borrow;
 use std::iter::Cloned;
 use std::slice;
 
@@ -13,7 +12,7 @@ use rand::Rng;
 
 // TODO: Allow a subgraph be reused
 // TODO: delegate all (possible) methods to g
-
+// TODO: remove Graph bound to allow directed graphs
 pub struct Subgraph<'a, G>
     where G: 'a + Graph
 {
@@ -22,6 +21,9 @@ pub struct Subgraph<'a, G>
     edges: VecEdge<G>,
     inc: DefaultVertexPropMut<G, VecEdge<G>>,
 }
+
+
+// Traits implementations
 
 impl<'a, G> DelegateProp<G> for Subgraph<'a, G>
     where G: 'a + Graph
@@ -173,61 +175,49 @@ impl<'a, G> Choose for Subgraph<'a, G>
 // Extensions Traits
 
 pub trait WithSubgraph<G: Graph> {
-    fn spanning_subgraph(&self, edges: VecEdge<G>) -> Subgraph<G>;
+    fn empty_spanning_subgraph(&self) -> SpanningSubgraph<G>;
 
-    fn edge_induced_subgraph(&self, edges: VecEdge<G>) -> Subgraph<G>;
+    fn spanning_subgraph<I>(&self, iter: I) -> SpanningSubgraph<G>
+        where I: IntoIterator,
+              I::Item: IntoOwned<Edge<G>>;
 
     fn induced_subgraph(&self, vertices: VecVertex<G>) -> Subgraph<G> where G: Incidence;
+
+    fn edge_induced_subgraph(&self, edges: VecEdge<G>) -> Subgraph<G>;
 }
 
 
 impl<G: Graph> WithSubgraph<G> for G {
-    fn spanning_subgraph(&self, edges: VecEdge<G>) -> Subgraph<G> {
-        // TODO: do not copy vertices
-        let vertices;
-        let mut inc;
-        {
-            let g: &G = self.borrow();
-            vertices = vec(g.vertices());
-            inc = g.default_vertex_prop(Vec::<Edge<G>>::new());
-            for &e in &edges {
-                let (u, v) = g.ends(e);
-                inc[u].push(e);
-                inc[v].push(g.reverse(e));
-            }
-        }
+    fn spanning_subgraph<I>(&self, iter: I) -> SpanningSubgraph<G>
+        where I: IntoIterator,
+              I::Item: IntoOwned<Edge<G>>
+    {
+        let mut sub = SpanningSubgraph::new(self);
+        sub.add_edges(iter);
+        sub
+    }
 
-        Subgraph {
-            g: self,
-            vertices: vertices,
-            edges: edges,
-            inc: inc,
-        }
+    fn empty_spanning_subgraph(&self) -> SpanningSubgraph<G> {
+        SpanningSubgraph::new(self)
     }
 
     fn edge_induced_subgraph(&self, edges: VecEdge<G>) -> Subgraph<G> {
-        let mut vin;
-        let mut vertices;
-        let mut inc;
-        {
-            let g: &G = self.borrow();
-            vin = g.default_vertex_prop(false);
-            vertices = vec![];
-            inc = g.default_vertex_prop(Vec::<Edge<G>>::new());
-            for &e in &edges {
-                let (u, v) = g.ends(e);
-                if !vin[u] {
-                    vin[u] = true;
-                    vertices.push(u);
-                }
-                if !vin[v] {
-                    vin[v] = true;
-                    vertices.push(v);
-                }
-
-                inc[u].push(e);
-                inc[v].push(g.reverse(e));
+        // FIXME: should be O(edges), but is O(V) + O(edges)
+        let mut vin = self.default_vertex_prop(false);
+        let mut vertices = vec![];
+        let mut inc = self.default_vertex_prop(Vec::<Edge<G>>::new());
+        for &e in &edges {
+            let (u, v) = self.ends(e);
+            if !vin[u] {
+                vin[u] = true;
+                vertices.push(u);
             }
+            if !vin[v] {
+                vin[v] = true;
+                vertices.push(v);
+            }
+            inc[u].push(e);
+            inc[v].push(self.reverse(e));
         }
 
         Subgraph {
@@ -241,23 +231,18 @@ impl<G: Graph> WithSubgraph<G> for G {
     fn induced_subgraph(&self, vertices: VecVertex<G>) -> Subgraph<G>
         where G: Incidence
     {
-        let mut edges;
-        let mut inc;
-        {
-            let g: &G = self.borrow();
-            edges = vec![];
-            inc = g.default_vertex_prop(Vec::<Edge<G>>::new());
-            for &u in &vertices {
-                for e in g.out_edges(u) {
-                    let v = g.target(e);
-                    // FIXME: this running time is terrible, improve
-                    if vertices.contains(&v) {
-                        inc[u].push(e);
-                        if !edges.contains(&e) {
-                            edges.push(e);
-                        }
-                    }
-                }
+        let mut vs = self.default_vertex_prop(false);
+        let mut edges = vec![];
+        let mut inc = self.default_vertex_prop(Vec::<Edge<G>>::new());
+        for &v in &vertices {
+            vs[v] = true;
+        }
+        for e in self.edges() {
+            let (u, v) = self.ends(e);
+            if vs[u] && vs[v] {
+                edges.push(e);
+                inc[u].push(e);
+                inc[v].push(self.reverse(e));
             }
         }
 

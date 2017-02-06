@@ -5,4 +5,5 @@ pub mod complete;
 pub mod ref_;
 #[path = "static.rs"]
 pub mod static_;
+pub mod spanning_subgraph;
 pub mod subgraph;

@@ -51,5 +51,6 @@ pub mod prelude {
     pub use complete::{CompleteGraph, CompleteDiGraph};
     pub use static_::StaticGraph;
     pub use subgraph::{Subgraph, WithSubgraph};
+    pub use spanning_subgraph::SpanningSubgraph;
     pub use extensions::{GraphsIteratorExt, GraphsSliceExt, GraphsVecExt};
 }
