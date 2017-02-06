@@ -14,7 +14,7 @@ use std::cmp::Ordering;
 use std::fmt::Debug;
 
 use rand::Rng;
-use num::Bounded;
+use num_traits::Bounded;
 
 // TODO: Rename to FastGraph
 pub type StaticGraph = StaticGraphGeneric<u32, usize>;
