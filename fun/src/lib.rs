@@ -2,6 +2,9 @@ use std::collections::HashSet;
 use std::hash::Hash;
 use std::iter::Cloned;
 
+mod cmp;
+pub use cmp::*;
+
 pub fn cloned<'a, I, T>(iter: I) -> Cloned<I::IntoIter>
     where I: IntoIterator<Item = &'a T>,
           T: 'a + Clone
