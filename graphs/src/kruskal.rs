@@ -1,5 +1,6 @@
 use prelude::*;
 use params::*;
+use extensions::IntoOwned;
 use unionfind::{UnionFind, WithUnionFind};
 
 use std::vec;
@@ -48,7 +49,8 @@ pub struct Iter<'a, G: 'a, E, V = AcceptAll, U = UnionFind<G>> {
 
 impl<'a, G, E, V, U> Iterator for Iter<'a, G, E, V, U>
     where G: 'a + WithUnionFind,
-          E: Iterator<Item = Edge<G>>,
+          E: Iterator,
+          E::Item: IntoOwned<Edge<G>>,
           V: Visitor<G>,
           U: BorrowMut<UnionFind<G>>
 {
@@ -58,6 +60,7 @@ impl<'a, G, E, V, U> Iterator for Iter<'a, G, E, V, U>
         if self.num_sets > 1 {
             let ds = self.ds.borrow_mut();
             for e in self.edges.by_ref() {
+                let e = e.into_owned();
                 let (u, v) = self.g.ends(e);
                 if !ds.in_same_set(u, v) && self.visitor.visit(e) == Accept::Yes {
                     ds.union(u, v);
@@ -102,8 +105,10 @@ impl<'a, G, E, V, U> KruskalAlg<&'a G, E, V, U>
         self.edges(edges)
     }
 
+    // TODO: implements IntoInter for KruskalAlg, so one can use vec(g.kruskal_()...), without calling run
     pub fn run(self) -> Iter<'a, G, E::Output, V, U::Output>
-        where E: ParamIterator<'a, G, Item = Edge<G>>,
+        where E: ParamIterator<'a, G>,
+              E::Item: IntoOwned<Edge<G>>,
               V: Visitor<G>,
               U: Param<'a, G, UnionFind<G>>
     {
