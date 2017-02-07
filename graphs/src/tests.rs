@@ -1,7 +1,7 @@
 use prelude::*;
 use props::HashMapProp;
 
-use itertools::{cloned, enumerate};
+use fera_fun::{cloned, enumerate};
 
 use std::collections::HashSet;
 
@@ -242,10 +242,10 @@ pub trait GraphTests {
     {
         let (g, vertices, _) = Self::new();
         let mut p = g.default_vertex_prop(0usize);
-        for (i, u) in cloned(&vertices).enumerate() {
+        for (i, &u) in enumerate(&vertices) {
             p[u] = 10 * i;
         }
-        for (i, u) in enumerate(vertices) {
+        for (i, &u) in enumerate(&vertices) {
             assert_eq!(10 * i, p[u])
         }
     }
@@ -255,10 +255,10 @@ pub trait GraphTests {
     {
         let (g, _, edges) = Self::new();
         let mut p = g.default_edge_prop(0usize);
-        for (i, e) in cloned(&edges).enumerate() {
+        for (i, &e) in enumerate(&edges) {
             p[e] = i + 1;
         }
-        for (i, e) in enumerate(edges) {
+        for (i, &e) in enumerate(&edges) {
             assert_eq!(i + 1, p[e]);
             if g.is_undirected_edge(e) {
                 assert_eq!(i + 1, p[g.get_reverse(e).unwrap()])
