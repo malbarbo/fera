@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 use std::hash::Hash;
-use std::iter::Cloned;
+use std::iter::{Cloned, Enumerate};
 
 mod cmp;
 pub use cmp::*;
@@ -10,6 +10,12 @@ pub fn cloned<'a, I, T>(iter: I) -> Cloned<I::IntoIter>
           T: 'a + Clone
 {
     iter.into_iter().cloned()
+}
+
+pub fn enumerate<I>(iter: I) -> Enumerate<I::IntoIter>
+    where I: IntoIterator,
+{
+    iter.into_iter().enumerate()
 }
 
 /// Returns the first item from an iterator.
