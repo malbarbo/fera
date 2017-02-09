@@ -47,8 +47,8 @@ mod tests {
     use fera_fun::vec;
 
     fn check_groups(ds: &mut UnionFind<StaticGraph>, groups: &[&[Vertex<StaticGraph>]]) {
-        for group in groups.iter() {
-            for &a in group.iter() {
+        for group in groups {
+            for &a in *group {
                 assert!(ds.in_same_set(group[0], a));
             }
         }

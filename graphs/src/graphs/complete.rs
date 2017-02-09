@@ -435,10 +435,8 @@ mod tests {
                     type G = $G;
 
                     fn new() -> (Self::G, VecVertex<Self::G>, VecEdge<Self::G>) {
-                        let e = $e.into_iter()
-                                  .map(|(u, v)| EdgeImpl::new($n, u, v))
-                                  .sorted();
-                        ($G::new($n), $v, e)
+                        let e = $e.into_iter();
+                        ($G::new($n), $v, e.map(|(u, v)| EdgeImpl::new($n, u, v)).sorted())
                     }
                 }
 

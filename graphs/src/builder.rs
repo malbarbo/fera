@@ -1,4 +1,5 @@
 use prelude::*;
+use extensions::GraphsIteratorExt;
 use trees::Trees;
 use fera_fun::set;
 
@@ -194,7 +195,7 @@ pub trait BuilderTests {
         assert_eq!(3, g.num_vertices());
         assert_eq!(2, g.num_edges());
         assert_eq!(set(vec![(v[0], v[1]), (v[0], v[2])]),
-                   set(g.out_edges(v[0]).map(|e| g.ends(e))));
+                   set(g.out_edges(v[0]).ends(&g)));
 
         for h in 2..10 {
             let (g, v, _) = complete_binary_tree::<Self::G>(h).finalize_();

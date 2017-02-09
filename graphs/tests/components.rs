@@ -17,7 +17,7 @@ quickcheck! {
     fn quickcheck_cut_vertices(edges: Vec<(u8, u8)>) -> bool {
         let n = edges.iter().map(|x| max(x.0, x.1)).max().unwrap_or(0) as usize + 1;
         let mut builder = StaticGraph::builder(n, edges.len());
-        for (u, v) in edges.clone() {
+        for &(u, v) in &edges {
             if u == v {
                 continue
             }
@@ -32,7 +32,7 @@ quickcheck! {
     fn quickcheck_cut_edges(edges: Vec<(u8, u8)>) -> bool {
         let n = edges.iter().map(|x| max(x.0, x.1)).max().unwrap_or(0) as usize + 1;
         let mut builder = StaticGraph::builder(n, edges.len());
-        for (u, v) in edges.clone() {
+        for &(u, v) in &edges {
             if u == v {
                 continue
             }

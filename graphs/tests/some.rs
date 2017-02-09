@@ -1,6 +1,8 @@
 #[macro_use]
 extern crate fera_graphs as graphs;
+extern crate fera_fun;
 
+use fera_fun::enumerate;
 use graphs::prelude::*;
 use graphs::components::Components;
 use graphs::cycles::Cycles;
@@ -88,7 +90,7 @@ fn cases() -> Vec<Case> {
 
 #[test]
 fn is_connected() {
-    for (i, case) in cases().iter().enumerate() {
+    for (i, case) in enumerate(cases()) {
         assert!(case.is_connected == case.g.is_connected(),
                 format!("Case {}", i));
     }
@@ -96,7 +98,7 @@ fn is_connected() {
 
 #[test]
 fn is_acyclic() {
-    for (i, case) in cases().iter().enumerate() {
+    for (i, case) in enumerate(cases()) {
         assert!(case.is_acyclic == case.g.is_acyclic(),
                 format!("Case {}", i));
     }
@@ -104,7 +106,7 @@ fn is_acyclic() {
 
 #[test]
 fn is_tree() {
-    for (i, case) in cases().iter().enumerate() {
+    for (i, case) in enumerate(cases()) {
         assert!(case.is_tree == case.g.is_tree(), format!("Case {}", i));
     }
 }

@@ -1,7 +1,8 @@
 use prelude::*;
 use props::HashMapProp;
+use extensions::GraphsIteratorExt;
 
-use fera_fun::{cloned, enumerate};
+use fera_fun::{cloned, enumerate, vec, set};
 
 use std::collections::HashSet;
 
@@ -69,19 +70,6 @@ macro_rules! graph_tests {
 }
 
 
-pub fn set<I>(iter: I) -> HashSet<I::Item>
-    where I: IntoIterator,
-          I::Item: Eq + ::std::hash::Hash
-{
-    iter.into_iter().collect()
-}
-
-pub fn vec<I>(iter: I) -> Vec<I::Item>
-    where I: IntoIterator
-{
-    iter.into_iter().collect()
-}
-
 pub trait GraphTests {
     type G: WithVertex + WithEdge;
 
@@ -131,8 +119,9 @@ pub trait GraphTests {
                    "found repeated edges");
         assert_eq!(edges.len(), g.num_edges());
         assert_eq!(edges, vec(g.edges()));
-        assert_eq!(vec(edges.iter().map(|e| g.ends(*e))),
-                   vec(g.edges().map(|e| g.ends(e))));
+        // TODO: allow to write vec(g.ends(&edges))
+        assert_eq!(vec(edges.iter().ends(&g)),
+                   vec(g.edges().ends(&g)));
     }
 
     fn option_edge() {

@@ -5,6 +5,8 @@ use props::{DelegateEdgeProp, DelegateVertexProp, DelegateProp};
 use graphs::spanning_subgraph::SpanningSubgraph;
 use extensions::IntoOwned;
 
+use fera_fun::vec;
+
 use std::iter::Cloned;
 use std::slice;
 
@@ -177,13 +179,18 @@ impl<'a, G> Choose for Subgraph<'a, G>
 pub trait WithSubgraph<G: Graph> {
     fn empty_spanning_subgraph(&self) -> SpanningSubgraph<G>;
 
-    fn spanning_subgraph<I>(&self, iter: I) -> SpanningSubgraph<G>
+    fn spanning_subgraph<I>(&self, vertices: I) -> SpanningSubgraph<G>
         where I: IntoIterator,
               I::Item: IntoOwned<Edge<G>>;
 
-    fn induced_subgraph(&self, vertices: VecVertex<G>) -> Subgraph<G> where G: Incidence;
+    fn induced_subgraph<I>(&self, vertices: I) -> Subgraph<G>
+        where G: Incidence,
+              I: IntoIterator,
+              I::Item: IntoOwned<Vertex<G>>;
 
-    fn edge_induced_subgraph(&self, edges: VecEdge<G>) -> Subgraph<G>;
+    fn edge_induced_subgraph<I>(&self, edges: I) -> Subgraph<G>
+        where I: IntoIterator,
+              I::Item: IntoOwned<Edge<G>>;
 }
 
 
@@ -201,8 +208,12 @@ impl<G: Graph> WithSubgraph<G> for G {
         SpanningSubgraph::new(self)
     }
 
-    fn edge_induced_subgraph(&self, edges: VecEdge<G>) -> Subgraph<G> {
+    fn edge_induced_subgraph<I>(&self, edges: I) -> Subgraph<G>
+        where I: IntoIterator,
+              I::Item: IntoOwned<Edge<G>>
+    {
         // FIXME: should be O(edges), but is O(V) + O(edges)
+        let edges = vec(edges.into_iter().map(IntoOwned::into_owned));
         let mut vin = self.default_vertex_prop(false);
         let mut vertices = vec![];
         let mut inc = self.default_vertex_prop(Vec::<Edge<G>>::new());
@@ -228,9 +239,12 @@ impl<G: Graph> WithSubgraph<G> for G {
         }
     }
 
-    fn induced_subgraph(&self, vertices: VecVertex<G>) -> Subgraph<G>
-        where G: Incidence
+    fn induced_subgraph<I>(&self, vertices: I) -> Subgraph<G>
+        where G: Incidence,
+              I: IntoIterator,
+              I::Item: IntoOwned<Vertex<G>>
     {
+        let vertices = vec(vertices.into_iter().map(IntoOwned::into_owned));
         let mut vs = self.default_vertex_prop(false);
         let mut edges = vec![];
         let mut inc = self.default_vertex_prop(Vec::<Edge<G>>::new());

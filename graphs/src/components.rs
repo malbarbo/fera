@@ -1,7 +1,7 @@
 use prelude::*;
 use traverse::*;
 
-use fera_fun::first;
+use fera_fun::{first, vec};
 
 use std::cmp::min;
 use std::marker::PhantomData;
@@ -47,7 +47,7 @@ pub trait Components: Incidence {
             is_cut: self.vertex_prop(false),
         };
         self.dfs(&mut vis);
-        self.vertices().filter(|&v| vis.is_cut[v]).collect()
+        vec(self.vertices().filter(|&v| vis.is_cut[v]))
     }
 
     fn cut_edges(&self) -> VecEdge<Self>
@@ -238,18 +238,17 @@ impl<G: Graph> Visitor<G> for FindCutEdges<G> {
 
 #[doc(hidden)]
 pub fn cut_vertices_naive<G: IncidenceGraph>(g: &G) -> Vec<Vertex<G>> {
-    g.vertices().filter(|&v| is_cut_vertex_naive(g, v)).collect()
+    vec(g.vertices().filter(|&v| is_cut_vertex_naive(g, v)))
 }
 
 fn is_cut_vertex_naive<G: IncidenceGraph>(g: &G, v: Vertex<G>) -> bool {
-    let vertices = g.vertices().filter(|&u| u != v).collect();
-    let sub = g.induced_subgraph(vertices);
+    let sub = g.induced_subgraph(g.vertices().filter(|&u| u != v));
     sub.num_components() > g.num_components()
 }
 
 #[doc(hidden)]
 pub fn cut_edges_naive<G: IncidenceGraph>(g: &G) -> Vec<Edge<G>> {
-    g.edges().filter(|&e| is_cut_edge_naive(g, e)).collect()
+    vec(g.edges().filter(|&e| is_cut_edge_naive(g, e)))
 }
 
 fn is_cut_edge_naive<G: IncidenceGraph>(g: &G, e: Edge<G>) -> bool {
@@ -260,12 +259,8 @@ fn is_cut_edge_naive<G: IncidenceGraph>(g: &G, e: Edge<G>) -> bool {
 #[cfg(test)]
 mod tests {
     use prelude::*;
+    use extensions::GraphsIteratorExt;
     use super::{Components, cut_vertices_naive, cut_edges_naive};
-
-    fn sorted<T: Ord>(mut v: Vec<T>) -> Vec<T> {
-        v.sort();
-        v
-    }
 
     #[test]
     fn cut_vertices() {
@@ -306,10 +301,6 @@ mod tests {
         assert_eq!(exp, sorted(g.cut_vertices()));
     }
 
-    fn ends<G: Graph>(g: &G, edges: Vec<Edge<G>>) -> Vec<(Vertex<G>, Vertex<G>)> {
-        edges.into_iter().map(|e| g.ends(e)).collect()
-    }
-
     #[test]
     fn cut_edges() {
         // Examples from
@@ -320,14 +311,14 @@ mod tests {
         //    2        4
         let g = graph!(StaticGraph, 5, (0, 1), (0, 2), (0, 3), (1, 2), (3, 4));
         let exp = vec![(0, 3), (3, 4)];
-        assert_eq!(exp, sorted(ends(&g, cut_edges_naive(&g))));
-        assert_eq!(exp, sorted(ends(&g, g.cut_edges())));
+        assert_eq!(exp, sorted_ends(&g, cut_edges_naive(&g)));
+        assert_eq!(exp, sorted_ends(&g, g.cut_edges()));
 
         // 0 -- 1 -- 2 -- 3
         let g = graph!(StaticGraph, 4, (0, 1), (1, 2), (2, 3));
         let exp = vec![(0, 1), (1, 2), (2, 3)];
-        assert_eq!(exp, sorted(ends(&g, cut_edges_naive(&g))));
-        assert_eq!(exp, sorted(ends(&g, g.cut_edges())));
+        assert_eq!(exp, sorted_ends(&g, cut_edges_naive(&g)));
+        assert_eq!(exp, sorted_ends(&g, g.cut_edges()));
 
         // 0       3
         // | \   /   \
@@ -345,7 +336,19 @@ mod tests {
                        (3, 5),
                        (4, 5));
         let exp = vec![(1, 6)];
-        assert_eq!(exp, sorted(ends(&g, cut_edges_naive(&g))));
-        assert_eq!(exp, sorted(ends(&g, g.cut_edges())));
+        assert_eq!(exp, sorted_ends(&g, cut_edges_naive(&g)));
+        assert_eq!(exp, sorted_ends(&g, g.cut_edges()));
+    }
+
+    fn sorted<T: Ord>(mut v: Vec<T>) -> Vec<T> {
+        v.sort();
+        v
+    }
+
+    fn sorted_ends<G>(g: &G, edges: Vec<Edge<G>>) -> Vec<(Vertex<G>, Vertex<G>)>
+        where G: Graph,
+              Vertex<G>: Ord,
+    {
+        sorted(edges.ends(g).collect())
     }
 }

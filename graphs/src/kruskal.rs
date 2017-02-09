@@ -3,6 +3,8 @@ use params::*;
 use extensions::IntoOwned;
 use unionfind::{UnionFind, WithUnionFind};
 
+use fera_fun::vec;
+
 use std::vec;
 use std::borrow::BorrowMut;
 
@@ -100,8 +102,7 @@ impl<'a, G, E, V, U> KruskalAlg<&'a G, E, V, U>
         where W: EdgePropGet<G, T>,
               T: Ord
     {
-        let mut edges: Vec<_> = self.0.edges().collect();
-        edges.sort_by_prop(&w);
+        let edges = vec(self.0.edges()).sorted_by_prop(&w);
         self.edges(edges)
     }
 
