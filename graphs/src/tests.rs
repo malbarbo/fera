@@ -71,7 +71,7 @@ macro_rules! graph_tests {
 
 
 pub trait GraphTests {
-    type G: WithVertex + WithEdge;
+    type G: WithEdge;
 
     fn new() -> (Self::G, VecVertex<Self::G>, VecEdge<Self::G>);
 

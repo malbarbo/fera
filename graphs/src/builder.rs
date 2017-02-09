@@ -1,65 +1,55 @@
 use prelude::*;
+use props::Color;
 use extensions::GraphsIteratorExt;
 use trees::Trees;
 use fera_fun::set;
 
-use rand::{Rng, SeedableRng, StdRng};
+use rand::{Rng, XorShiftRng};
 use rand::distributions::{IndependentSample, Range};
 
 #[macro_export]
 macro_rules! graph {
-    ($T:ty) => (
+    () => (
         {
-            use $crate::builder::{Builder, WithBuilder};
-            <$T as WithBuilder>::builder(0, 0).finalize()
+            use $crate::builder::WithBuilder;
+            WithBuilder::new_empty(0)
         }
     );
 
-    ($T:ty, $n:expr) => (
+    ($n:expr) => (
         {
-            use $crate::builder::{Builder, WithBuilder};
-            <$T as WithBuilder>::builder($n, 0).finalize()
+            use $crate::builder::WithBuilder;
+            WithBuilder::new_empty($n)
         }
     );
 
-    ($T:ty, $n:expr, $(($u:expr, $v:expr)),+) => (
+    ($n:expr, $(($u:expr, $v:expr)),+) => (
         {
-            use $crate::builder::{Builder, WithBuilder};
-            let mut m = 0;
-            $(let _ = $u; m += 1;)+
-            let mut b = <$T as WithBuilder>::builder($n, m);
-            $(b.add_edge($u, $v);)+
-            b.finalize()
+            use $crate::builder::WithBuilder;
+            let edges = [$(($u, $v)),*];
+            WithBuilder::new_with_edges($n, &edges)
         }
     );
 
-    ($T:ty, $n:expr, $(($u:expr, $v:expr)),+,) => (
-        graph!($T, $n, $(($u, $v)),+)
+    ($n:expr, $(($u:expr, $v:expr)),+,) => (
+        graph!($n, $(($u, $v)),+)
     );
 
-    ($T:ty, $n:expr, $(($u:expr, $v:expr) -> $p:expr),+) => (
+    ($n:expr, $(($u:expr, $v:expr) -> $p:expr),+) => (
         {
-            use $crate::builder::{Builder, WithBuilder};
-            fn default<T: Default>(_: &T) -> T { Default::default() };
-            let mut m = 0;
-            $(let _ = $u; m += 1;)+
-            let mut b = <$T as WithBuilder>::builder($n, m);
-            $(b.add_edge($u, $v);)+
-            let (g, _, edges) = b.finalize_();
-            let mut e = edges.into_iter();
-            let mut w = g.default_edge_prop({$(default(&$p));+});
-            $(w[e.next().unwrap()] = $p;)+
-            (g, w)
+            use $crate::builder::WithBuilder;
+            let edges = [$(($u, $v, $p)),*];
+            WithBuilder::new_with_edges_prop($n, &edges)
         }
     );
 
-    ($T:ty, $n:expr, $(($u:expr, $v:expr) -> $p:expr),+,) => (
-        graph!($T, $n, $(($u, $v) -> $p),+)
+    ($n:expr, $(($u:expr, $v:expr) -> $p:expr),+,) => (
+        graph!($n, $(($u, $v) -> $p),+)
     );
 }
 
 pub trait Builder {
-    type Graph: Graph;
+    type Graph: WithEdge;
 
     fn new(num_vertices: usize, num_edges: usize) -> Self;
 
@@ -70,22 +60,54 @@ pub trait Builder {
     fn finalize_(self) -> (Self::Graph, VecVertex<Self::Graph>, VecEdge<Self::Graph>);
 }
 
-pub trait WithBuilder: Graph {
+pub trait WithBuilder: WithEdge {
     type Builder: Builder<Graph = Self>;
 
     fn builder(num_vertices: usize, num_edges: usize) -> Self::Builder {
         Self::Builder::new(num_vertices, num_edges)
     }
 
-    fn complete(n: usize) -> Self {
+    fn new_empty(n: usize) -> Self {
+        Self::Builder::new(n, 0).finalize()
+    }
+
+    fn new_with_edges(n: usize, edges: &[(usize, usize)]) -> Self {
+        let mut b = Self::Builder::new(n, edges.len());
+        for &(u, v) in edges {
+            b.add_edge(u, v);
+        }
+        b.finalize()
+    }
+
+    #[doc(hidden)]
+    fn new_with_edges_prop<T>(n: usize,
+                              edges: &[(usize, usize, T)])
+                              -> (Self, DefaultEdgePropMut<Self, T>)
+        where T: Copy + Default,
+              Self: WithEdgeProp<T>
+    {
+        // TODO: Should this be optimized?
+        let mut b = Self::Builder::new(n, edges.len());
+        for &(ref u, ref v, _) in edges {
+            b.add_edge(*u, *v);
+        }
+        let (g, _, ee) = b.finalize_();
+        let mut p = g.default_edge_prop(T::default());
+        for (e, val) in ee.into_iter().zip(edges.iter().map(|x| x.2)) {
+            p[e] = val;
+        }
+        (g, p)
+    }
+
+    fn new_complete(n: usize) -> Self {
         complete::<Self>(n).finalize()
     }
 
-    fn complete_binary_tree(height: u32) -> Self {
+    fn new_complete_binary_tree(height: u32) -> Self {
         complete_binary_tree::<Self>(height).finalize()
     }
 
-    fn random_tree<R: Rng>(n: usize, rng: R) -> Self {
+    fn new_random_tree<R: Rng>(n: usize, rng: R) -> Self {
         random_tree::<Self, _>(n, rng).finalize()
     }
 }
@@ -141,12 +163,10 @@ fn random_tree<G, R>(n: usize, mut rng: R) -> G::Builder
 // Tests
 
 pub trait BuilderTests {
-    // TODO: which bounds?
-    type G: IncidenceGraph + WithBuilder;
+    type G: WithBuilder + VertexList + EdgeList;
 
     fn graph_macro() {
-        let g = graph!(
-            Self::G,
+        let g: Self::G = graph!(
             5,
             (1, 2),
             (4, 0),
@@ -155,12 +175,13 @@ pub trait BuilderTests {
         assert_eq!(2, g.num_edges());
     }
 
-    fn graph_prop_macro() {
-        let (g, w) = graph!(
-            Self::G,
+    fn graph_prop_macro()
+        where Self::G: WithEdgeProp<u32>
+    {
+        let (g, w): (Self::G, _) = graph!(
             5,
             (1, 2) -> 3,
-            (4, 0) -> 4u32,
+            (4, 0) -> 4,
         );
         assert_eq!(5, g.num_vertices());
         assert_eq!(2, g.num_edges());
@@ -186,7 +207,9 @@ pub trait BuilderTests {
     }
 
     #[cfg_attr(feature = "cargo-clippy", allow(needless_range_loop))]
-    fn complete_binary_tree() {
+    fn complete_binary_tree()
+        where Self::G: Incidence + WithVertexProp<Color>
+    {
         let (g, _, _) = complete_binary_tree::<Self::G>(0).finalize_();
         assert_eq!(1, g.num_vertices());
         assert_eq!(0, g.num_edges());
@@ -210,11 +233,13 @@ pub trait BuilderTests {
         }
     }
 
-    fn random_tree() {
-        let mut rng = StdRng::from_seed(&[123]);
+    fn random_tree()
+        where Self::G: Incidence + WithVertexProp<Color>
+    {
+        let mut rng = XorShiftRng::new_unseeded();
         for n in 0..100 {
             for _ in 0..10 {
-                let g = Self::G::random_tree(n, &mut rng);
+                let g = Self::G::new_random_tree(n, &mut rng);
                 assert_eq!(n, g.num_vertices());
                 if n > 0 {
                     assert_eq!(n - 1, g.num_edges());

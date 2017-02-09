@@ -55,7 +55,7 @@ mod tests {
 
     #[test]
     fn find_path() {
-        let g = graph!(StaticGraph, 6, (0, 1), (0, 2), (1, 4), (2, 3), (2, 4));
+        let g: StaticGraph = graph!(6, (0, 1), (0, 2), (1, 4), (2, 3), (2, 4));
         let e = vec(g.edges());
 
         assert_eq!(None, g.find_path(0, 0));

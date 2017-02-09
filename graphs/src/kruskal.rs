@@ -142,10 +142,8 @@ mod tests {
     use fera_fun::vec;
 
     #[test]
-    #[cfg_attr(rustfmt, rustfmt_skip)]
     fn kruskal_mst() {
-        let g = graph!(
-            StaticGraph,
+        let g: StaticGraph = graph!(
             5,
             (0, 4), (2, 3), (0, 1), (1, 4), (1, 2), (2, 4), (3, 4)
             // expected tree

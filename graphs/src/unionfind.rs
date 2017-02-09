@@ -56,7 +56,7 @@ mod tests {
 
     #[test]
     fn unionfind() {
-        let g = graph!(StaticGraph, 5);
+        let g: StaticGraph = graph!(5);
         let v = vec(g.vertices());
         let mut ds = g.new_unionfind();
         ds.union(v[0], v[2]);

@@ -281,7 +281,7 @@ mod tests {
         ()
         -> (StaticGraph, Edge<StaticGraph>, Edge<StaticGraph>, Edge<StaticGraph>, Edge<StaticGraph>)
     {
-        let g = graph!(StaticGraph, 5, (0, 1), (0, 2), (1, 2), (3, 4));
+        let g: StaticGraph = graph!(5, (0, 1), (0, 2), (1, 2), (3, 4));
         let e = vec(g.edges());
         (g, e[0], e[1], e[2], e[3])
     }

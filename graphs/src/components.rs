@@ -270,13 +270,13 @@ mod tests {
         // 1 --- 0 --- 3
         //  \   /      |
         //    2        4
-        let g = graph!(StaticGraph, 5, (0, 1), (0, 2), (0, 3), (1, 2), (3, 4));
+        let g: StaticGraph = graph!(5, (0, 1), (0, 2), (0, 3), (1, 2), (3, 4));
         let exp = vec![0, 3];
         assert_eq!(exp, sorted(cut_vertices_naive(&g)));
         assert_eq!(exp, sorted(g.cut_vertices()));
 
         // 0 -- 1 -- 2 -- 3
-        let g = graph!(StaticGraph, 4, (0, 1), (1, 2), (2, 3));
+        let g: StaticGraph = graph!(4, (0, 1), (1, 2), (2, 3));
         let exp = vec![1, 2];
         assert_eq!(exp, sorted(cut_vertices_naive(&g)));
         assert_eq!(exp, sorted(g.cut_vertices()));
@@ -286,16 +286,15 @@ mod tests {
         // |   1      5
         // | / | \   /
         // 2   6   4
-        let g = graph!(StaticGraph,
-                       7,
-                       (0, 1),
-                       (0, 2),
-                       (1, 2),
-                       (1, 3),
-                       (1, 4),
-                       (1, 6),
-                       (3, 5),
-                       (4, 5));
+        let g: StaticGraph = graph!(7,
+                                    (0, 1),
+                                    (0, 2),
+                                    (1, 2),
+                                    (1, 3),
+                                    (1, 4),
+                                    (1, 6),
+                                    (3, 5),
+                                    (4, 5));
         let exp = vec![1];
         assert_eq!(exp, sorted(cut_vertices_naive(&g)));
         assert_eq!(exp, sorted(g.cut_vertices()));
@@ -309,13 +308,13 @@ mod tests {
         // 1 --- 0 --- 3
         //  \   /      |
         //    2        4
-        let g = graph!(StaticGraph, 5, (0, 1), (0, 2), (0, 3), (1, 2), (3, 4));
+        let g: StaticGraph = graph!(5, (0, 1), (0, 2), (0, 3), (1, 2), (3, 4));
         let exp = vec![(0, 3), (3, 4)];
         assert_eq!(exp, sorted_ends(&g, cut_edges_naive(&g)));
         assert_eq!(exp, sorted_ends(&g, g.cut_edges()));
 
         // 0 -- 1 -- 2 -- 3
-        let g = graph!(StaticGraph, 4, (0, 1), (1, 2), (2, 3));
+        let g: StaticGraph = graph!(4, (0, 1), (1, 2), (2, 3));
         let exp = vec![(0, 1), (1, 2), (2, 3)];
         assert_eq!(exp, sorted_ends(&g, cut_edges_naive(&g)));
         assert_eq!(exp, sorted_ends(&g, g.cut_edges()));
@@ -325,16 +324,15 @@ mod tests {
         // |   1      5
         // | / | \   /
         // 2   6   4
-        let g = graph!(StaticGraph,
-                       7,
-                       (0, 1),
-                       (0, 2),
-                       (1, 2),
-                       (1, 3),
-                       (1, 4),
-                       (1, 6),
-                       (3, 5),
-                       (4, 5));
+        let g: StaticGraph = graph!(7,
+                                    (0, 1),
+                                    (0, 2),
+                                    (1, 2),
+                                    (1, 3),
+                                    (1, 4),
+                                    (1, 6),
+                                    (3, 5),
+                                    (4, 5));
         let exp = vec![(1, 6)];
         assert_eq!(exp, sorted_ends(&g, cut_edges_naive(&g)));
         assert_eq!(exp, sorted_ends(&g, g.cut_edges()));
@@ -347,7 +345,7 @@ mod tests {
 
     fn sorted_ends<G>(g: &G, edges: Vec<Edge<G>>) -> Vec<(Vertex<G>, Vertex<G>)>
         where G: Graph,
-              Vertex<G>: Ord,
+              Vertex<G>: Ord
     {
         sorted(edges.ends(g).collect())
     }
