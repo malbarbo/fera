@@ -78,6 +78,8 @@
 //! assert!(s.in_same_set(0, 2));
 //! ```
 
+#![cfg_attr(feature = "cargo-clippy", allow(inline_always))]
+
 extern crate fnv;
 
 use std::collections::HashMap;
@@ -241,7 +243,7 @@ impl<K, V> Index<K> for IndexedHashMap<K, V>
 {
     type Output = V;
     fn index(&self, index: K) -> &Self::Output {
-        self.map.get(&index).unwrap()
+        &self.map[&index]
     }
 }
 
@@ -262,8 +264,8 @@ mod tests {
     type UF = UnionFind<usize, Vec<usize>, Vec<usize>>;
 
     fn check_groups(ds: &mut UF, groups: &[&[usize]]) {
-        for group in groups.iter() {
-            for &a in group.iter() {
+        for group in groups {
+            for &a in *group {
                 assert!(ds.in_same_set(group[0], a));
             }
         }
