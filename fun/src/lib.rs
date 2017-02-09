@@ -1,9 +1,17 @@
 use std::collections::HashSet;
 use std::hash::Hash;
-use std::iter::{Cloned, Enumerate};
+use std::iter::{Chain, Cloned, Enumerate, Rev};
 
 mod cmp;
 pub use cmp::*;
+
+pub fn chain<I, J>(i: I, j: J) -> Chain<I::IntoIter, J::IntoIter>
+    where I: IntoIterator,
+          J: IntoIterator<Item = I::Item>
+{
+    i.into_iter().chain(j)
+
+}
 
 pub fn cloned<'a, I, T>(iter: I) -> Cloned<I::IntoIter>
     where I: IntoIterator<Item = &'a T>,
@@ -13,7 +21,7 @@ pub fn cloned<'a, I, T>(iter: I) -> Cloned<I::IntoIter>
 }
 
 pub fn enumerate<I>(iter: I) -> Enumerate<I::IntoIter>
-    where I: IntoIterator,
+    where I: IntoIterator
 {
     iter.into_iter().enumerate()
 }
@@ -36,6 +44,13 @@ pub fn first<I>(iter: I) -> I::Item
     where I: IntoIterator
 {
     iter.into_iter().next().unwrap()
+}
+
+pub fn position<I, F>(iter: I, pred: F) -> Option<usize>
+    where I: IntoIterator,
+          F: FnMut(I::Item) -> bool
+{
+    iter.into_iter().position(pred)
 }
 
 /// Creates a Vector from a iterator.
@@ -63,4 +78,11 @@ pub fn set<I>(iter: I) -> HashSet<I::Item>
           I::Item: Hash + Eq
 {
     iter.into_iter().collect()
+}
+
+pub fn rev<I>(iter: I) -> Rev<I::IntoIter>
+    where I: IntoIterator,
+          I::IntoIter: DoubleEndedIterator
+{
+    iter.into_iter().rev()
 }
