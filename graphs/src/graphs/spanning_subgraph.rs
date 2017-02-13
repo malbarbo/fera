@@ -68,9 +68,9 @@ impl<'a, G> SpanningSubgraph<'a, G>
     pub fn remove_edge(&mut self, e: Edge<G>) {
         let (u, v) = self.g.ends(e);
         assert!(vec_find_swap_remove(&mut self.edges, e));
-        debug_assert!(vec_find_swap_remove(&mut self.out_edges[u], e));
+        assert!(vec_find_swap_remove(&mut self.out_edges[u], e));
         if self.g.is_undirected_edge(e) {
-            debug_assert!(vec_find_swap_remove(&mut self.out_edges[v], e));
+            assert!(vec_find_swap_remove(&mut self.out_edges[v], e));
         }
     }
 }

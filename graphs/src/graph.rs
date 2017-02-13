@@ -217,7 +217,7 @@ pub trait Incidence: WithEdge + Adjacency {
 
 pub trait EdgeByEnds: WithEdge + WithVertex {
     // TODO: Move to EdgeList? What if there is more than one edge?
-    // TODO: rename to get_edge?
+    // TODO: rename to get_edge? similar to reverse and get_reverse
     fn edge_by_ends(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Edge<Self>>;
 }
 
