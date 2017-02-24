@@ -1,0 +1,27 @@
+[package]
+name = "fera"
+version = "0.1.0"
+authors = ["Marco A L Barbosa <malbarbo@gmail.com>"]
+
+[workspace]
+members = [
+    "ext",
+    "fun",
+    "graphs",
+    "optional",
+    "unionfind",
+]
+
+[dependencies]
+fera-ext = { path = "ext/", optional = true }
+fera-fun = { path = "fun/", optional = true }
+fera-graphs = { path = "graphs/", optional = true }
+fera-optional = { path = "optional/", optional = true }
+fera-unionfind = { path = "unionfind/", optional = true }
+
+[features]
+ext = ["fera-ext"]
+fun = ["fera-fun"]
+graphs = ["fera-graphs"]
+optional = ["fera-optional"]
+unionfind = ["fera-unionfind"]
