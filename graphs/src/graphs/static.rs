@@ -321,16 +321,33 @@ impl<V: Num, E: Num> BasicEdgeProps for StaticGraphGeneric<V, E> {}
 impl<V: Num, E: Num> BasicProps for StaticGraphGeneric<V, E> {}
 
 impl<V: Num, E: Num> Choose for StaticGraphGeneric<V, E> {
-    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {
-        Num::from_usize(rng.gen_range(0, self.num_vertices()))
+    fn choose_vertex<R: Rng>(&self, mut rng: R) -> Option<Vertex<Self>> {
+        if self.num_vertices() == 0 {
+            None
+        } else {
+            Some(Num::from_usize(rng.gen_range(0, self.num_vertices())))
+        }
     }
 
-    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Edge<Self> {
-        StaticEdge::new(rng.gen_range(0, self.num_edges()))
+    fn choose_out_neighbor<R: Rng>(&self, v: Vertex<Self>, rng: R) -> Option<Vertex<Self>> {
+        self.choose_out_edge(v, rng).map(|e| self.target(e))
     }
 
-    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self> {
-        self.inc(v)[rng.gen_range(0, self.out_degree(v))]
+    fn choose_edge<R: Rng>(&self, mut rng: R) -> Option<Edge<Self>> {
+        if self.num_edges() == 0 {
+            None
+        } else {
+            // TODO: choose to reverse undirected edges?
+            Some(StaticEdge::new(rng.gen_range(0, self.num_edges())))
+        }
+    }
+
+    fn choose_out_edge<R: Rng>(&self, v: Vertex<Self>, mut rng: R) -> Option<Edge<Self>> {
+        if self.out_degree(v) == 0 {
+            None
+        } else {
+            self.inc(v).get(rng.gen_range(0, self.out_degree(v))).cloned()
+        }
     }
 }
 

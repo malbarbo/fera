@@ -164,16 +164,29 @@ impl<'a, G> BasicProps for Subgraph<'a, G> where G: 'a + Graph {}
 impl<'a, G> Choose for Subgraph<'a, G>
     where G: 'a + IncidenceGraph
 {
-    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {
-        self.vertices[rng.gen_range(0, self.num_vertices())]
+    fn choose_vertex<R: Rng>(&self, mut rng: R) -> Option<Vertex<Self>> {
+        self.vertices.get(rng.gen_range(0, self.num_vertices())).cloned()
     }
 
-    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Edge<Self> {
-        self.edges[rng.gen_range(0, self.num_edges())]
+    fn choose_out_neighbor<R: Rng>(&self, v: Vertex<Self>, mut rng: R) -> Option<Vertex<Self>> {
+        self.inc[v].get(rng.gen_range(0, self.out_degree(v))).map(|e| self.target(*e))
     }
 
-    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self> {
-        self.inc[v][rng.gen_range(0, self.out_degree(v))]
+    fn choose_edge<R: Rng>(&self, mut rng: R) -> Option<Edge<Self>> {
+        if self.num_edges() == 0 {
+            None
+        } else {
+            // TODO: choose to reverse undirected edges?
+            self.edges.get(rng.gen_range(0, self.num_edges())).cloned()
+        }
+    }
+
+    fn choose_out_edge<R: Rng>(&self, v: Vertex<Self>, mut rng: R) -> Option<Edge<Self>> {
+        if self.out_degree(v) == 0 {
+            None
+        } else {
+            self.inc[v].get(rng.gen_range(0, self.out_degree(v))).cloned()
+        }
     }
 }
 

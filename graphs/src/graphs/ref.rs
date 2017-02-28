@@ -209,17 +209,22 @@ impl<'a, G: BasicProps> BasicProps for &'a G {}
 
 // Choose
 
-impl<'a, G: 'a + Choose> Choose for &'a G {
-    // TODO: delegate others
-    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {
+impl<'a, G> Choose for &'a G
+    where G: 'a + Choose
+{
+    fn choose_vertex<R: Rng>(&self, rng: R) -> Option<Vertex<Self>> {
         G::choose_vertex(self, rng)
     }
 
-    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Edge<Self> {
+    fn choose_out_neighbor<R: Rng>(&self, v: Vertex<Self>, rng: R) -> Option<Vertex<Self>> {
+        G::choose_out_neighbor(self, v, rng)
+    }
+
+    fn choose_edge<R: Rng>(&self, rng: R) -> Option<Edge<Self>> {
         G::choose_edge(self, rng)
     }
 
-    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self> {
-        G::choose_inc_edge(self, rng, v)
+    fn choose_out_edge<R: Rng>(&self, v: Vertex<Self>, rng: R) -> Option<Edge<Self>> {
+        G::choose_out_edge(self, v, rng)
     }
 }

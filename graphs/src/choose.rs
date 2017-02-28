@@ -2,56 +2,55 @@ use prelude::*;
 
 use rand::Rng;
 
-// TODO: There is no vertex
-// TODO: There is no edge
-// TODO: There is no inc edge
-// TODO: rename inc to out
-// TODO: rename if to iter and return a iterator
+// TODO: specialization of *_iter
+// TODO: add bounds to methods
 pub trait Choose: WithEdge {
-    fn choose_vertex<R>(&self, rng: &mut R) -> Vertex<Self> where R: Rng;
+    fn choose_vertex<R: Rng>(&self, rng: R) -> Option<Vertex<Self>>;
 
-    fn choose_vertex_if<R, F>(&self, rng: &mut R, fun: F) -> Vertex<Self>
-        where R: Rng,
-              F: FnMut(Vertex<Self>) -> bool
-    {
-        choose(|| self.choose_vertex(rng), fun)
+    fn choose_vertex_iter<R: Rng>(&self, rng: R) -> ChooseVertexIter<Self, R> {
+        ChooseVertexIter {
+            g: self,
+            rng: rng,
+        }
     }
 
-    fn choose_edge<R>(&self, rng: &mut R) -> Edge<Self> where R: Rng;
 
-    fn choose_edge_if<R, F>(&self, rng: &mut R, fun: F) -> Edge<Self>
-        where R: Rng,
-              F: FnMut(Edge<Self>) -> bool
-    {
-        choose(|| self.choose_edge(rng), fun)
+    fn choose_out_neighbor<R: Rng>(&self, v: Vertex<Self>, rng: R) -> Option<Vertex<Self>>;
+
+    fn choose_out_neighbor_iter<R: Rng>(&self,
+                                        v: Vertex<Self>,
+                                        rng: R)
+                                        -> ChooseOutNeighborIter<Self, R> {
+        ChooseOutNeighborIter {
+            g: self,
+            v: v,
+            rng: rng,
+        }
     }
 
-    fn choose_inc_edge<R>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self> where R: Rng;
 
-    fn choose_inc_edge_if<R, F>(&self, rng: &mut R, v: Vertex<Self>, fun: F) -> Edge<Self>
-        where R: Rng,
-              F: FnMut(Edge<Self>) -> bool
-    {
-        choose(|| self.choose_inc_edge(rng, v), fun)
+    fn choose_edge<R: Rng>(&self, rng: R) -> Option<Edge<Self>>;
+
+    fn choose_edge_iter<R: Rng>(&self, rng: R) -> ChooseEdgeIter<Self, R> {
+        ChooseEdgeIter {
+            g: self,
+            rng: rng,
+        }
     }
 
-    fn choose_neighbor<R>(&self, rng: &mut R, v: Vertex<Self>) -> Vertex<Self>
-        where R: Rng
-    {
-        self.target(self.choose_inc_edge(rng, v))
+
+    fn choose_out_edge<R: Rng>(&self, v: Vertex<Self>, rng: R) -> Option<Edge<Self>>;
+
+    fn choose_out_edge_iter<R: Rng>(&self, v: Vertex<Self>, rng: R) -> ChooseOutEdgeIter<Self, R> {
+        ChooseOutEdgeIter {
+            g: self,
+            v: v,
+            rng: rng,
+        }
     }
 
-    fn choose_neighbor_if<R, F>(&self, rng: &mut R, v: Vertex<Self>, mut fun: F) -> Vertex<Self>
-        where R: Rng,
-              F: FnMut(Vertex<Self>) -> bool
-    {
-        let e = self.choose_inc_edge_if(rng, v, |e| fun(self.target(e)));
-        self.target(e)
-    }
 
-    fn random_walk<R>(&self, mut rng: R) -> RandomWalk<Self, R>
-        where R: Rng
-    {
+    fn random_walk<R: Rng>(&self, mut rng: R) -> RandomWalk<Self, R> {
         let cur = self.choose_vertex(&mut rng);
         RandomWalk {
             g: self,
@@ -61,19 +60,80 @@ pub trait Choose: WithEdge {
     }
 }
 
-fn choose<Y: Copy, G: FnMut() -> Y, F: FnMut(Y) -> bool>(mut gen: G, mut fun: F) -> Y {
-    loop {
-        // TODO: for StaticGraph create a range and use ind_sample
-        let e = gen();
-        if fun(e) {
-            return e;
-        }
+
+pub struct ChooseVertexIter<'a, G: 'a, R> {
+    g: &'a G,
+    rng: R,
+}
+
+impl<'a, G, R> Iterator for ChooseVertexIter<'a, G, R>
+    where G: 'a + Choose,
+          R: Rng
+{
+    type Item = Vertex<G>;
+
+    fn next(&mut self) -> Option<Vertex<G>> {
+        G::choose_vertex(self.g, &mut self.rng)
     }
 }
 
+
+pub struct ChooseOutNeighborIter<'a, G: 'a + WithVertex, R> {
+    g: &'a G,
+    v: Vertex<G>,
+    rng: R,
+}
+
+impl<'a, G, R> Iterator for ChooseOutNeighborIter<'a, G, R>
+    where G: 'a + Choose,
+          R: Rng
+{
+    type Item = Vertex<G>;
+
+    fn next(&mut self) -> Option<Vertex<G>> {
+        G::choose_out_neighbor(self.g, self.v, &mut self.rng)
+    }
+}
+
+
+pub struct ChooseEdgeIter<'a, G: 'a, R> {
+    g: &'a G,
+    rng: R,
+}
+
+impl<'a, G, R> Iterator for ChooseEdgeIter<'a, G, R>
+    where G: 'a + Choose,
+          R: Rng
+{
+    type Item = Edge<G>;
+
+    fn next(&mut self) -> Option<Edge<G>> {
+        G::choose_edge(self.g, &mut self.rng)
+    }
+}
+
+
+pub struct ChooseOutEdgeIter<'a, G: 'a + WithVertex, R> {
+    g: &'a G,
+    v: Vertex<G>,
+    rng: R,
+}
+
+impl<'a, G, R> Iterator for ChooseOutEdgeIter<'a, G, R>
+    where G: 'a + Choose,
+          R: Rng
+{
+    type Item = Edge<G>;
+
+    fn next(&mut self) -> Option<Edge<G>> {
+        G::choose_out_edge(self.g, self.v, &mut self.rng)
+    }
+}
+
+
 pub struct RandomWalk<'a, G: 'a + WithVertex, R> {
     g: &'a G,
-    cur: Vertex<G>,
+    cur: Option<Vertex<G>>,
     rng: R,
 }
 
@@ -84,9 +144,13 @@ impl<'a, G, R> Iterator for RandomWalk<'a, G, R>
     type Item = Edge<G>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let e = self.g.choose_inc_edge(&mut self.rng, self.cur);
-        self.cur = self.g.target(e);
-        Some(e)
+        self.cur.and_then(|cur| if let Some(e) = self.g.choose_out_edge(cur, &mut self.rng) {
+            self.cur = Some(self.g.target(e));
+            Some(e)
+        } else {
+            self.cur = None;
+            None
+        })
     }
 }
 

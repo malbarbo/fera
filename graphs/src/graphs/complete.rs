@@ -154,17 +154,37 @@ impl<K: CompleteEdgeKind> BasicEdgeProps for Complete<K> {}
 impl<K: CompleteEdgeKind> BasicProps for Complete<K> {}
 
 impl<K: CompleteEdgeKind> Choose for Complete<K> {
-    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {
-        rng.gen_range(0, self.n)
+    fn choose_vertex<R: Rng>(&self, mut rng: R) -> Option<Vertex<Self>> {
+        if self.n == 0 {
+            None
+        } else {
+            Some(rng.gen_range(0, self.n))
+        }
     }
 
-    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Edge<Self> {
-        K::Edge::from_index(rng.gen_range(0, self.num_edges()))
+    fn choose_out_neighbor<R: Rng>(&self, v: Vertex<Self>, rng: R) -> Option<Vertex<Self>> {
+        self.choose_out_edge(v, rng).map(|e| self.target(e))
     }
 
-    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, u: Vertex<Self>) -> Edge<Self> {
-        let v = self.choose_vertex_if(rng, |v| v != u);
-        K::Edge::new(self.n, u, v)
+    fn choose_edge<R: Rng>(&self, mut rng: R) -> Option<Edge<Self>> {
+        if self.num_edges() == 0 {
+            None
+        } else {
+            // FIXME: always generates (u, v) such that u < v
+            Some(K::Edge::from_index(rng.gen_range(0, self.num_edges())))
+        }
+    }
+
+    fn choose_out_edge<R: Rng>(&self, v: Vertex<Self>, mut rng: R) -> Option<Edge<Self>> {
+        if self.out_degree(v) == 0 {
+            None
+        } else {
+            let mut u = v;
+            while u == v {
+                u = rng.gen_range(0, self.n);
+            }
+            Some(K::Edge::new(self.n, v, u))
+        }
     }
 }
 

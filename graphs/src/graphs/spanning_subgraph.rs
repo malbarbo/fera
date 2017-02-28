@@ -234,15 +234,28 @@ impl<'a, G> BasicProps for SpanningSubgraph<'a, G>
 impl<'a, G> Choose for SpanningSubgraph<'a, G>
     where G: 'a + WithEdge + WithVertexProp<VecEdge<G>> + Choose
 {
-    fn choose_vertex<R: Rng>(&self, rng: &mut R) -> Vertex<Self> {
+    fn choose_vertex<R: Rng>(&self, rng: R) -> Option<Vertex<Self>> {
         self.g.choose_vertex(rng)
     }
 
-    fn choose_edge<R: Rng>(&self, rng: &mut R) -> Edge<Self> {
-        self.edges[rng.gen_range(0, self.num_edges())]
+    fn choose_out_neighbor<R: Rng>(&self, v: Vertex<Self>, rng: R) -> Option<Vertex<Self>> {
+        self.g.choose_out_edge(v, rng).map(|e| self.target(e))
     }
 
-    fn choose_inc_edge<R: Rng>(&self, rng: &mut R, v: Vertex<Self>) -> Edge<Self> {
-        self.out_edges[v][rng.gen_range(0, self.out_degree(v))]
+    fn choose_edge<R: Rng>(&self, mut rng: R) -> Option<Edge<Self>> {
+        if self.num_edges() == 0 {
+            None
+        } else {
+            // TODO: choose to reverse undirected edges?
+            self.edges.get(rng.gen_range(0, self.num_edges())).cloned()
+        }
+    }
+
+    fn choose_out_edge<R: Rng>(&self, v: Vertex<Self>, mut rng: R) -> Option<Edge<Self>> {
+        if self.out_degree(v) == 0 {
+            None
+        } else {
+            self.out_edges[v].get(rng.gen_range(0, self.out_degree(v))).cloned()
+        }
     }
 }
