@@ -16,7 +16,7 @@ use std::fmt::Debug;
 use rand::Rng;
 use num_traits::Bounded;
 
-// TODO: Rename to FastGraph
+// TODO: Rename to StaticGraphGeneric to Static
 pub type StaticGraph = StaticGraphGeneric<u32, usize>;
 
 pub trait Num: 'static + Eq + Copy + Clone + Debug + Hash + Bounded {

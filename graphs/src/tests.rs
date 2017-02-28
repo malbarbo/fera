@@ -32,6 +32,7 @@ macro_rules! graph_edge_list_tests {
         delegate_tests!{
             $T,
             edges,
+            get_edge_by_ends,
             option_edge,
             ends,
             get_reverse,
@@ -122,6 +123,22 @@ pub trait GraphTests {
         // TODO: allow to write vec(g.ends(&edges))
         assert_eq!(vec(edges.iter().ends(&g)),
                    vec(g.edges().ends(&g)));
+    }
+
+    fn get_edge_by_ends()
+        where Self::G: EdgeList
+    {
+        let (g, _, edges) = Self::new();
+        for e in edges {
+            let (u, v) = g.ends(e);
+            // TODO: test return None
+            assert_eq!(e, g.edge_by_ends(u, v));
+            assert_eq!(Some(e), g.get_edge_by_ends(u, v));
+            if g.is_undirected_edge(e) {
+                assert_eq!(e, g.edge_by_ends(v, u));
+                assert_eq!(Some(e), g.get_edge_by_ends(v, u));
+            }
+        }
     }
 
     fn option_edge() {

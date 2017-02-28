@@ -199,6 +199,13 @@ impl<V, K> EdgeList for AdjSet<V, K>
     fn num_edges(&self) -> usize {
         self.num_edges
     }
+
+    fn get_edge_by_ends(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Edge<Self>> {
+        self.adj
+            .get(&u)
+            .and_then(|adj| adj.get(&v))
+            .and_then(|_| Some(K::Edge::new(u, v)))
+    }
 }
 
 impl<V, K> Adjacency for AdjSet<V, K>
@@ -244,7 +251,7 @@ impl<V, K> AdjSet<V, K>
     }
 
     pub fn add_edge(&mut self, u: V, v: V) -> K::Edge {
-        if self.edge_by_ends(u, v).is_some() {
+        if self.get_edge_by_ends(u, v).is_some() {
             panic!("Multiedge not supported");
         }
 
@@ -268,18 +275,6 @@ impl<V, K> AdjSet<V, K>
         self.adj
             .get(&v)
             .unwrap_or_else(|| panic!("{:?} is not a valid vertex", v))
-    }
-}
-
-impl<V, K> EdgeByEnds for AdjSet<V, K>
-    where V: AdjSetVertex,
-          K: AdjSetEdgeKind<V>
-{
-    fn edge_by_ends(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Edge<Self>> {
-        self.adj
-            .get(&u)
-            .and_then(|adj| adj.get(&v))
-            .and_then(|_| Some(K::Edge::new(u, v)))
     }
 }
 

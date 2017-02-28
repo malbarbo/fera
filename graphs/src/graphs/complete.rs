@@ -97,6 +97,10 @@ impl<K: CompleteEdgeKind> VertexList for Complete<K> {
 }
 
 impl<K: CompleteEdgeKind> EdgeList for Complete<K> {
+    fn edges(&self) -> EdgeIter<Self> {
+        (0..self.num_edges()).map(K::Edge::from_index)
+    }
+
     fn num_edges(&self) -> usize {
         let n = self.num_vertices();
         if K::is_directed() {
@@ -106,8 +110,12 @@ impl<K: CompleteEdgeKind> EdgeList for Complete<K> {
         }
     }
 
-    fn edges(&self) -> EdgeIter<Self> {
-        (0..self.num_edges()).map(K::Edge::from_index)
+    fn get_edge_by_ends(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Edge<Self>> {
+        if u < self.n && v < self.n && u != v {
+            Some(K::Edge::new(self.n, u, v))
+        } else {
+            None
+        }
     }
 }
 
@@ -130,15 +138,6 @@ impl<K: CompleteEdgeKind> Incidence for Complete<K> {
     }
 }
 
-impl<K: CompleteEdgeKind> EdgeByEnds for Complete<K> {
-    fn edge_by_ends(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Edge<Self>> {
-        if u < self.n && v < self.n && u != v {
-            Some(K::Edge::new(self.n, u, v))
-        } else {
-            None
-        }
-    }
-}
 
 impl<T, K: CompleteEdgeKind> WithVertexProp<T> for Complete<K> {
     type VertexProp = VecVertexProp<Complete<K>, T>;

@@ -90,6 +90,10 @@ impl<'a, G: EdgeList> EdgeList for &'a G {
     fn num_edges(&self) -> usize {
         G::num_edges(self)
     }
+
+    fn get_edge_by_ends(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Edge<Self>> {
+        G::get_edge_by_ends(self, u, v)
+    }
 }
 
 impl<'a, G: Adjacency> Adjacency for &'a G {

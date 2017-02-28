@@ -178,6 +178,10 @@ impl<'a, G> EdgeList for SpanningSubgraph<'a, G>
     fn edges(&self) -> EdgeIter<Self> {
         self.edges.iter().cloned()
     }
+
+    fn get_edge_by_ends(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Edge<Self>> {
+        self.out_edges(u).find(|e| (u, v) == self.ends(*e))
+    }
 }
 
 impl<'a, G> Adjacency for SpanningSubgraph<'a, G>

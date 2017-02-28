@@ -201,6 +201,30 @@ pub trait EdgeList: Sized + WithEdge {
     fn num_edges(&self) -> usize {
         self.edges().count()
     }
+
+    fn get_edge_by_ends(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Edge<Self>> {
+        // TODO: specialize if Self: Incidence
+        for e in self.edges() {
+            let (a, b) = self.ends(e);
+            if (u, v) == (a, b) {
+                return Some(e);
+            }
+            if self.is_directed_edge(e) {
+                continue;
+            }
+            if let Some(e) = self.get_reverse(e) {
+                if (u, v) == (b, a) {
+                    return Some(e);
+                }
+            }
+        }
+        None
+    }
+
+    fn edge_by_ends(&self, u: Vertex<Self>, v: Vertex<Self>) -> Edge<Self> {
+        // TODO: fix expect message
+        self.get_edge_by_ends(u, v).expect("an edge (u, v)")
+    }
 }
 
 pub trait Adjacency: WithVertex {
@@ -213,12 +237,6 @@ pub trait Adjacency: WithVertex {
 
 pub trait Incidence: WithEdge + Adjacency {
     fn out_edges(&self, v: Vertex<Self>) -> OutEdgeIter<Self>;
-}
-
-pub trait EdgeByEnds: WithEdge + WithVertex {
-    // TODO: Move to EdgeList? What if there is more than one edge?
-    // TODO: rename to get_edge? similar to reverse and get_reverse
-    fn edge_by_ends(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Edge<Self>>;
 }
 
 
