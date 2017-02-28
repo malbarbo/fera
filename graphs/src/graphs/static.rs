@@ -182,24 +182,14 @@ pub type StaticVertex<N> = N;
 pub struct Static<V: Num, K: StaticEdgeKind> {
     num_vertices: usize,
     ends: Vec<StaticVertex<V>>,
-    // TODO: use only one vector
-    inc: Vec<Vec<K::Edge>>,
+    edges: Vec<K::Edge>,
+    edges_start: Vec<usize>,
 }
 
 impl<V: Num, K: StaticEdgeKind> Static<V, K> {
-    fn add_edge(&mut self, u: Vertex<Self>, v: Vertex<Self>) {
-        self.ends.push(u);
-        self.ends.push(v);
-        let e = (self.ends.len() - 2) / 2;
-        let e = K::Edge::new_checked(e).expect("too many edges");
-        self.inc[V::to_usize(u)].push(e);
-        if K::Kind::is_undirected() {
-            self.inc[V::to_usize(v)].push(e.reverse());
-        }
-    }
-
-    fn inc(&self, v: Vertex<Self>) -> &Vec<Edge<Self>> {
-        &self.inc[V::to_usize(v)]
+    fn inc(&self, v: Vertex<Self>) -> &[Edge<Self>] {
+        let i = V::to_usize(v);
+        &self.edges[self.edges_start[i]..self.edges_start[i + 1]]
     }
 }
 
@@ -208,7 +198,9 @@ impl<V: Num, K: StaticEdgeKind> WithBuilder for Static<V, K> {
 }
 
 pub struct StaticBuilder<V: Num, K: StaticEdgeKind> {
-    g: Static<V, K>,
+    num_vertices: usize,
+    ends: Vec<StaticVertex<V>>,
+    edges: Vec<K::Edge>,
 }
 
 impl<V: Num, K: StaticEdgeKind> Builder for StaticBuilder<V, K> {
@@ -217,26 +209,57 @@ impl<V: Num, K: StaticEdgeKind> Builder for StaticBuilder<V, K> {
     fn new(num_vertices: usize, num_edges: usize) -> Self {
         assert!(V::is_valid(num_vertices));
         StaticBuilder {
-            g: Static {
-                num_vertices: num_vertices,
-                ends: Vec::with_capacity(2 * num_edges),
-                inc: vec![vec![]; num_vertices],
-            },
+            num_vertices: num_vertices,
+            ends: Vec::with_capacity(2 * num_edges),
+            edges: vec![],
         }
     }
 
     fn add_edge(&mut self, u: usize, v: usize) {
-        self.g.add_edge(V::from_usize(u), V::from_usize(v));
+        self.ends.push(V::from_usize(u));
+        self.ends.push(V::from_usize(v));
+        let e = K::Edge::new_checked((self.ends.len() - 2) / 2).expect("too many edges");
+        self.edges.push(e);
+        if K::Kind::is_undirected() {
+            self.edges.push(e.reverse());
+        }
     }
 
-    fn finalize(self) -> Self::Graph {
-        self.g
+    fn finalize(mut self) -> Self::Graph {
+        // TODO: improve test
+        let ends = self.ends;
+        self.edges.sort_by_key(|e| (e.source(&ends), e.target(&ends)));
+
+        let mut starts = Vec::with_capacity(self.num_vertices.checked_add(1).unwrap());
+        let mut last = V::from_usize(self.num_vertices);
+        for (i, e) in self.edges.iter().enumerate() {
+            let s = *e.source(&ends);
+            if s != last {
+                while starts.len() != V::to_usize(s) {
+                    starts.push(i)
+                }
+                assert_eq!(starts.len(), V::to_usize(s));
+                starts.push(i);
+                last = s;
+            }
+        }
+        while starts.len() <= self.num_vertices {
+            starts.push(self.edges.len());
+        }
+
+        Static {
+            num_vertices: self.num_vertices,
+            ends: ends,
+            edges: self.edges,
+            edges_start: starts,
+        }
     }
 
     fn finalize_(self) -> (Self::Graph, VecVertex<Self::Graph>, VecEdge<Self::Graph>) {
-        let v = vec(self.g.vertices());
-        let e = vec(self.g.edges());
-        (self.g, v, e)
+        let g = self.finalize();
+        let v = vec(g.vertices());
+        let e = vec(g.edges());
+        (g, v, e)
     }
 }
 
@@ -312,7 +335,7 @@ impl<V: Num, K: StaticEdgeKind> Adjacency for Static<V, K> {
     }
 
     fn out_degree(&self, v: Vertex<Self>) -> usize {
-        self.inc[V::to_usize(v)].len()
+        self.inc(v).len()
     }
 }
 
@@ -388,7 +411,7 @@ impl<V: Num, K: StaticEdgeKind> Choose for Static<V, K> {
 
 // Num
 
-pub trait Num: 'static + Eq + Copy + Clone + Debug + Hash + Bounded {
+pub trait Num: 'static + Eq + Copy + Clone + Debug + Hash + Bounded + Ord {
     type Range: Iterator<Item = Self>;
     fn range(a: usize, b: usize) -> Self::Range;
     fn to_usize(self) -> usize;
@@ -438,23 +461,6 @@ mod tests {
     pub use super::{EdgeImpl, StaticUndirectedEdge, StaticGraph, StaticDigraph};
     pub use prelude::*;
     use tests::GraphTests;
-
-    #[test]
-    fn builder() {
-        let mut builder = StaticGraph::builder(3, 1);
-
-        builder.add_edge(0, 1);
-        builder.add_edge(1, 2);
-
-        let g = builder.finalize();
-        assert_eq!(3, g.num_vertices);
-        assert_eq!(vec![0, 1, 1, 2], g.ends);
-        assert_eq!(vec![vec![StaticUndirectedEdge::new(0)],
-                        vec![StaticUndirectedEdge::new(0).reverse(),
-                             StaticUndirectedEdge::new(1)],
-                        vec![StaticUndirectedEdge::new(1).reverse()]],
-                   g.inc);
-    }
 
     macro_rules! test {
         ($m: ident, $g: ident) => (
