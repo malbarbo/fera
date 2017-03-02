@@ -6,40 +6,20 @@ use params::*;
 use std::borrow::BorrowMut;
 use std::iter;
 
-trait_alias!(RecursiveDfsDefault = VertexList + Incidence + WithVertexProp<Color>);
-trait_alias!(RecursiveDfsWithRoot = Incidence + WithVertexProp<Color>);
-
 pub trait RecursiveDfs: WithEdge {
-    fn recursive_dfs<V>(&self, vis: V) -> Control
-        where Self: RecursiveDfsDefault,
-              V: Visitor<Self>
+    fn recursive_dfs<V>(&self,
+                        vis: V)
+                        -> RecursiveDfsAlg<&Self, V, AllVertices, NewVertexProp<Color>>
+        where V: Visitor<Self>
     {
-        self.recursive_dfs_()
-            .visitor(vis)
-            .run()
-    }
-
-    fn recursive_dfs_with_root<V>(&self, root: Vertex<Self>, vis: V) -> Control
-        where Self: RecursiveDfsWithRoot,
-              V: Visitor<Self>
-    {
-        self.recursive_dfs_()
-            .visitor(vis)
-            .root(root)
-            .run()
-    }
-
-    fn recursive_dfs_
-        (&self)
-         -> RecursiveDfsAlg<&Self, EmptyVisitor, AllVertices, NewVertexProp<Color>> {
-        RecursiveDfsAlg(self, EmptyVisitor, AllVertices, NewVertexProp(Color::White))
+        RecursiveDfsAlg(self, vis, AllVertices, NewVertexProp(Color::White))
     }
 }
 
 impl<G: WithEdge> RecursiveDfs for G {}
 
-
 generic_struct! {
+    #[must_use = "call .run() to execute the algorithm"]
     pub struct RecursiveDfsAlg(graph, visitor, roots, color)
 }
 

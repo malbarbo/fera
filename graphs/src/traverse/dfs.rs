@@ -220,7 +220,7 @@ mod tests {
                             Finish];
 
         let mut v = vec![];
-        g.recursive_dfs(OnTraverseEvent(|evt| v.push(evt)));
+        g.recursive_dfs(OnTraverseEvent(|evt| v.push(evt))).run();
         assert_eq!(expected, v);
 
         v.clear();
