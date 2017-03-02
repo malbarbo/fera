@@ -7,32 +7,12 @@ use std::borrow::BorrowMut;
 use std::collections::VecDeque;
 use std::iter;
 
-trait_alias!(BfsWithRoot = Incidence + WithVertexProp<Color>);
-trait_alias!(BfsDefault = Incidence + VertexList + WithVertexProp<Color>);
-
 pub trait Bfs: WithEdge {
-    fn bfs<V>(&self, vis: V) -> Control
-        where Self: BfsDefault,
-              V: Visitor<Self>
+    fn bfs<V>(&self, vis: V) -> BfsAlg<&Self, V, AllVertices, NewVertexProp<Color>, NewBfsQueue>
+        where V: Visitor<Self>
     {
-        self.bfs_()
-            .visitor(vis)
-            .run()
-    }
-
-    fn bfs_with_root<V>(&self, root: Vertex<Self>, vis: V) -> Control
-        where Self: BfsWithRoot,
-              V: Visitor<Self>
-    {
-        self.bfs_()
-            .visitor(vis)
-            .root(root)
-            .run()
-    }
-
-    fn bfs_(&self) -> BfsAlg<&Self, EmptyVisitor, AllVertices, NewVertexProp<Color>, NewBfsQueue> {
         BfsAlg(self,
-               EmptyVisitor,
+               vis,
                AllVertices,
                NewVertexProp(Color::White),
                NewBfsQueue)
@@ -41,8 +21,8 @@ pub trait Bfs: WithEdge {
 
 impl<G: WithEdge> Bfs for G {}
 
-
 generic_struct! {
+    #[must_use = "call .run() to execute the algorithm"]
     pub struct BfsAlg(graph, visitor, roots, color, queue)
 }
 
@@ -237,7 +217,7 @@ mod tests {
         ];
 
         let mut v = vec![];
-        g.bfs(OnTraverseEvent(|evt| v.push(evt)));
+        g.bfs(OnTraverseEvent(|evt| v.push(evt))).run();
         assert_eq!(expected, v);
     }
 }
