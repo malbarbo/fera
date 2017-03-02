@@ -1,20 +1,21 @@
 use prelude::*;
+use props::Color;
 use traverse::*;
 
 pub trait Cycles: Incidence {
     fn is_acyclic(&self) -> bool
-        where Self: DfsDefault
+        where Self: VertexList + WithVertexProp<Color>
     {
         let mut acyclic = true;
-        self.dfs(IsAcyclic(&mut acyclic));
+        self.dfs(IsAcyclic(&mut acyclic)).run();
         acyclic
     }
 
     fn is_dag(&self) -> bool
-        where Self: DfsDefault
+        where Self: VertexList + WithVertexProp<Color>
     {
         let mut dag = true;
-        self.dfs(IsDag(&mut dag));
+        self.dfs(IsDag(&mut dag)).run();
         dag
     }
 }

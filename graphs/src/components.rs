@@ -1,4 +1,5 @@
 use prelude::*;
+use props::Color;
 use traverse::*;
 
 use fera_fun::{first, vec};
@@ -9,26 +10,26 @@ use std::marker::PhantomData;
 // FIXME: restrict the method to appropiated graph type
 pub trait Components: Incidence {
     fn num_components(&self) -> u64
-        where Self: DfsDefault
+        where Self: VertexList + WithVertexProp<Color>
     {
         let mut num = 0;
-        self.dfs(NumComponents(&mut num));
+        self.dfs(NumComponents(&mut num)).run();
         num
     }
 
     fn connected_components(&self) -> ConnectedComponents<Self, DefaultVertexPropMut<Self, usize>>
-        where Self: DfsDefault + WithVertexProp<usize>
+        where Self: VertexList + WithVertexProp<Color> + WithVertexProp<usize>
     {
         let mut cc = ConnectedComponents(self, self.vertex_prop(0));
-        self.dfs(&mut cc);
+        self.dfs(&mut cc).run();
         cc
     }
 
     fn is_connected(&self) -> bool
-        where Self: DfsDefault
+        where Self: VertexList + WithVertexProp<Color>
     {
         let mut con = true;
-        self.dfs(IsConnected(&mut con));
+        self.dfs(IsConnected(&mut con)).run();
         con
     }
 
@@ -46,7 +47,7 @@ pub trait Components: Incidence {
             root_childs: 0,
             is_cut: self.vertex_prop(false),
         };
-        self.dfs(&mut vis);
+        self.dfs(&mut vis).run();
         vec(self.vertices().filter(|&v| vis.is_cut[v]))
     }
 
@@ -59,7 +60,7 @@ pub trait Components: Incidence {
             low: self.vertex_prop(0),
             cuts: vec![],
         };
-        self.dfs(&mut vis);
+        self.dfs(&mut vis).run();
         vis.cuts
     }
 }

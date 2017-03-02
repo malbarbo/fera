@@ -1,15 +1,18 @@
 use prelude::*;
+use props::Color;
 use traverse::*;
 
-pub trait Paths: WithEdge {
+pub trait Paths: Incidence {
     fn find_path(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<VecEdge<Self>>
-        where Self: DfsDefault
+        where Self: WithVertexProp<Color>
     {
         if u == v {
             return None;
         }
         let mut path = vec![];
-        self.dfs_with_root(u, RecordPath(&mut path, v));
+        self.dfs(RecordPath(&mut path, v))
+            .root(u)
+            .run();
         if path.is_empty() { None } else { Some(path) }
     }
 }
