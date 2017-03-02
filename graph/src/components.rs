@@ -33,7 +33,7 @@ pub trait Components: Incidence {
         con
     }
 
-    fn cut_vertices(&self) -> VecVertex<Self>
+    fn cut_vertices(&self) -> Vec<Vertex<Self>>
         where Self: Graph
     {
         if self.num_vertices() == 0 {
@@ -51,7 +51,7 @@ pub trait Components: Incidence {
         vec(self.vertices().filter(|&v| vis.is_cut[v]))
     }
 
-    fn cut_edges(&self) -> VecEdge<Self>
+    fn cut_edges(&self) -> Vec<Edge<Self>>
         where Self: Graph
     {
         let mut vis = FindCutEdges {

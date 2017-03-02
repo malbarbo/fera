@@ -56,7 +56,7 @@ pub trait Builder {
 
     fn finalize(self) -> Self::Graph;
 
-    fn finalize_(self) -> (Self::Graph, VecVertex<Self::Graph>, VecEdge<Self::Graph>);
+    fn finalize_(self) -> (Self::Graph, Vec<Vertex<Self::Graph>>, Vec<Edge<Self::Graph>>);
 }
 
 pub trait WithBuilder: WithEdge {

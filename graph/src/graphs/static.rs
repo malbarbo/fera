@@ -255,7 +255,7 @@ impl<V: Num, K: StaticEdgeKind> Builder for StaticBuilder<V, K> {
         }
     }
 
-    fn finalize_(self) -> (Self::Graph, VecVertex<Self::Graph>, VecEdge<Self::Graph>) {
+    fn finalize_(self) -> (Self::Graph, Vec<Vertex<Self::Graph>>, Vec<Edge<Self::Graph>>) {
         let g = self.finalize();
         let v = vec(g.vertices());
         let e = vec(g.edges());
@@ -478,7 +478,7 @@ mod tests {
                 impl GraphTests for Test {
                     type G = $g;
 
-                    fn new() -> (Self::G, VecVertex<Self::G>, VecEdge<Self::G>) {
+                    fn new() -> (Self::G, Vec<Vertex<Self::G>>, Vec<Edge<Self::G>>) {
                         Self::new_with_builder()
                     }
                 }

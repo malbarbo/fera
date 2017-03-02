@@ -19,9 +19,9 @@ pub struct Subgraph<'a, G>
     where G: 'a + Graph
 {
     g: &'a G,
-    vertices: VecVertex<G>,
-    edges: VecEdge<G>,
-    inc: DefaultVertexPropMut<G, VecEdge<G>>,
+    vertices: Vec<Vertex<G>>,
+    edges: Vec<Edge<G>>,
+    inc: DefaultVertexPropMut<G, Vec<Edge<G>>>,
 }
 
 

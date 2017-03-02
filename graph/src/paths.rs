@@ -3,7 +3,7 @@ use props::Color;
 use traverse::*;
 
 pub trait Paths: Incidence {
-    fn find_path(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<VecEdge<Self>>
+    fn find_path(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Vec<Edge<Self>>>
         where Self: WithVertexProp<Color>
     {
         if u == v {

@@ -11,7 +11,6 @@ pub type OutNeighborIter<'a, G> =
     <G as VertexTypes<'a, G>>::OutNeighborIter;
 pub type DefaultVertexPropMut<G, T> =
     <G as WithVertexProp<T>>::VertexProp;
-pub type VecVertex<G> = Vec<Vertex<G>>;
 
 pub type Edge<G> = <G as WithEdge>::Edge;
 pub type OptionEdge<G> = <G as WithEdge>::OptionEdge;
@@ -19,7 +18,6 @@ pub type EdgeIndexProp<G> = <G as EdgeIndex>::EdgeIndexProp;
 pub type EdgeIter<'a, G> = <G as EdgeTypes<'a, G>>::EdgeIter;
 pub type OutEdgeIter<'a, G> = <G as EdgeTypes<'a, G>>::OutEdgeIter;
 pub type DefaultEdgePropMut<G, T> = <G as WithEdgeProp<T>>::EdgeProp;
-pub type VecEdge<G> = Vec<Edge<G>>;
 
 macro_rules! items {
     ($($item:item)*) => ($($item)*);

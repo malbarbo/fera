@@ -453,7 +453,7 @@ mod tests {
                 impl GraphTests for Test {
                     type G = $G;
 
-                    fn new() -> (Self::G, VecVertex<Self::G>, VecEdge<Self::G>) {
+                    fn new() -> (Self::G, Vec<Vertex<Self::G>>, Vec<Edge<Self::G>>) {
                         let e = $e.into_iter();
                         ($G::new($n), $v, e.map(|(u, v)| EdgeImpl::new($n, u, v)).sorted())
                     }

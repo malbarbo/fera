@@ -73,9 +73,9 @@ macro_rules! graph_tests {
 pub trait GraphTests {
     type G: WithEdge;
 
-    fn new() -> (Self::G, VecVertex<Self::G>, VecEdge<Self::G>);
+    fn new() -> (Self::G, Vec<Vertex<Self::G>>, Vec<Edge<Self::G>>);
 
-    fn new_with_builder() -> (Self::G, VecVertex<Self::G>, VecEdge<Self::G>)
+    fn new_with_builder() -> (Self::G, Vec<Vertex<Self::G>>, Vec<Edge<Self::G>>)
         where Self::G: WithBuilder
     {
         let mut b = <Self::G as WithBuilder>::builder(5, 4);
@@ -200,7 +200,7 @@ pub trait GraphTests {
         where Self::G: Adjacency
     {
         let (g, vertices, edges) = Self::new();
-        let mut n = HashMapProp::new(VecVertex::<Self::G>::new());
+        let mut n = HashMapProp::new(Vec::<Vertex<Self::G>>::new());
         let mut d = HashMapProp::new(0usize);
         for e in edges {
             let (u, v) = g.ends(e);
@@ -221,7 +221,7 @@ pub trait GraphTests {
         where Self::G: Incidence
     {
         let (g, vertices, edges) = Self::new();
-        let mut inc = HashMapProp::new(VecEdge::<Self::G>::new());
+        let mut inc = HashMapProp::new(Vec::<Edge<Self::G>>::new());
         for e in edges {
             let (u, v) = g.ends(e);
             inc[u].push(e);

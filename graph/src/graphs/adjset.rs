@@ -393,7 +393,7 @@ mod tests {
         impl GraphTests for Test {
             type G = AdjSetGraph<u32>;
 
-            fn new() -> (Self::G, VecVertex<Self::G>, VecEdge<Self::G>) {
+            fn new() -> (Self::G, Vec<Vertex<Self::G>>, Vec<Edge<Self::G>>) {
                 let e = UndirectedEdge::new;
                 let mut g = AdjSet::new();
                 g.add_edge(1, 2);
@@ -418,7 +418,7 @@ mod tests {
         impl GraphTests for Test {
             type G = AdjSetDiGraph<u32>;
 
-            fn new() -> (Self::G, VecVertex<Self::G>, VecEdge<Self::G>) {
+            fn new() -> (Self::G, Vec<Vertex<Self::G>>, Vec<Edge<Self::G>>) {
                 let mut g = AdjSet::new();
                 g.add_edge(1, 2);
                 g.add_edge(3, 4);
