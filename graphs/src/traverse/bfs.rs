@@ -42,7 +42,9 @@ pub trait Bfs: WithEdge {
 impl<G: WithEdge> Bfs for G {}
 
 
-generic_struct!(BfsAlg(graph, visitor, roots, color, queue));
+generic_struct! {
+    pub struct BfsAlg(graph, visitor, roots, color, queue)
+}
 
 impl<'a, G, V, R, C, Q> BfsAlg<&'a G, V, R, C, Q> {
     pub fn run(self) -> Control

@@ -90,7 +90,10 @@ pub trait Kruskal: WithUnionFind {
 impl<G: WithUnionFind> Kruskal for G {}
 
 
-generic_struct!(KruskalAlg(graph, edges, visitor, unionfind));
+generic_struct! {
+    #[must_use]
+    pub struct KruskalAlg(graph, edges, visitor, unionfind)
+}
 
 impl<'a, G, E, V, U> KruskalAlg<&'a G, E, V, U>
     where G: WithUnionFind

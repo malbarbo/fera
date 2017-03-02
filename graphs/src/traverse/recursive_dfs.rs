@@ -39,7 +39,9 @@ pub trait RecursiveDfs: WithEdge {
 impl<G: WithEdge> RecursiveDfs for G {}
 
 
-generic_struct!(RecursiveDfsAlg(graph, visitor, roots, color));
+generic_struct! {
+    pub struct RecursiveDfsAlg(graph, visitor, roots, color)
+}
 
 impl<'a, G, V, R, C> RecursiveDfsAlg<&'a G, V, R, C> {
     pub fn run(self) -> Control

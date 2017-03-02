@@ -41,7 +41,9 @@ pub trait Dfs: WithEdge {
 impl<G: WithEdge> Dfs for G {}
 
 
-generic_struct!(DfsAlg(graph, visitor, roots, color, stack));
+generic_struct! {
+    pub struct DfsAlg(graph, visitor, roots, color, stack)
+}
 
 impl<'a, G, V, R, C, S> DfsAlg<&'a G, V, R, C, S> {
     pub fn run(self) -> Control

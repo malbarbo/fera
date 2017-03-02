@@ -3,8 +3,8 @@ use prelude::*;
 use std::borrow::BorrowMut;
 
 macro_rules! generic_struct {
-    ($S:ident($zero:ident)) => (
-        #[derive(Default)]
+    ($(#[$attr:meta])* pub struct $S:ident($zero:ident)) => (
+        $(#[$attr])*
         pub struct $S<A>(pub A);
 
         impl<A> $S<A> {
@@ -13,8 +13,8 @@ macro_rules! generic_struct {
             }
         }
     );
-    ($S:ident($zero:ident, $one:ident)) => (
-        #[derive(Default)]
+    ($(#[$attr:meta])* pub struct $S:ident($zero:ident, $one:ident)) => (
+        $(#[$attr])*
         pub struct $S<A, B>(pub A, pub B);
 
         impl<A, B> $S<A, B> {
@@ -27,8 +27,8 @@ macro_rules! generic_struct {
             }
         }
     );
-    ($S:ident($zero:ident, $one:ident, $two:ident)) => (
-        #[derive(Default)]
+    ($(#[$attr:meta])* pub struct $S:ident($zero:ident, $one:ident, $two:ident)) => (
+        $(#[$attr])*
         pub struct $S<A, B, C>(pub A, pub B, pub C);
 
         impl<A, B, C> $S<A, B, C> {
@@ -45,8 +45,8 @@ macro_rules! generic_struct {
             }
         }
     );
-    ($S:ident($zero:ident, $one:ident, $two:ident, $three:ident)) => (
-        #[derive(Default)]
+    ($(#[$attr:meta])* pub struct $S:ident($zero:ident, $one:ident, $two:ident, $three:ident)) => (
+        $(#[$attr])*
         pub struct $S<A, B, C, D>(pub A, pub B, pub C, pub D);
 
         impl<A, B, C, D> $S<A, B, C, D> {
@@ -67,8 +67,8 @@ macro_rules! generic_struct {
             }
         }
     );
-    ($S:ident($zero:ident, $one:ident, $two:ident, $three:ident, $four:ident)) => (
-        #[derive(Default)]
+    ($(#[$attr:meta])* pub struct $S:ident($zero:ident, $one:ident, $two:ident, $three:ident, $four:ident)) => (
+        $(#[$attr])*
         pub struct $S<A, B, C, D, E>(pub A, pub B, pub C, pub D, pub E);
 
         impl<A, B, C, D, E> $S<A, B, C, D, E> {
