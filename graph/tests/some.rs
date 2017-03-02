@@ -1,12 +1,12 @@
 #[macro_use]
-extern crate fera_graphs as graphs;
+extern crate fera_graph;
 extern crate fera_fun;
 
 use fera_fun::enumerate;
-use graphs::prelude::*;
-use graphs::components::Components;
-use graphs::cycles::Cycles;
-use graphs::trees::Trees;
+use fera_graph::prelude::*;
+use fera_graph::components::Components;
+use fera_graph::cycles::Cycles;
+use fera_graph::trees::Trees;
 
 struct Case {
     g: StaticGraph,

@@ -1,5 +1,5 @@
 [package]
-name = "fera-graphs"
+name = "fera-graph"
 version = "0.1.0"
 authors = ["Marco A L Barbosa <malbarbo@gmail.com>"]
 

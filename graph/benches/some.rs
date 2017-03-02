@@ -1,18 +1,18 @@
 #![feature(test)]
 
-extern crate fera_graphs as graphs;
+extern crate fera_graph;
 extern crate rand;
 extern crate test;
 
-use graphs::prelude::*;
-use graphs::cycles::Cycles;
-use graphs::components::Components;
+use fera_graph::prelude::*;
+use fera_graph::cycles::Cycles;
+use fera_graph::components::Components;
 
 use test::Bencher;
 
 fn bench_is_acyclic(b: &mut Bencher, n: usize) {
     let mut rng = rand::XorShiftRng::new_unseeded();
-    let g = StaticGraph::random_tree(n, &mut rng);
+    let g = StaticGraph::new_random_tree(n, &mut rng);
     b.iter(|| {
         assert!(g.is_acyclic());
     })
@@ -35,7 +35,7 @@ fn bench_is_acyclic_1000(b: &mut Bencher) {
 
 fn bench_is_connected(b: &mut Bencher, n: usize) {
     let mut rng = rand::XorShiftRng::new_unseeded();
-    let g = StaticGraph::random_tree(n, &mut rng);
+    let g = StaticGraph::new_random_tree(n, &mut rng);
     b.iter(|| {
         assert!(g.is_connected());
     })

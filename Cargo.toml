@@ -7,7 +7,7 @@ authors = ["Marco A L Barbosa <malbarbo@gmail.com>"]
 members = [
     "ext",
     "fun",
-    "graphs",
+    "graph",
     "optional",
     "unionfind",
 ]
@@ -15,13 +15,13 @@ members = [
 [dependencies]
 fera-ext = { path = "ext/", optional = true }
 fera-fun = { path = "fun/", optional = true }
-fera-graphs = { path = "graphs/", optional = true }
+fera-graph = { path = "graph/", optional = true }
 fera-optional = { path = "optional/", optional = true }
 fera-unionfind = { path = "unionfind/", optional = true }
 
 [features]
 ext = ["fera-ext"]
 fun = ["fera-fun"]
-graphs = ["fera-graphs"]
+graph = ["fera-graph"]
 optional = ["fera-optional"]
 unionfind = ["fera-unionfind"]

@@ -12,6 +12,6 @@ macro_rules! crate_as_mod {
 
 crate_as_mod!(fera_ext, ext, "ext");
 crate_as_mod!(fera_fun, fun, "fun");
-crate_as_mod!(fera_graphs, graphs, "graphs");
+crate_as_mod!(fera_graph, graph, "graph");
 crate_as_mod!(fera_optional, optional, "optional");
 crate_as_mod!(fera_unionfind, unionfind, "unionfind");

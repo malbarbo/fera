@@ -1,11 +1,11 @@
 #![feature(test)]
 
-extern crate fera_graphs as graphs;
+extern crate fera_graph;
 extern crate rand;
 extern crate test;
 
-use graphs::prelude::*;
-use graphs::traverse::*;
+use fera_graph::prelude::*;
+use fera_graph::traverse::*;
 use rand::XorShiftRng;
 use test::Bencher;
 
