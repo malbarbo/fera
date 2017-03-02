@@ -28,7 +28,8 @@ pub use graphs::*;
 
 pub mod props;
 
-pub mod extensions;
+pub mod fun;
+pub mod ext;
 
 // algorithms
 pub mod components;
@@ -44,6 +45,7 @@ pub mod unionfind;
 pub mod prelude {
     pub use fera_optional::Optional;
     pub use graph::*;
+    pub use fun::*;
     pub use props::{PropGet, BasicProps, VertexPropGet, VertexProp, VertexPropMut, VertexPropMutNew,
                     BasicVertexProps, WithVertexProp, EdgePropGet, EdgeProp, EdgePropMut,
                     EdgePropMutNew, BasicEdgeProps, WithEdgeProp, PropIndexMut};
@@ -52,5 +54,5 @@ pub mod prelude {
     pub use static_::StaticGraph;
     pub use subgraph::{Subgraph, WithSubgraph};
     pub use spanning_subgraph::SpanningSubgraph;
-    pub use extensions::{GraphsIteratorExt, GraphsSliceExt, GraphsVecExt};
+    pub use ext::{GraphsIteratorExt, GraphsSliceExt, GraphsVecExt};
 }

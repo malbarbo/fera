@@ -1,6 +1,6 @@
 use prelude::*;
 use params::*;
-use extensions::IntoOwned;
+use ext::IntoOwned;
 use unionfind::{UnionFind, WithUnionFind};
 
 use fera_fun::vec;

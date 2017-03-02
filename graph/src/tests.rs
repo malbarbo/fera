@@ -1,6 +1,5 @@
 use prelude::*;
 use props::HashMapProp;
-use extensions::GraphsIteratorExt;
 
 use fera_fun::{cloned, enumerate, vec, set};
 

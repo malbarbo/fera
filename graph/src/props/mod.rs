@@ -12,7 +12,7 @@ pub use self::delegate::*;
 pub use self::fn_::*;
 pub use self::hashmap::*;
 
-use extensions::IntoOwned;
+use ext::IntoOwned;
 
 pub trait PropGet<K> {
     type Output: Sized;

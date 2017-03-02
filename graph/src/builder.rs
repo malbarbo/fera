@@ -1,6 +1,5 @@
 use prelude::*;
 use props::Color;
-use extensions::GraphsIteratorExt;
 use trees::Trees;
 use fera_fun::set;
 

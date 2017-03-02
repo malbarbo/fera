@@ -3,7 +3,7 @@ use choose::Choose;
 use common::OutNeighborFromOutEdge;
 use props::{DelegateEdgeProp, DelegateVertexProp, DelegateProp};
 use graphs::spanning_subgraph::SpanningSubgraph;
-use extensions::IntoOwned;
+use ext::IntoOwned;
 
 use fera_fun::vec;
 

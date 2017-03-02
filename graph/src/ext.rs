@@ -1,5 +1,4 @@
 use prelude::*;
-use std::iter::Sum;
 
 // TODO: Create an IntoIteratorOwned
 // FIXME: move to other module
@@ -28,52 +27,8 @@ impl<'a, T: Clone> IntoOwned<T> for &'a mut T {
     }
 }
 
+
 pub trait GraphsIteratorExt: Sized + IntoIterator {
-    #[inline]
-    fn min_by_prop<P, K>(self, prop: P) -> Option<Self::Item>
-        where P: PropGet<K>,
-              for<'a> &'a Self::Item: IntoOwned<K>,
-              P::Output: Ord
-    {
-        self.into_iter().min_by_key(|v| prop.get(v.into_owned()))
-    }
-
-    #[inline]
-    fn max_by_prop<P, K>(self, prop: P) -> Option<Self::Item>
-        where P: PropGet<K>,
-              for<'a> &'a Self::Item: IntoOwned<K>,
-              P::Output: Ord
-    {
-        self.into_iter().max_by_key(|v| prop.get(v.into_owned()))
-    }
-
-    #[inline]
-    fn min_prop<P, K>(self, prop: P) -> Option<P::Output>
-        where P: PropGet<K>,
-              Self::Item: IntoOwned<K>,
-              P::Output: Ord
-    {
-        self.into_iter().map(|v| prop.get(v.into_owned())).min()
-    }
-
-    #[inline]
-    fn max_prop<P, K>(self, prop: P) -> Option<P::Output>
-        where P: PropGet<K>,
-              Self::Item: IntoOwned<K>,
-              P::Output: Ord
-    {
-        self.into_iter().map(|v| prop.get(v.into_owned())).max()
-    }
-
-    #[inline]
-    fn sum_prop<P, K, O>(self, prop: P) -> O
-        where P: PropGet<K>,
-              Self::Item: IntoOwned<K>,
-              O: Sum<P::Output>
-    {
-        self.into_iter().map(|v| prop.get(v.into_owned())).sum()
-    }
-
     #[inline]
     fn ends<G>(self, g: &G) -> Ends<G, Self::IntoIter>
         where G: WithEdge,

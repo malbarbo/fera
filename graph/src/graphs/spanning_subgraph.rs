@@ -1,7 +1,7 @@
 use prelude::*;
 use choose::Choose;
 use common::OutNeighborFromOutEdge;
-use extensions::IntoOwned;
+use ext::IntoOwned;
 use props::{DelegateEdgeProp, DelegateVertexProp, DelegateProp};
 
 use fera_fun::position;

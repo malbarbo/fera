@@ -260,7 +260,6 @@ fn is_cut_edge_naive<G: IncidenceGraph>(g: &G, e: Edge<G>) -> bool {
 #[cfg(test)]
 mod tests {
     use prelude::*;
-    use extensions::GraphsIteratorExt;
     use super::{Components, cut_vertices_naive, cut_edges_naive};
 
     #[test]
