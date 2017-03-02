@@ -50,7 +50,7 @@ pub mod prelude {
                     BasicVertexProps, WithVertexProp, EdgePropGet, EdgeProp, EdgePropMut,
                     EdgePropMutNew, BasicEdgeProps, WithEdgeProp, PropIndexMut};
     pub use builder::{Builder, WithBuilder};
-    pub use complete::{CompleteGraph, CompleteDiGraph};
+    pub use complete::{CompleteGraph, CompleteDigraph};
     pub use static_::StaticGraph;
     pub use subgraph::{Subgraph, WithSubgraph};
     pub use spanning_subgraph::SpanningSubgraph;

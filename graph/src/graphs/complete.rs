@@ -14,7 +14,7 @@ use rand::Rng;
 
 pub type CompleteGraph = Complete<Undirected>;
 
-pub type CompleteDiGraph = Complete<Directed>;
+pub type CompleteDigraph = Complete<Directed>;
 
 pub type CVertex = u32;
 
@@ -483,19 +483,19 @@ mod tests {
 
     // Directed
 
-    t!{directed_k0, 0, CompleteDiGraph, vec![], vec![]}
-    t!{directed_k1, 1, CompleteDiGraph, vec![0], vec![]}
-    t!{directed_k2, 2, CompleteDiGraph, vec![0, 1], vec![(0, 1), (1, 0)]}
+    t!{directed_k0, 0, CompleteDigraph, vec![], vec![]}
+    t!{directed_k1, 1, CompleteDigraph, vec![0], vec![]}
+    t!{directed_k2, 2, CompleteDigraph, vec![0, 1], vec![(0, 1), (1, 0)]}
 
     t!{directed_k3, 3,
-        CompleteDiGraph,
+        CompleteDigraph,
         vec![0, 1, 2],
         vec![(0, 1), (0, 2),
              (1, 0), (1, 2),
              (2, 0), (2, 1)]}
 
     t!{directed_k4, 4,
-        CompleteDiGraph,
+        CompleteDigraph,
         vec![0, 1, 2, 3],
         vec![(0, 1), (0, 2), (0, 3),
              (1, 0), (1, 2), (1, 3),

@@ -36,9 +36,9 @@ trait_alias!(Graph = VertexList + EdgeList<Kind = Undirected> + BasicProps);
 trait_alias!(AdjacencyGraph = Graph + Adjacency);
 trait_alias!(IncidenceGraph = AdjacencyGraph + Incidence);
 
-trait_alias!(DiGraph = VertexList + EdgeList<Kind = Directed> + BasicProps);
-trait_alias!(AdjacencyDiGraph = DiGraph + Adjacency);
-trait_alias!(IncidenceDiGraph = AdjacencyDiGraph + Incidence);
+trait_alias!(Digraph = VertexList + EdgeList<Kind = Directed> + BasicProps);
+trait_alias!(AdjacencyDigraph = Digraph + Adjacency);
+trait_alias!(IncidenceDigraph = AdjacencyDigraph + Incidence);
 
 trait_alias!(GraphItem = Copy + Eq + Hash + Debug);
 

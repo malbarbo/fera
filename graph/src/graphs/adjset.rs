@@ -11,7 +11,7 @@ use std::marker::PhantomData;
 use fnv::FnvHasher;
 
 pub type AdjSetGraph<V> = AdjSet<V, Undirected>;
-pub type AdjSetDiGraph<V> = AdjSet<V, Directed>;
+pub type AdjSetDigraph<V> = AdjSet<V, Directed>;
 
 type HashMapFnv<K, V> = HashMap<K, V, BuildHasherDefault<FnvHasher>>;
 type HashSetFnv<K> = HashSet<K, BuildHasherDefault<FnvHasher>>;
@@ -416,7 +416,7 @@ mod tests {
         struct Test;
 
         impl GraphTests for Test {
-            type G = AdjSetDiGraph<u32>;
+            type G = AdjSetDigraph<u32>;
 
             fn new() -> (Self::G, Vec<Vertex<Self::G>>, Vec<Edge<Self::G>>) {
                 let mut g = AdjSet::new();
