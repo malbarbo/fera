@@ -28,22 +28,6 @@ impl<'a, T: Clone> IntoOwned<T> for &'a mut T {
 }
 
 
-pub trait GraphsIteratorExt: Sized + IntoIterator {
-    #[inline]
-    fn ends<G>(self, g: &G) -> Ends<G, Self::IntoIter>
-        where G: WithEdge,
-              Self::Item: IntoOwned<Edge<G>>
-    {
-        Ends {
-            g: g,
-            iter: self.into_iter(),
-        }
-    }
-}
-
-
-impl<I: IntoIterator> GraphsIteratorExt for I {}
-
 pub trait GraphsSliceExt<T> {
     fn sort_by_prop<P, K>(&mut self, prop: P)
         where P: PropGet<K>,
@@ -80,35 +64,4 @@ impl<T> GraphsVecExt<T> for Vec<T> {
         self.sort_by_key(|v| prop.get(v.into_owned()));
         self
     }
-}
-
-
-// Adaptors
-
-pub struct Ends<'a, G: 'a, I> {
-    g: &'a G,
-    iter: I,
-}
-
-impl<'a, G, I> Iterator for Ends<'a, G, I>
-    where G: WithEdge,
-          I: Iterator,
-          I::Item: IntoOwned<Edge<G>>
-{
-    type Item = (Vertex<G>, Vertex<G>);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.iter.next().map(|e| self.g.ends(e.into_owned()))
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.iter.size_hint()
-    }
-}
-
-impl<'a, G, I> ExactSizeIterator for Ends<'a, G, I>
-    where G: WithEdge,
-          I: Iterator,
-          I::Item: IntoOwned<Edge<G>>
-{
 }

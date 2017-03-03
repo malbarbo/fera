@@ -73,6 +73,10 @@ impl<K: CompleteEdgeKind> WithEdge for Complete<K> {
         K::Edge::ends(e, self.n).1
     }
 
+    fn end_vertices(&self, e: Edge<Self>) -> (Vertex<Self>, Vertex<Self>) {
+        K::Edge::ends(e, self.n)
+    }
+
     fn orientation(&self, _e: Edge<Self>) -> Orientation {
         K::orientation()
     }

@@ -217,7 +217,7 @@ pub trait BuilderTests {
         assert_eq!(3, g.num_vertices());
         assert_eq!(2, g.num_edges());
         assert_eq!(set(vec![(v[0], v[1]), (v[0], v[2])]),
-                   set(g.out_edges(v[0]).ends(&g)));
+                   set(g.out_edges_ends(v[0])));
 
         for h in 2..10 {
             let (g, v, _) = complete_binary_tree::<Self::G>(h).finalize_();

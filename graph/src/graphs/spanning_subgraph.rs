@@ -136,8 +136,8 @@ impl<'a, G> WithEdge for SpanningSubgraph<'a, G>
         self.g.orientation(e)
     }
 
-    fn ends(&self, e: Edge<Self>) -> (Vertex<Self>, Vertex<Self>) {
-        self.g.ends(e)
+    fn end_vertices(&self, e: Edge<Self>) -> (Vertex<Self>, Vertex<Self>) {
+        self.g.end_vertices(e)
     }
 
     fn opposite(&self, u: Vertex<Self>, e: Edge<Self>) -> Vertex<Self> {

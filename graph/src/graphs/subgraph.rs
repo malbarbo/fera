@@ -75,8 +75,8 @@ impl<'a, G> WithEdge for Subgraph<'a, G>
         self.g.orientation(e)
     }
 
-    fn ends(&self, e: Edge<Self>) -> (Vertex<Self>, Vertex<Self>) {
-        self.g.ends(e)
+    fn end_vertices(&self, e: Edge<Self>) -> (Vertex<Self>, Vertex<Self>) {
+        self.g.end_vertices(e)
     }
 
     fn opposite(&self, u: Vertex<Self>, e: Edge<Self>) -> Vertex<Self> {
@@ -234,8 +234,7 @@ impl<G: Graph> WithSubgraph<G> for G {
         let mut vin = self.default_vertex_prop(false);
         let mut vertices = vec![];
         let mut inc = self.default_vertex_prop(Vec::<Edge<G>>::new());
-        for &e in &edges {
-            let (u, v) = self.ends(e);
+        for (e, u, v) in self.with_ends(&edges) {
             if !vin[u] {
                 vin[u] = true;
                 vertices.push(u);
@@ -268,8 +267,7 @@ impl<G: Graph> WithSubgraph<G> for G {
         for &v in &vertices {
             vs[v] = true;
         }
-        for e in self.edges() {
-            let (u, v) = self.ends(e);
+        for (e, u, v) in self.edges_with_ends() {
             if vs[u] && vs[v] {
                 edges.push(e);
                 inc[u].push(e);

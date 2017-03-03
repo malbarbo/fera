@@ -148,8 +148,7 @@ mod tests {
                     u: Vertex<StaticGraph>,
                     v: Vertex<StaticGraph>)
                     -> Edge<StaticGraph> {
-        for e in g.edges() {
-            let (x, y) = g.ends(e);
+        for (e, x, y) in g.edges_with_ends() {
             if u == x && v == y {
                 return e;
             } else if u == y && v == x {

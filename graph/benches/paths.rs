@@ -12,8 +12,7 @@ use test::Bencher;
 fn find_path_n(b: &mut Bencher, n: usize) {
     let mut rng = XorShiftRng::new_unseeded();
     let g = StaticGraph::new_random_tree(n, &mut rng);
-    b.iter(|| for e in g.edges() {
-        let (u, v) = g.ends(e);
+    b.iter(|| for (u, v) in g.edges_ends() {
         assert!(g.find_path(v, u).is_some());
     })
 }

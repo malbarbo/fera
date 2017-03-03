@@ -33,7 +33,7 @@ macro_rules! graph_edge_list_tests {
             edges,
             get_edge_by_ends,
             option_edge,
-            ends,
+            end_vertices,
             get_reverse,
             opposite
         }
@@ -119,9 +119,8 @@ pub trait GraphTests {
                    "found repeated edges");
         assert_eq!(edges.len(), g.num_edges());
         assert_eq!(edges, vec(g.edges()));
-        // TODO: allow to write vec(g.ends(&edges))
-        assert_eq!(vec(edges.iter().ends(&g)),
-                   vec(g.edges().ends(&g)));
+        assert_eq!(vec(g.ends(edges)),
+                   vec(g.edges_ends()));
     }
 
     fn get_edge_by_ends()
@@ -154,10 +153,10 @@ pub trait GraphTests {
         }
     }
 
-    fn ends() {
+    fn end_vertices() {
         let (g, _, edges) = Self::new();
         for e in edges {
-            let (u, v) = g.ends(e);
+            let (u, v) = g.end_vertices(e);
             assert_eq!(u, g.source(e));
             assert_eq!(v, g.target(e));
         }
@@ -173,8 +172,7 @@ pub trait GraphTests {
             s.finish()
         }
         let (g, _, edges) = Self::new();
-        for e in edges {
-            let (u, v) = g.ends(e);
+        for (e, u, v) in g.with_ends(edges) {
             if g.is_undirected_edge(e) {
                 // FIXME: reverse is not being directly tested
                 let r = g.get_reverse(e).unwrap();
@@ -189,8 +187,7 @@ pub trait GraphTests {
 
     fn opposite() {
         let (g, _, edges) = Self::new();
-        for e in edges {
-            let (u, v) = g.ends(e);
+        for (e, u, v) in g.with_ends(edges) {
             assert_eq!(u, g.opposite(v, e));
             assert_eq!(v, g.opposite(u, e));
         }
@@ -202,8 +199,7 @@ pub trait GraphTests {
         let (g, vertices, edges) = Self::new();
         let mut n = HashMapProp::new(Vec::<Vertex<Self::G>>::new());
         let mut d = HashMapProp::new(0usize);
-        for e in edges {
-            let (u, v) = g.ends(e);
+        for (e, u, v) in g.with_ends(edges) {
             n[u].push(v);
             d[u] += 1;
             if g.is_undirected_edge(e) {
@@ -222,8 +218,7 @@ pub trait GraphTests {
     {
         let (g, vertices, edges) = Self::new();
         let mut inc = HashMapProp::new(Vec::<Edge<Self::G>>::new());
-        for e in edges {
-            let (u, v) = g.ends(e);
+        for (e, u, v) in g.with_ends(edges) {
             inc[u].push(e);
             if g.is_undirected_edge(e) {
                 inc[v].push(g.get_reverse(e).unwrap());
@@ -236,7 +231,7 @@ pub trait GraphTests {
                 assert!(out.insert(e),
                         "found repeated out edge = {:?} = {:?}",
                         e,
-                        g.ends(e));
+                        g.end_vertices(e));
             }
             assert_eq!(set(cloned(&inc[u])), out);
         }

@@ -44,8 +44,8 @@ impl<'a, G: WithEdge> WithEdge for &'a G {
         G::orientation(self, e)
     }
 
-    fn ends(&self, e: Edge<Self>) -> (Vertex<Self>, Vertex<Self>) {
-        G::ends(self, e)
+    fn end_vertices(&self, e: Edge<Self>) -> (Vertex<Self>, Vertex<Self>) {
+        G::end_vertices(self, e)
     }
 
     fn opposite(&self, u: Vertex<Self>, e: Edge<Self>) -> Vertex<Self> {

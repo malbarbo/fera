@@ -347,6 +347,6 @@ mod tests {
         where G: Graph,
               Vertex<G>: Ord
     {
-        sorted(edges.ends(g).collect())
+        sorted(g.ends(edges).collect())
     }
 }
