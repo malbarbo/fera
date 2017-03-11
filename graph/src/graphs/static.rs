@@ -1,7 +1,7 @@
 use choose::Choose;
 use graphs::common::OutNeighborFromOutEdge;
 use prelude::*;
-use props::{VecEdgeProp, VecVertexProp, FnProp};
+use props::{VecEdgeProp, VecVertexProp};
 
 use fera_fun::vec;
 use fera_optional::OptionalMax;
@@ -9,7 +9,8 @@ use fera_optional::OptionalMax;
 use std::cmp::Ordering;
 use std::fmt::Debug;
 use std::hash::{Hash, Hasher};
-use std::iter::{Cloned, Map};
+use std::iter::Cloned;
+use std::marker::PhantomData;
 use std::ops::Range;
 use std::slice::Iter;
 
@@ -120,10 +121,10 @@ impl<N: Num> EdgeImpl for StaticUndirectedEdge<N> {
         e.checked_mul(2)
             .and_then(|x| x.checked_add(1))
             .and_then(|x| if N::is_valid(x) {
-                Some(Self::new(e))
-            } else {
-                None
-            })
+                          Some(Self::new(e))
+                      } else {
+                          None
+                      })
     }
 
     fn source<T>(self, ends: &[T]) -> &T {
@@ -177,7 +178,6 @@ pub type StaticVertex<N> = N;
 
 // Graph
 
-
 #[derive(Clone, Debug, PartialEq)]
 pub struct Static<V: Num, K: StaticEdgeKind> {
     num_vertices: usize,
@@ -188,8 +188,12 @@ pub struct Static<V: Num, K: StaticEdgeKind> {
 
 impl<V: Num, K: StaticEdgeKind> Static<V, K> {
     fn inc(&self, v: Vertex<Self>) -> &[Edge<Self>] {
+        self.get_inc(v).unwrap()
+    }
+
+    fn get_inc(&self, v: Vertex<Self>) -> Option<&[Edge<Self>]> {
         let i = V::to_usize(v);
-        &self.edges[self.edges_start[i]..self.edges_start[i + 1]]
+        self.edges.get(self.edges_start[i]..self.edges_start[i + 1])
     }
 }
 
@@ -293,7 +297,7 @@ impl<V: Num, K: StaticEdgeKind> WithEdge for Static<V, K> {
             Some(e.reverse())
         } else {
             let (u, v) = self.ends(e);
-            self.out_edges(v).find(|e| self.target(*e) == u)
+            self.get_edge_by_ends(v, u)
         }
     }
 }
@@ -304,7 +308,7 @@ impl<'a, V: Num, K: StaticEdgeKind> VertexTypes<'a, Static<V, K>> for Static<V, 
 }
 
 impl<'a, V: Num, K: StaticEdgeKind> EdgeTypes<'a, Static<V, K>> for Static<V, K> {
-    type EdgeIter = Map<Range<usize>, fn(usize) -> Edge<Self>>;
+    type EdgeIter = SEdgeIter<K>;
     type OutEdgeIter = Cloned<Iter<'a, Edge<Self>>>;
 }
 
@@ -324,8 +328,17 @@ impl<V: Num, K: StaticEdgeKind> EdgeList for Static<V, K> {
     }
 
     fn edges(&self) -> EdgeIter<Self> {
-        // TODO: specialization
-        (0..self.num_edges()).map(K::Edge::new)
+        // TODO: specialization undirect 1, 3, 5, ...
+        SEdgeIter(0..self.num_edges(), PhantomData)
+    }
+
+    fn get_edge_by_ends(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Edge<Self>> {
+        self.get_inc(u)
+            .and_then(|out_edges| {
+                          out_edges.binary_search_by_key(&v, |e| self.target(*e))
+                              .ok()
+                              .map(|i| out_edges[i])
+                      })
     }
 }
 
@@ -345,23 +358,69 @@ impl<V: Num, K: StaticEdgeKind> Incidence for Static<V, K> {
     }
 }
 
+
+// Iter
+
+#[derive(Clone, Debug)]
+pub struct SEdgeIter<K>(Range<usize>, PhantomData<K>);
+
+impl<K: StaticEdgeKind> Iterator for SEdgeIter<K> {
+    type Item = K::Edge;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next().map(|i| K::Edge::new(i))
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.0.size_hint()
+    }
+}
+
+impl<K: StaticEdgeKind> ExactSizeIterator for SEdgeIter<K> {}
+
+
+// Props
+
+#[derive(Clone, Debug)]
+pub struct SVertexIndexProp;
+
+impl<V: Num> PropGet<StaticVertex<V>> for SVertexIndexProp {
+    type Output = usize;
+
+    fn get(&self, v: StaticVertex<V>) -> usize {
+        v.to_usize()
+    }
+}
+
 impl<V: Num, K: StaticEdgeKind> VertexIndex for Static<V, K> {
-    type VertexIndexProp = FnProp<fn(Vertex<Self>) -> usize>;
+    type VertexIndexProp = SVertexIndexProp;
 
     fn vertex_index(&self) -> VertexIndexProp<Self> {
-        // TODO: check if to_usize is being inlined
-        FnProp(V::to_usize)
+        SVertexIndexProp
     }
 }
+
+
+#[derive(Clone, Debug)]
+pub struct SEdgeIndexProp<K>(PhantomData<K>);
+
+impl<K: StaticEdgeKind> PropGet<K::Edge> for SEdgeIndexProp<K> {
+    type Output = usize;
+
+    fn get(&self, e: K::Edge) -> usize {
+        e.to_index()
+    }
+}
+
 
 impl<V: Num, K: StaticEdgeKind> EdgeIndex for Static<V, K> {
-    type EdgeIndexProp = FnProp<fn(Edge<Self>) -> usize>;
+    type EdgeIndexProp = SEdgeIndexProp<K>;
 
     fn edge_index(&self) -> EdgeIndexProp<Self> {
-        // TODO: check if to_index is being inlined
-        FnProp(K::Edge::to_index)
+        SEdgeIndexProp(PhantomData)
     }
 }
+
 
 impl<T, V: Num, K: StaticEdgeKind> WithVertexProp<T> for Static<V, K> {
     type VertexProp = VecVertexProp<Self, T>;
@@ -376,6 +435,9 @@ impl<T, V: Num, K: StaticEdgeKind> WithEdgeProp<T> for Static<V, K> {
 impl<V: Num, K: StaticEdgeKind> BasicEdgeProps for Static<V, K> {}
 
 impl<V: Num, K: StaticEdgeKind> BasicProps for Static<V, K> {}
+
+
+// Choose
 
 impl<V: Num, K: StaticEdgeKind> Choose for Static<V, K> {
     fn choose_vertex<R: Rng>(&self, mut rng: R) -> Option<Vertex<Self>> {
@@ -409,7 +471,9 @@ impl<V: Num, K: StaticEdgeKind> Choose for Static<V, K> {
         if self.out_degree(v) == 0 {
             None
         } else {
-            self.inc(v).get(rng.gen_range(0, self.out_degree(v))).cloned()
+            self.inc(v)
+                .get(rng.gen_range(0, self.out_degree(v)))
+                .cloned()
         }
     }
 }
