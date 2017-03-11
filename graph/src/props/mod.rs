@@ -6,11 +6,13 @@ mod delegate;
 #[path="fn.rs"]
 mod fn_;
 mod hashmap;
+mod ignore;
 
 pub use self::array::*;
 pub use self::delegate::*;
 pub use self::fn_::*;
 pub use self::hashmap::*;
+pub use self::ignore::*;
 
 use ext::IntoOwned;
 
