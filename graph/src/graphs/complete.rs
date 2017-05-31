@@ -202,6 +202,7 @@ pub struct CVertexIndexProp;
 impl PropGet<CVertex> for CVertexIndexProp {
     type Output = usize;
 
+    #[inline]
     fn get(&self, x: CVertex) -> usize {
         x as usize
     }
@@ -222,6 +223,7 @@ pub struct CEdgeIndexProp<E>(PhantomData<E>);
 impl<E: EdgeImpl> PropGet<E> for CEdgeIndexProp<E> {
     type Output = usize;
 
+    #[inline]
     fn get(&self, e: E) -> usize {
         E::to_index(e)
     }
