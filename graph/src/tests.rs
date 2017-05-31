@@ -70,6 +70,7 @@ macro_rules! graph_tests {
 }
 
 
+// TODO: allows Subgraph and &'a G to be tested
 pub trait GraphTests {
     type G: WithEdge;
 

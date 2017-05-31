@@ -12,6 +12,8 @@ use std::ops::Range;
 
 use rand::Rng;
 
+// TODO: make vertex and edge type parameters (unsigned integer)
+
 pub type CompleteGraph = Complete<Undirected>;
 
 pub type CompleteDigraph = Complete<Directed>;
@@ -56,6 +58,7 @@ impl<K: CompleteEdgeKind> WithVertex for Complete<K> {
 }
 
 impl<'a, K: CompleteEdgeKind> EdgeTypes<'a, Complete<K>> for Complete<K> {
+    // TODO: write specific iterator for EdgeIter
     type EdgeIter = Map<Range<usize>, fn(usize) -> K::Edge>;
     type OutEdgeIter = COutEdgeIter<Edge<Self>>;
 }

@@ -17,6 +17,7 @@ pub enum Accept {
 pub trait Visitor<G>
     where G: WithEdge
 {
+    // TODO: Add g as a parameter (like dfs...)
     fn visit(&mut self, e: Edge<G>) -> Accept;
 }
 
