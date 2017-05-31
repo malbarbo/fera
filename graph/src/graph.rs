@@ -8,10 +8,8 @@ pub type Vertex<G> = <G as WithVertex>::Vertex;
 pub type OptionVertex<G> = <G as WithVertex>::OptionVertex;
 pub type VertexIndexProp<G> = <G as VertexIndex>::VertexIndexProp;
 pub type VertexIter<'a, G> = <G as VertexTypes<'a, G>>::VertexIter;
-pub type OutNeighborIter<'a, G> =
-    <G as VertexTypes<'a, G>>::OutNeighborIter;
-pub type DefaultVertexPropMut<G, T> =
-    <G as WithVertexProp<T>>::VertexProp;
+pub type OutNeighborIter<'a, G> = <G as VertexTypes<'a, G>>::OutNeighborIter;
+pub type DefaultVertexPropMut<G, T> = <G as WithVertexProp<T>>::VertexProp;
 
 pub type Edge<G> = <G as WithEdge>::Edge;
 pub type OptionEdge<G> = <G as WithEdge>::OptionEdge;
@@ -165,7 +163,7 @@ pub trait WithEdge: Sized + WithVertex + for<'a> EdgeTypes<'a, Self> {
     {
         EdgesWithEnds {
             g: self,
-            iter: iter.into_iter()
+            iter: iter.into_iter(),
         }
     }
 
