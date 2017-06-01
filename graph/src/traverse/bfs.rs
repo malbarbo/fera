@@ -3,19 +3,21 @@ use props::Color;
 use traverse::*;
 use params::*;
 
-use std::borrow::BorrowMut;
 use std::collections::VecDeque;
 use std::iter;
 
 pub trait Bfs: WithEdge {
-    fn bfs<V>(&self, vis: V) -> BfsAlg<&Self, V, AllVertices, NewVertexProp<Color>, NewBfsQueue>
+    fn bfs<V>
+        (&self,
+         vis: V)
+         -> BfsAlg<&Self, V, AllVertices<Self>, NewVertexProp<Self, Color>, Owned<BfsQueue<Self>>>
         where V: Visitor<Self>
     {
         BfsAlg(self,
                vis,
-               AllVertices,
-               NewVertexProp(Color::White),
-               NewBfsQueue)
+               AllVertices(self),
+               NewVertexProp(self, Color::White),
+               Owned(BfsQueue::<Self>::new()))
     }
 }
 
@@ -30,23 +32,22 @@ impl<'a, G, V, R, C, Q> BfsAlg<&'a G, V, R, C, Q> {
     pub fn run(self) -> Control
         where G: Incidence,
               V: Visitor<G>,
-              R: ParamIterator<'a, G, Item = Vertex<G>>,
-              C: ParamVertexProp<G, Color>,
-              Q: Param<'a, G, BfsQueue<G>>
+              R: IntoIterator<Item = Vertex<G>>,
+              C: ParamDerefMut,
+              C::Target: VertexPropMut<G, Color>,
+              Q: ParamDerefMut<Target = BfsQueue<G>>
     {
         let BfsAlg(g, mut vis, roots, color, queue) = self;
         return_unless!(vis.start(g));
-        let mut color = color.build(g);
-        let color = color.borrow_mut();
-        let mut queue = queue.build(g);
-        let queue = queue.borrow_mut();
-        for v in roots.build(g) {
+        let mut color = color.build();
+        let mut queue = queue.build();
+        for v in roots {
             if color[v] == Color::White {
                 color[v] = Color::Gray;
                 queue.push_back((G::edge_none(), v));
                 break_unless!(vis.discover_root_vertex(g, v));
                 break_unless!(vis.discover_vertex(g, v));
-                break_unless!(bfs_visit(g, color, queue, &mut vis));
+                break_unless!(bfs_visit(g, &mut *color, &mut *queue, &mut vis));
                 break_unless!(vis.finish_root_vertex(g, v));
             }
         }
@@ -101,17 +102,6 @@ pub fn bfs_visit<G, C, V>(g: &G, color: &mut C, queue: &mut BfsQueue<G>, vis: &m
 
 
 pub type BfsQueue<G> = VecDeque<(OptionEdge<G>, Vertex<G>)>;
-
-#[derive(Default)]
-pub struct NewBfsQueue;
-
-impl<'a, G: 'a + WithEdge> Param<'a, G, BfsQueue<G>> for NewBfsQueue {
-    type Output = BfsQueue<G>;
-
-    fn build(self, _g: &'a G) -> Self::Output {
-        BfsQueue::<G>::new()
-    }
-}
 
 
 // Tests
@@ -212,7 +202,7 @@ mod tests {
             FinishEdge(e(4, 6)),
             FinishRootVertex(4),
 
-            Finish,
+            Finish
         ];
 
         let mut v = vec![];

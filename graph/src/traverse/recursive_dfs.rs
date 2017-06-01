@@ -3,16 +3,19 @@ use props::Color;
 use traverse::*;
 use params::*;
 
-use std::borrow::BorrowMut;
 use std::iter;
 
 pub trait RecursiveDfs: WithEdge {
-    fn recursive_dfs<V>(&self,
-                        vis: V)
-                        -> RecursiveDfsAlg<&Self, V, AllVertices, NewVertexProp<Color>>
+    fn recursive_dfs<V>
+        (&self,
+         vis: V)
+         -> RecursiveDfsAlg<&Self, V, AllVertices<Self>, NewVertexProp<Self, Color>>
         where V: Visitor<Self>
     {
-        RecursiveDfsAlg(self, vis, AllVertices, NewVertexProp(Color::White))
+        RecursiveDfsAlg(self,
+                        vis,
+                        AllVertices(self),
+                        NewVertexProp(self, Color::White))
     }
 }
 
@@ -27,18 +30,18 @@ impl<'a, G, V, R, C> RecursiveDfsAlg<&'a G, V, R, C> {
     pub fn run(self) -> Control
         where G: Incidence,
               V: Visitor<G>,
-              R: ParamIterator<'a, G, Item = Vertex<G>>,
-              C: ParamVertexProp<G, Color>
+              R: IntoIterator<Item = Vertex<G>>,
+              C: ParamDerefMut,
+              C::Target: VertexPropMut<G, Color>
     {
         let RecursiveDfsAlg(g, mut vis, roots, color) = self;
         return_unless!(vis.start(g));
-        let mut color = color.build(g);
-        let color = color.borrow_mut();
-        for v in roots.build(g) {
+        let mut color = color.build();
+        for v in roots {
             if color[v] == Color::White {
                 color[v] = Color::Gray;
                 return_unless!(vis.discover_root_vertex(g, v));
-                return_unless!(recursive_dfs_visit(g, G::edge_none(), v, color, &mut vis));
+                return_unless!(recursive_dfs_visit(g, G::edge_none(), v, &mut *color, &mut vis));
                 return_unless!(vis.finish_root_vertex(g, v));
             }
         }

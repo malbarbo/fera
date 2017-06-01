@@ -1,6 +1,6 @@
 use prelude::*;
 
-use std::borrow::BorrowMut;
+use std::ops::{Deref, DerefMut};
 
 macro_rules! generic_struct {
     ($(#[$attr:meta])* pub struct $S:ident($zero:ident)) => (
@@ -45,7 +45,8 @@ macro_rules! generic_struct {
             }
         }
     );
-    ($(#[$attr:meta])* pub struct $S:ident($zero:ident, $one:ident, $two:ident, $three:ident)) => (
+    ($(#[$attr:meta])* pub struct $S:ident($zero:ident, $one:ident, $two:ident,
+                                           $three:ident)) => (
         $(#[$attr])*
         pub struct $S<A, B, C, D>(pub A, pub B, pub C, pub D);
 
@@ -67,7 +68,8 @@ macro_rules! generic_struct {
             }
         }
     );
-    ($(#[$attr:meta])* pub struct $S:ident($zero:ident, $one:ident, $two:ident, $three:ident, $four:ident)) => (
+    ($(#[$attr:meta])* pub struct $S:ident($zero:ident, $one:ident, $two:ident,
+                                           $three:ident, $four:ident)) => (
         $(#[$attr])*
         pub struct $S<A, B, C, D, E>(pub A, pub B, pub C, pub D, pub E);
 
@@ -93,109 +95,131 @@ macro_rules! generic_struct {
             }
         }
     );
+    ($(#[$attr:meta])* pub struct $S:ident($zero:ident, $one:ident, $two:ident,
+                                           $three:ident, $four:ident, $five:ident)) => (
+        $(#[$attr])*
+        pub struct $S<A, B, C, D, E, F>(pub A, pub B, pub C, pub D, pub E, pub F);
+
+        impl<A, B, C, D, E, F> $S<A, B, C, D, E, F> {
+            pub fn $zero<N>(self, zero: N) -> $S<N, B, C, D, E, F> {
+                $S(zero, self.1, self.2, self.3, self.4, self.5)
+            }
+
+            pub fn $one<N>(self, one: N) -> $S<A, N, C, D, E, F> {
+                $S(self.0, one, self.2, self.3, self.4, self.5)
+            }
+
+            pub fn $two<N>(self, two: N) -> $S<A, B, N, D, E, F> {
+                $S(self.0, self.1, two, self.3, self.4, self.5)
+            }
+
+            pub fn $three<N>(self, three: N) -> $S<A, B, C, N, E, F> {
+                $S(self.0, self.1, self.2, three, self.4, self.5)
+            }
+
+            pub fn $four<N>(self, four: N) -> $S<A, B, C, D, N, F> {
+                $S(self.0, self.1, self.2, self.3, four, self.5)
+            }
+
+            pub fn $five<N>(self, five: N) -> $S<A, B, C, D, E, N> {
+                $S(self.0, self.1, self.2, self.3, self.4, five)
+            }
+        }
+    );
 }
 
-pub trait Param<'a, Input, Borrowed> {
-    type Output: BorrowMut<Borrowed>;
+pub trait ParamDerefMut {
+    type Target;
+    type Output: DerefMut<Target = Self::Target>;
 
-    fn build(self, _input: &'a Input) -> Self::Output;
+    fn build(self) -> Self::Output;
 }
 
-impl<'a, Input, Borrowed, P> Param<'a, Input, Borrowed> for P
-    where P: BorrowMut<Borrowed>
-{
-    type Output = P;
+impl<'a, T> ParamDerefMut for &'a mut T {
+    type Target = T;
+    type Output = &'a mut T;
 
-    fn build(self, _input: &'a Input) -> Self::Output {
+    fn build(self) -> Self::Output {
         self
     }
 }
+
+
+pub struct Owned<T>(pub T);
+
+impl<T> Deref for Owned<T> {
+    type Target = T;
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl<T> DerefMut for Owned<T> {
+    #[inline]
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl<T> ParamDerefMut for Owned<T> {
+    type Target = T;
+    type Output = Self;
+
+    fn build(self) -> Self::Output {
+        self
+    }
+}
+
+
+pub struct NewVertexProp<'a, G: 'a, T>(pub &'a G, pub T);
+
+impl<'a, G, T> ParamDerefMut for NewVertexProp<'a, G, T>
+    where G: 'a + WithVertexProp<T>,
+          T: Clone
+{
+    type Target = DefaultVertexPropMut<G, T>;
+    type Output = Owned<DefaultVertexPropMut<G, T>>;
+
+    fn build(self) -> Self::Output {
+        Owned(self.0.vertex_prop(self.1))
+    }
+}
+
+// TODO: create NewEdgeProp
 
 
 // Iterator
 
-pub trait ParamIterator<'a, Input: 'a> {
-    type Item;
-    type Output: Iterator<Item = Self::Item>;
+// TODO: find a better prefix than All
 
-    fn build(self, input: &'a Input) -> Self::Output;
-}
+pub struct AllVertices<'a, G: 'a>(pub &'a G);
 
-impl<'a, Input, I> ParamIterator<'a, Input> for I
-    where Input: 'a,
-          I: IntoIterator
-{
-    type Item = I::Item;
-    type Output = I::IntoIter;
-
-    fn build(self, _input: &'a Input) -> Self::Output {
-        self.into_iter()
-    }
-}
-
-
-#[derive(Default)]
-pub struct AllVertices;
-
-impl<'a, G> ParamIterator<'a, G> for AllVertices
+impl<'a, G> IntoIterator for AllVertices<'a, G>
     where G: 'a + VertexList
 {
     type Item = Vertex<G>;
-    type Output = VertexIter<'a, G>;
+    type IntoIter = VertexIter<'a, G>;
 
-    fn build(self, g: &'a G) -> Self::Output {
-        g.vertices()
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.vertices()
     }
 }
 
 
-#[derive(Default)]
-pub struct AllEdges;
+pub struct AllEdges<'a, G: 'a>(pub &'a G);
 
-impl<'a, G> ParamIterator<'a, G> for AllEdges
+impl<'a, G> IntoIterator for AllEdges<'a, G>
     where G: 'a + EdgeList
 {
     type Item = Edge<G>;
-    type Output = EdgeIter<'a, G>;
+    type IntoIter = EdgeIter<'a, G>;
 
-    fn build(self, g: &'a G) -> Self::Output {
-        g.edges()
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.edges()
     }
 }
 
 
-// VertexProp
-
-pub trait ParamVertexProp<G: WithVertex, T> {
-    type Prop: VertexPropMut<G, T>;
-    type Output: BorrowMut<Self::Prop>;
-
-    fn build(self, g: &G) -> Self::Output;
-}
-
-#[derive(Default)]
-pub struct NewVertexProp<T>(pub T);
-
-impl<G, T> ParamVertexProp<G, T> for NewVertexProp<T>
-    where G: WithVertexProp<T>,
-          T: Clone
-{
-    type Prop = DefaultVertexPropMut<G, T>;
-    type Output = DefaultVertexPropMut<G, T>;
-
-    fn build(self, g: &G) -> Self::Output {
-        g.vertex_prop(self.0)
-    }
-}
-
-impl<'a, G, T, P> ParamVertexProp<G, T> for &'a mut P
-    where G: WithVertex,
-          P: VertexPropMut<G, T>
-{
-    type Prop = P;
-    type Output = &'a mut P;
-
-    fn build(self, _g: &G) -> Self::Output {
-        self
-    }
-}
+// TODO: create AllOutEdges

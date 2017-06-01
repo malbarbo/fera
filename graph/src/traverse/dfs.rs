@@ -3,18 +3,20 @@ use props::Color;
 use traverse::*;
 use params::*;
 
-use std::borrow::BorrowMut;
 use std::iter;
 
 pub trait Dfs: WithEdge {
-    fn dfs<V>(&self, vis: V) -> DfsAlg<&Self, V, AllVertices, NewVertexProp<Color>, NewDfsStack>
+    fn dfs<V>
+        (&self,
+         vis: V)
+         -> DfsAlg<&Self, V, AllVertices<Self>, NewVertexProp<Self, Color>, Owned<DfsStack<Self>>>
         where V: Visitor<Self>
     {
         DfsAlg(self,
                vis,
-               AllVertices,
-               NewVertexProp(Color::White),
-               NewDfsStack)
+               AllVertices(self),
+               NewVertexProp(self, Color::White),
+               Owned(DfsStack::<Self>::new()))
     }
 }
 
@@ -29,23 +31,22 @@ impl<'a, G, V, R, C, S> DfsAlg<&'a G, V, R, C, S> {
     pub fn run(self) -> Control
         where G: Incidence,
               V: Visitor<G>,
-              R: ParamIterator<'a, G, Item = Vertex<G>>,
-              C: ParamVertexProp<G, Color>,
-              S: Param<'a, G, DfsStack<'a, G>>
+              R: IntoIterator<Item = Vertex<G>>,
+              C: ParamDerefMut,
+              C::Target: VertexPropMut<G, Color>,
+              S: ParamDerefMut<Target = DfsStack<'a, G>>
     {
         let DfsAlg(g, mut vis, roots, color, stack) = self;
         return_unless!(vis.start(g));
-        let mut color = color.build(g);
-        let color = color.borrow_mut();
-        let mut stack = stack.build(g);
-        let stack = stack.borrow_mut();
-        for v in roots.build(g) {
+        let mut color = color.build();
+        let mut stack = stack.build();
+        for v in roots {
             if color[v] == Color::White {
                 color[v] = Color::Gray;
                 stack.push((G::edge_none(), v, g.out_edges(v)));
                 return_unless!(vis.discover_root_vertex(g, v));
                 return_unless!(vis.discover_vertex(g, v));
-                return_unless!(dfs_visit(g, color, stack, &mut vis));
+                return_unless!(dfs_visit(g, &mut *color, &mut *stack, &mut vis));
                 return_unless!(vis.finish_root_vertex(g, v));
             }
         }
@@ -106,17 +107,6 @@ pub fn dfs_visit<'a, G, C, V>(g: &'a G,
 
 pub type DfsStack<'a, G> = Vec<(OptionEdge<G>, Vertex<G>, OutEdgeIter<'a, G>)>;
 
-#[derive(Default)]
-pub struct NewDfsStack;
-
-impl<'a, G: 'a + WithEdge> Param<'a, G, DfsStack<'a, G>> for NewDfsStack {
-    type Output = DfsStack<'a, G>;
-
-    fn build(self, _g: &'a G) -> Self::Output {
-        DfsStack::<G>::new()
-    }
-}
-
 
 // Tests
 
@@ -165,58 +155,60 @@ mod tests {
         let g = new();
         let v = vec(g.vertices());
         let e = |x: usize, y: usize| edge_by_ends(&g, v[x], v[y]);
-        let expected = vec![Start,
+        let expected = vec![
+            Start,
 
-                            DiscoverRootVertex(0),
-                            DiscoverVertex(0),
-                            DiscoverEdge(e(0, 1)),
-                            DiscoverTreeEdge(e(0, 1)),
-                            DiscoverVertex(1),
-                            DiscoverEdge(e(1, 2)),
-                            DiscoverTreeEdge(e(1, 2)),
-                            DiscoverVertex(2),
-                            DiscoverEdge(e(2, 0)),
-                            DiscoverBackEdge(e(2, 0)),
-                            FinishEdge(e(2, 0)),
-                            DiscoverEdge(e(2, 3)),
-                            DiscoverTreeEdge(e(2, 3)),
-                            DiscoverVertex(3),
-                            DiscoverEdge(e(3, 1)),
-                            DiscoverBackEdge(e(3, 1)),
-                            FinishEdge(e(3, 1)),
-                            FinishVertex(3),
-                            FinishTreeEdge(e(2, 3)),
-                            FinishEdge(e(2, 3)),
-                            FinishVertex(2),
-                            FinishTreeEdge(e(1, 2)),
-                            FinishEdge(e(1, 2)),
-                            FinishVertex(1),
-                            FinishTreeEdge(e(0, 1)),
-                            FinishEdge(e(0, 1)),
-                            FinishVertex(0),
-                            FinishRootVertex(0),
+            DiscoverRootVertex(0),
+            DiscoverVertex(0),
+            DiscoverEdge(e(0, 1)),
+            DiscoverTreeEdge(e(0, 1)),
+            DiscoverVertex(1),
+            DiscoverEdge(e(1, 2)),
+            DiscoverTreeEdge(e(1, 2)),
+            DiscoverVertex(2),
+            DiscoverEdge(e(2, 0)),
+            DiscoverBackEdge(e(2, 0)),
+            FinishEdge(e(2, 0)),
+            DiscoverEdge(e(2, 3)),
+            DiscoverTreeEdge(e(2, 3)),
+            DiscoverVertex(3),
+            DiscoverEdge(e(3, 1)),
+            DiscoverBackEdge(e(3, 1)),
+            FinishEdge(e(3, 1)),
+            FinishVertex(3),
+            FinishTreeEdge(e(2, 3)),
+            FinishEdge(e(2, 3)),
+            FinishVertex(2),
+            FinishTreeEdge(e(1, 2)),
+            FinishEdge(e(1, 2)),
+            FinishVertex(1),
+            FinishTreeEdge(e(0, 1)),
+            FinishEdge(e(0, 1)),
+            FinishVertex(0),
+            FinishRootVertex(0),
 
-                            DiscoverRootVertex(4),
-                            DiscoverVertex(4),
-                            DiscoverEdge(e(4, 5)),
-                            DiscoverTreeEdge(e(4, 5)),
-                            DiscoverVertex(5),
-                            DiscoverEdge(e(5, 6)),
-                            DiscoverTreeEdge(e(5, 6)),
-                            DiscoverVertex(6),
-                            DiscoverEdge(e(6, 4)),
-                            DiscoverBackEdge(e(6, 4)),
-                            FinishEdge(e(6, 4)),
-                            FinishVertex(6),
-                            FinishTreeEdge(e(5, 6)),
-                            FinishEdge(e(5, 6)),
-                            FinishVertex(5),
-                            FinishTreeEdge(e(4, 5)),
-                            FinishEdge(e(4, 5)),
-                            FinishVertex(4),
-                            FinishRootVertex(4),
+            DiscoverRootVertex(4),
+            DiscoverVertex(4),
+            DiscoverEdge(e(4, 5)),
+            DiscoverTreeEdge(e(4, 5)),
+            DiscoverVertex(5),
+            DiscoverEdge(e(5, 6)),
+            DiscoverTreeEdge(e(5, 6)),
+            DiscoverVertex(6),
+            DiscoverEdge(e(6, 4)),
+            DiscoverBackEdge(e(6, 4)),
+            FinishEdge(e(6, 4)),
+            FinishVertex(6),
+            FinishTreeEdge(e(5, 6)),
+            FinishEdge(e(5, 6)),
+            FinishVertex(5),
+            FinishTreeEdge(e(4, 5)),
+            FinishEdge(e(4, 5)),
+            FinishVertex(4),
+            FinishRootVertex(4),
 
-                            Finish];
+            Finish
+        ];
 
         let mut v = vec![];
         g.recursive_dfs(OnTraverseEvent(|evt| v.push(evt))).run();

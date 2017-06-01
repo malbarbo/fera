@@ -249,6 +249,7 @@ pub trait BuilderTests {
     }
 }
 
+#[macro_export]
 macro_rules! graph_builder_tests {
     ($T: ident) => (
         delegate_tests!{
