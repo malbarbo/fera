@@ -35,6 +35,7 @@ pub mod ext;
 pub mod components;
 pub mod cycles;
 pub mod kruskal;
+pub mod prim;
 pub mod paths;
 pub mod trees;
 
