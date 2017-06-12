@@ -121,6 +121,27 @@ pub trait WithVertex: Sized + for<'a> VertexTypes<'a, Self> {
     fn vertex_some(v: Vertex<Self>) -> OptionVertex<Self> {
         From::from(v)
     }
+
+    fn vertex_prop<P, T>(&self, value: T) -> P
+        where P: VertexPropMutNew<Self, T>,
+              T: Clone
+    {
+        P::new_vertex_prop(self, value)
+    }
+
+    fn vertex_prop_from_fn<P, T, F>(&self, mut fun: F) -> P
+        where Self: VertexList,
+              P: VertexPropMutNew<Self, T>,
+              F: FnMut(Vertex<Self>) -> T,
+              T: Default + Clone
+    {
+        // FIXME: Can we remove T: Default + Clone?
+        let mut p: P = self.vertex_prop(T::default());
+        for v in self.vertices() {
+            p[v] = fun(v);
+        }
+        p
+    }
 }
 
 pub trait EdgeTypes<'a, G: WithEdge> {
@@ -198,6 +219,27 @@ pub trait WithEdge: Sized + WithVertex + for<'a> EdgeTypes<'a, Self> {
     // TODO: is this necessary?
     fn edge_some(e: Edge<Self>) -> OptionEdge<Self> {
         From::from(e)
+    }
+
+    fn edge_prop<P, T>(&self, value: T) -> P
+        where P: EdgePropMutNew<Self, T>,
+              T: Clone
+    {
+        P::new_edge_prop(self, value)
+    }
+
+    fn edge_prop_from_fn<P, F, T>(&self, mut fun: F) -> P
+        where Self: EdgeList,
+              P: EdgePropMutNew<Self, T>,
+              F: FnMut(Edge<Self>) -> T,
+              T: Default + Clone
+    {
+        // FIXME: Can we remove T: Default + Clone?
+        let mut p: P = self.edge_prop(T::default());
+        for e in self.edges() {
+            p[e] = fun(e);
+        }
+        p
     }
 }
 

@@ -127,27 +127,6 @@ pub trait VertexPropMutNew<G, T>: VertexPropMut<G, T>
 pub trait WithVertexProp<T>: WithVertex {
     type VertexProp: VertexPropMutNew<Self, T>;
 
-    fn vertex_prop<P>(&self, value: T) -> P
-        where P: VertexPropMutNew<Self, T>,
-              T: Clone
-    {
-        P::new_vertex_prop(self, value)
-    }
-
-    fn vertex_prop_from_fn<P, F>(&self, mut fun: F) -> P
-        where Self: VertexList,
-              P: VertexPropMutNew<Self, T>,
-              F: FnMut(Vertex<Self>) -> T,
-              T: Default + Clone
-    {
-        // FIXME: Can we remove T: Default + Clone?
-        let mut p: P = self.vertex_prop(T::default());
-        for v in self.vertices() {
-            p[v] = fun(v);
-        }
-        p
-    }
-
     fn default_vertex_prop(&self, value: T) -> DefaultVertexPropMut<Self, T>
         where T: Clone
     {
@@ -209,26 +188,6 @@ pub trait EdgePropMutNew<G, T>: EdgePropMut<G, T>
 
 pub trait WithEdgeProp<T>: WithEdge {
     type EdgeProp: EdgePropMutNew<Self, T>;
-
-    fn edge_prop<P>(&self, value: T) -> P
-        where P: EdgePropMutNew<Self, T>,
-              T: Clone
-    {
-        P::new_edge_prop(self, value)
-    }
-
-    fn edge_prop_from_fn<P, F>(&self, mut fun: F) -> P
-        where Self: EdgeList,
-              P: EdgePropMutNew<Self, T>,
-              F: FnMut(Edge<Self>) -> T,
-              T: Default + Clone
-    {
-        let mut p: P = self.edge_prop(T::default());
-        for e in self.edges() {
-            p[e] = fun(e);
-        }
-        p
-    }
 
     fn default_edge_prop(&self, value: T) -> DefaultEdgePropMut<Self, T>
         where T: Clone
