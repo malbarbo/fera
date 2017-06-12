@@ -6,7 +6,7 @@ use std::ops::{Deref, Index, IndexMut};
 pub type VecVertexProp<G, T> = ArrayProp<VertexIndexProp<G>, Vec<T>>;
 pub type VecEdgeProp<G, T> = ArrayProp<EdgeIndexProp<G>, Vec<T>>;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ArrayProp<P, D> {
     index: P,
     data: D,

@@ -3,6 +3,8 @@
 #[cfg(test)]
 extern crate itertools;
 
+extern crate quickcheck;
+
 extern crate fera_fun;
 extern crate fera_optional;
 extern crate fera_unionfind;
@@ -30,6 +32,8 @@ pub mod props;
 
 pub mod fun;
 pub mod ext;
+
+pub mod arbitrary;
 
 // algorithms
 pub mod components;

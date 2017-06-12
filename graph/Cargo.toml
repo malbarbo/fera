@@ -10,7 +10,7 @@ fnv = "1.0"
 fera-fun = { path = "../fun/" }
 fera-optional = { path = "../optional/" }
 fera-unionfind = { path = "../unionfind/" }
+quickcheck = "0.4"
 
 [dev-dependencies]
 itertools = "0.5"
-quickcheck = "0.4"
