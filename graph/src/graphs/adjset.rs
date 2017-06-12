@@ -1,11 +1,9 @@
 use prelude::*;
 use props::HashMapProp;
 
-use std::collections::hash_map;
-use std::collections::{HashMap, HashSet};
-use std::collections::hash_set;
-use std::hash::BuildHasherDefault;
-use std::hash::{Hash, Hasher};
+use std::cmp::Ordering;
+use std::collections::{hash_map, hash_set, HashMap, HashSet};
+use std::hash::{BuildHasherDefault, Hash, Hasher};
 use std::iter::Cloned;
 use std::marker::PhantomData;
 use fnv::FnvHasher;
@@ -43,7 +41,7 @@ pub trait AdjSetEdge<V>: 'static + GraphItem
 
 // Undirected
 
-#[derive(Copy, Clone, Eq, Debug, PartialOrd, Ord)]
+#[derive(Copy, Clone, Eq, Debug)]
 pub struct UndirectedEdge<V>(V, V);
 
 impl<V: PartialEq> PartialEq for UndirectedEdge<V> {
@@ -55,6 +53,31 @@ impl<V: PartialEq> PartialEq for UndirectedEdge<V> {
 impl<V: PartialEq> PartialEq<(V, V)> for UndirectedEdge<V> {
     fn eq(&self, other: &(V, V)) -> bool {
         self.0 == other.0 && self.1 == other.1 || self.1 == other.0 && self.0 == other.1
+    }
+}
+
+impl<V: Ord> PartialOrd for UndirectedEdge<V> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        let r = if self.0 <= self.1 {
+            if other.0 <= other.1 {
+                self.0.cmp(&other.0).then_with(|| self.1.cmp(&other.1))
+            } else {
+                self.0.cmp(&other.1).then_with(|| self.1.cmp(&other.0))
+            }
+        } else {
+            if other.0 <= other.1 {
+                self.1.cmp(&other.0).then_with(|| self.0.cmp(&other.1))
+            } else {
+                self.1.cmp(&other.1).then_with(|| self.0.cmp(&other.0))
+            }
+        };
+        Some(r)
+    }
+}
+
+impl<V: Ord> Ord for UndirectedEdge<V> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.partial_cmp(other).unwrap()
     }
 }
 
