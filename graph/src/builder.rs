@@ -1,7 +1,10 @@
 use prelude::*;
 use props::Color;
+use components::Components;
 use trees::Trees;
 use fera_fun::set;
+
+use std::cmp;
 
 use rand::{Rng, XorShiftRng};
 use rand::distributions::{IndependentSample, Range};
@@ -26,7 +29,7 @@ macro_rules! graph {
         {
             use $crate::builder::WithBuilder;
             let edges = [$(($u, $v)),*];
-            WithBuilder::new_with_edges($n, &edges)
+            WithBuilder::new_with_edges($n, edges.iter().cloned())
         }
     );
 
@@ -70,9 +73,12 @@ pub trait WithBuilder: WithEdge {
         Self::Builder::new(n, 0).finalize()
     }
 
-    fn new_with_edges(n: usize, edges: &[(usize, usize)]) -> Self {
-        let mut b = Self::Builder::new(n, edges.len());
-        for &(u, v) in edges {
+    fn new_with_edges<I>(n: usize, edges: I) -> Self
+        where I: IntoIterator<Item = (usize, usize)>
+    {
+        let edges = edges.into_iter();
+        let mut b = Self::Builder::new(n, edges.size_hint().1.unwrap_or(0));
+        for (u, v) in edges {
             b.add_edge(u, v);
         }
         b.finalize()
@@ -109,6 +115,41 @@ pub trait WithBuilder: WithEdge {
     fn new_random_tree<R: Rng>(n: usize, rng: R) -> Self {
         random_tree::<Self, _>(n, rng).finalize()
     }
+
+    fn new_gn<R: Rng>(n: usize, mut rng: R) -> Self
+        where Self::Kind: UniformEdgeKind,
+    {
+        let m = if n > 1 {
+            rng.gen_range(0, max_num_edges::<Self>(n))
+        } else {
+            0
+        };
+        Self::new_gnm(n, m, rng).unwrap()
+    }
+
+    fn new_gnm<R: Rng>(n: usize, m: usize, rng: R) -> Option<Self>
+        where Self::Kind: UniformEdgeKind,
+    {
+        gnm::<Self, _>(n, m, rng).map(Builder::finalize)
+    }
+
+    fn new_gn_connected<R: Rng>(n: usize, mut rng: R) -> Self
+        where Self::Kind: UniformEdgeKind,
+    {
+        let m = max_num_edges::<Self>(n);
+        let m = if m > n {
+            rng.gen_range(n, m)
+        } else {
+            cmp::min(n, m)
+        };
+        Self::new_gnm_connected(n, m, rng).unwrap()
+    }
+
+    fn new_gnm_connected<R: Rng>(n: usize, m: usize, rng: R) -> Option<Self>
+        where Self::Kind: UniformEdgeKind,
+    {
+        gnm_connected::<Self, _>(n, m, rng).map(Builder::finalize)
+    }
 }
 
 fn complete<G: WithBuilder>(n: usize) -> G::Builder {
@@ -131,31 +172,138 @@ fn complete_binary_tree<G: WithBuilder>(height: u32) -> G::Builder {
     b
 }
 
-fn random_tree<G, R>(n: usize, mut rng: R) -> G::Builder
+fn random_tree<G, R>(n: usize, rng: R) -> G::Builder
     where G: WithBuilder,
           R: Rng
 {
     if n == 0 {
         return G::builder(0, 0);
     }
-    let range = Range::new(0, n);
     let mut b = G::builder(n, n - 1);
-    let mut visited = vec![false; n];
-    let mut num_edges = 0;
-    let mut u = range.ind_sample(&mut rng);
-    visited[u] = true;
-    while num_edges + 1 < n {
-        let v = range.ind_sample(&mut rng);
-        if visited[v] {
-            u = v;
-        } else {
-            num_edges += 1;
-            visited[v] = true;
-            b.add_edge(u, v);
-            u = v;
-        }
+    for (u, v) in RandomTreeIter::new(n, rng) {
+        b.add_edge(u, v);
     }
     b
+}
+
+fn max_num_edges<G>(n: usize) -> usize
+    where G: WithEdge,
+          G::Kind: UniformEdgeKind
+{
+    if G::Kind::is_directed() {
+        n * n
+    } else {
+        (n * n - n) / 2
+    }
+}
+
+fn gnm_connected<G, R>(n: usize, m: usize, mut rng: R) -> Option<G::Builder>
+    where G: WithBuilder,
+          G::Kind: UniformEdgeKind,
+          R: Rng
+{
+    use std::collections::HashSet;
+
+    if n == 0 {
+        return Some(G::builder(0, 0));
+    }
+
+    if m > max_num_edges::<G>(n) || m < n - 1 {
+        return None
+    }
+
+    let mut b = G::builder(n, m);
+    let mut set = HashSet::new();
+    for (u, v) in RandomTreeIter::new(n, &mut rng) {
+        set.insert((u, v));
+        b.add_edge(u, v)
+    }
+
+    while set.len() != m {
+        let u = rng.gen_range(0, n);
+        let v = rng.gen_range(0, n);
+        if u == v || set.contains(&(u, v)) || G::Kind::is_undirected() && set.contains(&(v, u)) {
+            continue;
+        }
+        set.insert((u, v));
+        b.add_edge(u, v)
+    }
+
+    Some(b)
+}
+
+fn gnm<G, R>(n: usize, m: usize, mut rng: R) -> Option<G::Builder>
+    where G: WithBuilder,
+          G::Kind: UniformEdgeKind,
+          R: Rng
+{
+    use std::collections::HashSet;
+
+    if m > max_num_edges::<G>(n) {
+        return None
+    }
+
+    let mut b = G::builder(n, m);
+    let mut set = HashSet::new();
+    while set.len() != m {
+        let u = rng.gen_range(0, n);
+        let v = rng.gen_range(0, n);
+        if u == v || set.contains(&(u, v)) || G::Kind::is_undirected() && set.contains(&(v, u)) {
+            continue;
+        }
+        set.insert((u, v));
+        b.add_edge(u, v)
+    }
+
+    Some(b)
+}
+
+
+// Iterator
+
+struct RandomTreeIter<R> {
+    visited: Vec<bool>,
+    rem: usize,
+    rng: R,
+    range: Range<usize>,
+    cur: usize,
+}
+
+impl<R: Rng> RandomTreeIter<R> {
+    fn new(n: usize, mut rng: R) -> Self {
+        let range = Range::new(0, n);
+        let cur = range.ind_sample(&mut rng);
+        let mut visited = vec![false; n];
+        visited[cur] = true;
+        RandomTreeIter {
+            visited,
+            rem: n.checked_sub(1).unwrap_or(0),
+            rng,
+            range,
+            cur,
+        }
+    }
+}
+
+impl<R: Rng> Iterator for RandomTreeIter<R> {
+    type Item = (usize, usize);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.rem == 0 {
+            return None
+        }
+        loop {
+            let v = self.range.ind_sample(&mut self.rng);
+            if self.visited[v] {
+                self.cur = v;
+            } else {
+                self.rem -= 1;
+                self.visited[v] = true;
+                let u = self.cur;
+                return Some((u, v))
+            }
+        }
+    }
 }
 
 
@@ -247,6 +395,44 @@ pub trait BuilderTests {
             }
         }
     }
+
+    fn gnm()
+        where Self::G: WithEdge + VertexList + EdgeList,
+              <Self::G as WithEdge>::Kind: UniformEdgeKind,
+    {
+        let mut rng = XorShiftRng::new_unseeded();
+
+        assert!(Self::G::new_gnm(4, 20, &mut rng).is_none());
+
+        for n in 0..10 {
+            for m in 0..30 {
+                if let Some(g) = Self::G::new_gnm(n, m, &mut rng) {
+                    assert_eq!(n, g.num_vertices());
+                    assert_eq!(m, g.num_edges());
+                }
+            }
+        }
+    }
+
+    fn gnm_connected()
+        where Self::G: Incidence + WithVertexProp<Color>,
+              <Self::G as WithEdge>::Kind: UniformEdgeKind,
+    {
+        let mut rng = XorShiftRng::new_unseeded();
+
+        assert!(Self::G::new_gnm_connected(4, 20, &mut rng).is_none());
+        assert!(Self::G::new_gnm_connected(4, 2, &mut rng).is_none());
+
+        for n in 1..10 {
+            for m in (n - 1)..30 {
+                if let Some(g) = Self::G::new_gnm_connected(n, m, &mut rng) {
+                    assert!(g.is_connected());
+                    assert_eq!(n, g.num_vertices());
+                    assert_eq!(m, g.num_edges());
+                }
+            }
+        }
+    }
 }
 
 #[macro_export]
@@ -258,7 +444,9 @@ macro_rules! graph_builder_tests {
             graph_prop_macro,
             complete,
             complete_binary_tree,
-            random_tree
+            random_tree,
+            gnm,
+            gnm_connected
         }
     )
 }
