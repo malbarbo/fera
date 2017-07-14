@@ -4,16 +4,18 @@ use rand::Rng;
 
 use std::cmp::Ordering;
 
-/// An extension trait for `std::vec::Vec`.
+/// An extension trait for [`std::vec::Vec`].
 ///
-/// The methods with the suffix `ed` are like the original methods, but consumes the vector. This
-/// is interesting to chain methods call. For example:
+/// Methods with the suffix `ed` are like the original methods, but consumes the vector. This is
+/// interesting to chain methods call. For example:
 ///
 /// ```
 /// use fera_ext::VecExt;
 ///
 /// assert_eq!(vec![1, 2, 3], vec![4, 3, 1, 3, 4, 2].sorted().deduped().truncated(3));
 /// ```
+///
+/// [`std::vec::Vec`]: https://doc.rust-lang.org/stable/std/vec/struct.Vec.html
 // TODO: create a plugin to generated *ed methods
 #[allow(missing_docs)]
 pub trait VecExt<T> {
@@ -22,9 +24,9 @@ pub trait VecExt<T> {
     /// # Safety
     ///
     /// This is unsafe because some values maybe not be dropped or some values maybe dropped
-    /// without being initialized. See
-    /// [std::mem::uninitialized](https://doc.rust-lang.org/stable/std/mem/fn.uninitialized.html)
-    /// for more informations.
+    /// without being initialized. See [`std::mem::uninitialized`] for more informations.
+    ///
+    /// [`std::mem::uninitialized`]: https://doc.rust-lang.org/stable/std/mem/fn.uninitialized.html
     unsafe fn new_uninitialized(len: usize) -> Self;
 
     fn appended(self, other: &mut Self) -> Self;
