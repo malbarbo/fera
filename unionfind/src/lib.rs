@@ -4,14 +4,17 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-//! Union-find (disjoint-set) data structure implementation.
+//! Union-find ([disjoint-set]) data structure implementation.
 //!
 //! This implementation use path compression and rank heuristic. With default type parameters the
-//! parents and rank are stored in a `std::collections::HashMap`. If the keys is range `0..n`, use
-//! `UnionFindRange`.
+//! parents and ranks are stored in a [`std::collections::HashMap`]. If the keys are in range
+//! `0..n`, use [`UnionFindRange`].
 //!
 //! The keys should implement `Copy`. If the keys does not implement `Copy`, references to the keys
 //! stored elsewhere should be used.
+//!
+//! This crate can be used through [`fera`] crate.
+//!
 //!
 //! # Examples
 //!
@@ -83,6 +86,12 @@
 //! assert!(!s.in_same_set(0, 1));
 //! assert!(s.in_same_set(0, 2));
 //! ```
+//!
+//!
+//! [disjoint-set]: https://en.wikipedia.org/wiki/Disjoint-set_data_structure
+//! [`fera`]: https://docs.rs/fera
+//! [`std::collections::HashMap`]: https://doc.rust-lang.org/stable/std/collections/struct.HashMap.html
+//! [`UnionFindRange`]: type.UnionFindRange.html
 
 #![cfg_attr(feature = "cargo-clippy", allow(inline_always))]
 
@@ -96,10 +105,14 @@ use std::ops::{Index, IndexMut, RangeTo};
 
 type HashMapFnv<K, V> = HashMap<K, V, BuildHasherDefault<fnv::FnvHasher>>;
 
-/// `UnionFind` with keys in range `0..n`.
+/// [`UnionFind`] with keys in range `0..n`.
+///
+/// [`UnionFind`]: struct.UnionFind.html
 pub type UnionFindRange = UnionFind<usize, Vec<usize>, Vec<usize>>;
 
-/// A union-find (disjoint-set) struct.
+/// A union-find ([disjoint-set]) struct.
+///
+/// [disjoint-set]: https://en.wikipedia.org/wiki/Disjoint-set_data_structure
 #[derive(Clone)]
 pub struct UnionFind<Key, Parent = IndexedHashMap<Key, Key>, Rank = IndexedHashMap<Key, usize>>
     where Key: Copy + PartialEq,
@@ -218,11 +231,14 @@ impl<Key, Parent, Rank> UnionFind<Key, Parent, Rank>
 }
 
 impl<K: Copy + Hash + Eq> UnionFind<K> {
-    /// Creates a new `UnionFind`.
+    /// Creates a new [`UnionFind`].
+    ///
+    /// [`UnionFind`]: struct.UnionFind.html
     pub fn new() -> Self {
         fn zero<K: Clone>(_: &K) -> usize {
             0
         }
+
         UnionFind::with_parent_rank_num_sets(IndexedHashMap::new(Clone::clone),
                                              IndexedHashMap::new(zero),
                                              0)
@@ -238,7 +254,9 @@ impl UnionFindRange {
     }
 }
 
-/// This implements a map that can be used with `UnionFind`.
+/// This implements a map that can be used with [`UnionFind`].
+///
+/// [`UnionFind`]: struct.UnionFind.html
 // TODO: allow the hasher to be specified
 pub struct IndexedHashMap<K, V>
     where K: Copy + Hash + Eq
