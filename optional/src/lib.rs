@@ -3,15 +3,18 @@
 //! There are two main uses for this:
 //!
 //! 1. To abstract over the representation of optional values in generic code
-//!    ([`Optional`](trait.Optional.html) trait);
-//! 2. To represent optional value in a space efficient way (`OptionalBool` `OptionalMax`,
-//!    `OptionalMin`, etc).
+//!    ([`Optional`] trait);
+//! 2. To represent optional value in a space efficient way ([`OptionalBool`], [`OptionalMax`],
+//!    [`OptionalMin`], etc).
 //!
-//! Note that this is complementary to `std::option::Option`, not a replacement. The idea is to use
-//! the `std::option::Option` interface by converting an `Optional` to an `std::option::Option`.
+//! Note that this is complementary to [`std::option::Option`], not a replacement. The idea is to
+//! use [`std::option::Option`] interface by converting an [`Optional`] value to an
+//! [`std::option::Option`] value.
 //!
-//! The [optional](https://crates.io/crates/optional) crate is similar, but we think that this
-//! module is more generic, mainly because optional crate is not concerned with the use case 1.
+//! The [`optional`] crate is similar, but we think that this module is more generic, mainly
+//! because [`optional`] crate is not concerned with the use case 1.
+//!
+//! This crate can be used through [`fera`] crate.
 //!
 //! # Example
 //!
@@ -54,6 +57,14 @@
 //! *x.to_option_mut().unwrap() = true;
 //! assert!(*x.to_option_ref().unwrap());
 //! ```
+//!
+//! [`fera`]: https://docs.rs/fera
+//! [`OptionalBool`]: struct.OptionalBool.html
+//! [`optional`]: https://crates.io/crates/optional
+//! [`OptionalMax`]: type.OptionalMax.html
+//! [`OptionalMin`]: type.OptionalMin.html
+//! [`Optional`]: trait.Optional.html
+//! [`std::option::Option`]: https://doc.rust-lang.org/stable/std/option/enum.Option.html
 
 extern crate num_traits;
 
@@ -69,8 +80,10 @@ pub type OptionalMax<T> = Optioned<T, MaxNone<T>>;
 /// An `Optional` that uses `T::min_value()` as `None`.
 pub type OptionalMin<T> = Optioned<T, MinNone<T>>;
 
-/// A trait that represents an optional value. This is a complement to `std::option::Option` that
+/// A trait that represents an optional value. This is a complement to [`std::option::Option`] that
 /// allows implementations to choose how to represent `Some` and `None`.
+///
+/// [`std::option::Option`]: https://doc.rust-lang.org/stable/std/option/enum.Option.html
 pub trait Optional<T>: Default + From<T> {
     /// Returns an `Option<&T>` that is equivalent to this `Optional`.
     fn to_option_ref(&self) -> Option<&T>;
