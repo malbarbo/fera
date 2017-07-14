@@ -1,3 +1,4 @@
+//! Graph data structures and algorithms.
 #![cfg_attr(feature = "cargo-clippy", allow(inline_always))]
 
 #[cfg(test)]

@@ -4,11 +4,10 @@ use common::OutNeighborFromOutEdge;
 use ext::IntoOwned;
 use props::{DelegateEdgeProp, DelegateVertexProp, DelegateProp};
 
-use fera_fun::position;
-
 use std::iter::Cloned;
 use std::slice;
 
+use fera_fun::position_item;
 use rand::Rng;
 
 // FIXME: unify SpanningSubgraph with Subgraph
@@ -77,7 +76,7 @@ impl<'a, G> SpanningSubgraph<'a, G>
 
 #[inline]
 fn vec_find_swap_remove<T: PartialEq>(vec: &mut Vec<T>, value: T) -> bool {
-    if let Some(i) = position(&*vec, |t| t == &value) {
+    if let Some(i) = position_item(&*vec, &value) {
         vec.swap_remove(i);
         true
     } else {

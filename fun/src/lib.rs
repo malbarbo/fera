@@ -1,32 +1,25 @@
+//! Free functions for fun programming.
+//!
+//! This crate can be used through [`fera`] crate.
+//!
+//! [`fera`]: https://docs.rs/fera
+
+use std::borrow::Borrow;
 use std::collections::HashSet;
 use std::hash::Hash;
-use std::iter::{Chain, Cloned, Enumerate, Rev};
+use std::iter::Enumerate;
 
-mod cmp;
-pub use cmp::*;
-
-pub fn chain<I, J>(i: I, j: J) -> Chain<I::IntoIter, J::IntoIter>
-    where I: IntoIterator,
-          J: IntoIterator<Item = I::Item>
-{
-    i.into_iter().chain(j)
-
-}
-
-pub fn cloned<'a, I, T>(iter: I) -> Cloned<I::IntoIter>
-    where I: IntoIterator<Item = &'a T>,
-          T: 'a + Clone
-{
-    iter.into_iter().cloned()
-}
-
+/// [`IntoIterator`] version of [`Iterator::enumerate`].
+///
+/// [`IntoIterator`]: https://doc.rust-lang.org/stable/std/iter/trait.IntoIterator.html
+/// [`Iterator::enumerate`]: https://doc.rust-lang.org/stable/std/iter/trait.Iterator.html#method.enumerate
 pub fn enumerate<I>(iter: I) -> Enumerate<I::IntoIter>
     where I: IntoIterator
 {
     iter.into_iter().enumerate()
 }
 
-/// Returns the first item from an iterator.
+/// Returns the first item of an iterator.
 ///
 /// # Panics
 ///
@@ -46,11 +39,59 @@ pub fn first<I>(iter: I) -> I::Item
     iter.into_iter().next().unwrap()
 }
 
-pub fn position<I, F>(iter: I, pred: F) -> Option<usize>
+/// Returns the first position of an item of an iterator or `None` if the iterator does not
+/// produces the item.
+///
+/// ```
+/// use fera_fun::position_item;
+///
+/// assert_eq!(Some(1), position_item(&[0, 3, 3, 0, 5], &3));
+/// ```
+pub fn position_item<I, T>(iter: I, item: &T) -> Option<usize>
     where I: IntoIterator,
-          F: FnMut(I::Item) -> bool
+          I::Item: Borrow<T>,
+          T: PartialEq
 {
-    iter.into_iter().position(pred)
+    iter.into_iter()
+        .position(|x| x.borrow() == item)
+}
+
+/// Returns the last position of the maximum element of a non empty iterator or `None` if iterator
+/// is empty.
+///
+/// ```
+/// use fera_fun::position_max_by_key;
+///
+/// assert_eq!(Some(4), position_max_by_key(&[0i32, 3, -5, 0, 5], |x| x.abs()));
+/// ```
+pub fn position_max_by_key<I, F, X>(iter: I, mut f: F) -> Option<usize>
+    where I: IntoIterator,
+          X: Ord,
+          F: FnMut(&I::Item) -> X
+{
+    iter.into_iter()
+        .enumerate()
+        .max_by_key(|x| f(&x.1))
+        .map(|x| x.0)
+}
+
+/// Returns the first position of the minimum element of a non empty iterator or `None` if iterator
+/// is empty.
+///
+/// ```
+/// use fera_fun::position_min_by_key;
+///
+/// assert_eq!(Some(0), position_min_by_key(&[0i32, 3, -5, 0, 5], |x| x.abs()));
+/// ```
+pub fn position_min_by_key<I, F, X>(iter: I, mut f: F) -> Option<usize>
+    where I: IntoIterator,
+          X: Ord,
+          F: FnMut(&I::Item) -> X
+{
+    iter.into_iter()
+        .enumerate()
+        .min_by_key(|x| f(&x.1))
+        .map(|x| x.0)
 }
 
 /// Creates a Vector from a iterator.
@@ -78,11 +119,4 @@ pub fn set<I>(iter: I) -> HashSet<I::Item>
           I::Item: Hash + Eq
 {
     iter.into_iter().collect()
-}
-
-pub fn rev<I>(iter: I) -> Rev<I::IntoIter>
-    where I: IntoIterator,
-          I::IntoIter: DoubleEndedIterator
-{
-    iter.into_iter().rev()
 }

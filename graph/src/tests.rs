@@ -1,7 +1,7 @@
 use prelude::*;
 use props::HashMapProp;
 
-use fera_fun::{cloned, enumerate, vec, set};
+use fera_fun::{enumerate, vec, set};
 
 use std::collections::HashSet;
 
@@ -91,7 +91,7 @@ pub trait GraphTests {
     {
         let (g, vertices, _) = Self::new();
         assert_eq!(vertices.len(),
-                   set(cloned(&vertices)).len(),
+                   set(&vertices).len(),
                    "found repeated vertices");
         assert_eq!(vertices.len(), g.num_vertices());
         assert_eq!(vertices, vec(g.vertices()));
@@ -116,7 +116,7 @@ pub trait GraphTests {
     {
         let (g, _, edges) = Self::new();
         assert_eq!(edges.len(),
-                   set(cloned(&edges)).len(),
+                   set(&edges).len(),
                    "found repeated edges");
         assert_eq!(edges.len(), g.num_edges());
         assert_eq!(edges, vec(g.edges()));
@@ -209,7 +209,7 @@ pub trait GraphTests {
             }
         }
         for u in vertices {
-            assert_eq!(set(cloned(&n[u])), set(g.out_neighbors(u)));
+            assert_eq!(set(n[u].iter().cloned()), set(g.out_neighbors(u)));
             assert_eq!(d[u], g.out_degree(u))
         }
     }
@@ -234,7 +234,7 @@ pub trait GraphTests {
                         e,
                         g.end_vertices(e));
             }
-            assert_eq!(set(cloned(&inc[u])), out);
+            assert_eq!(set(inc[u].iter().cloned()), out);
         }
     }
 
