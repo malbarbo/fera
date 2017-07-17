@@ -2,7 +2,7 @@ use prelude::*;
 use choose::Choose;
 use common::OutNeighborFromOutEdge;
 use ext::IntoOwned;
-use props::{DelegateEdgeProp, DelegateVertexProp, DelegateProp};
+use props::{DelegateEdgeProp, DelegateVertexProp};
 
 use std::iter::Cloned;
 use std::slice;
@@ -87,10 +87,11 @@ fn vec_find_swap_remove<T: PartialEq>(vec: &mut Vec<T>, value: T) -> bool {
 
 // Trait implementations
 
-impl<'a, G> DelegateProp<G> for SpanningSubgraph<'a, G>
+impl<'a, G> AsRef<G> for SpanningSubgraph<'a, G>
     where G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>>
 {
-    fn delegate_prop(&self) -> &G {
+    #[inline]
+    fn as_ref(&self) -> &G {
         self.g
     }
 }

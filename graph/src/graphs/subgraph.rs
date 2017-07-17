@@ -1,7 +1,7 @@
 use prelude::*;
 use choose::Choose;
 use common::OutNeighborFromOutEdge;
-use props::{DelegateEdgeProp, DelegateVertexProp, DelegateProp};
+use props::{DelegateEdgeProp, DelegateVertexProp};
 use graphs::spanning_subgraph::SpanningSubgraph;
 use ext::IntoOwned;
 
@@ -27,10 +27,11 @@ pub struct Subgraph<'a, G>
 
 // Traits implementations
 
-impl<'a, G> DelegateProp<G> for Subgraph<'a, G>
+impl<'a, G> AsRef<G> for Subgraph<'a, G>
     where G: 'a + Graph
 {
-    fn delegate_prop(&self) -> &G {
+    #[inline]
+    fn as_ref(&self) -> &G {
         self.g
     }
 }
