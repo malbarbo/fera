@@ -7,13 +7,20 @@ use fnv::FnvHasher;
 
 type HashMapFnv<K, V> = HashMap<K, V, BuildHasherDefault<FnvHasher>>;
 
-// TODO: explain what happens when default has interior mutability
+/// A property backed by a [`HashMap`].
+///
+/// [`HashMap`]: https://doc.rust-lang.org/stable/std/collections/struct.HashMap.html
 pub struct HashMapProp<I: GraphItem, T: Clone> {
     default: T,
     map: HashMapFnv<I, T>,
 }
 
 impl<I: GraphItem, T: Clone> HashMapProp<I, T> {
+    /// Creates a new [`HashMapProp`] that maps each to key to a reference to `default` value until
+    /// a value is associated with the key.
+    ///
+    /// As there can be many references to `default`, interior mutability should be used with
+    /// caution.
     pub fn new(default: T) -> Self {
         HashMapProp {
             default: default,

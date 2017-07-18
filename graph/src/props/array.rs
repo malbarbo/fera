@@ -2,10 +2,21 @@ use prelude::*;
 
 use std::ops::{Deref, Index, IndexMut};
 
-// TODO: Define a feature to disable bounds check.
+// TODO: define a feature to disable bounds check (or a property type?).
+/// A vertex property backed by a [`Vec`].
+///
+/// [`Vec`]: https://doc.rust-lang.org/stable/std/vec/struct.Vec.html
 pub type VecVertexProp<G, T> = ArrayProp<VertexIndexProp<G>, Vec<T>>;
+
+/// A edge property backed by a [`Vec`].
+///
+/// [`Vec`]: https://doc.rust-lang.org/stable/std/vec/struct.Vec.html
 pub type VecEdgeProp<G, T> = ArrayProp<EdgeIndexProp<G>, Vec<T>>;
 
+// TODO: Define SliceVertexProp and SliceEdgeProp
+
+// TODO: Rename to SequenceProp
+/// A property backed by an array.
 #[derive(Clone, Debug)]
 pub struct ArrayProp<P, D> {
     index: P,

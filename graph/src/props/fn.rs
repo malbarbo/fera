@@ -1,5 +1,6 @@
 use props::PropGet;
 
+/// A read only property backed by a function.
 #[derive(Clone, Copy)]
 pub struct FnProp<F>(pub F);
 
