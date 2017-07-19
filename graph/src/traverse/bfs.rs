@@ -69,7 +69,7 @@ pub fn bfs_visit<G, C, V>(g: &G, color: &mut C, queue: &mut BfsQueue<G>, vis: &m
     while let Some((from, u)) = queue.pop_front() {
         for e in g.out_edges(u) {
             let v = g.target(e);
-            if g.is_undirected_edge(e) && color[v] == Color::Black || G::edge_some(e) == from {
+            if g.orientation(e).is_undirected() && color[v] == Color::Black || G::edge_some(e) == from {
                 continue;
             }
             return_unless!(vis.discover_edge(g, e));

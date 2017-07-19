@@ -133,7 +133,7 @@ pub trait GraphTests {
             // TODO: test return None
             assert_eq!(e, g.edge_by_ends(u, v));
             assert_eq!(Some(e), g.get_edge_by_ends(u, v));
-            if g.is_undirected_edge(e) {
+            if g.orientation(e).is_undirected() {
                 assert_eq!(e, g.edge_by_ends(v, u));
                 assert_eq!(Some(e), g.get_edge_by_ends(v, u));
             }
@@ -174,7 +174,7 @@ pub trait GraphTests {
         }
         let (g, _, edges) = Self::new();
         for (e, u, v) in g.with_ends(edges) {
-            if g.is_undirected_edge(e) {
+            if g.orientation(e).is_undirected() {
                 // FIXME: reverse is not being directly tested
                 let r = g.get_reverse(e).unwrap();
                 assert_eq!(e, r);
@@ -203,7 +203,7 @@ pub trait GraphTests {
         for (e, u, v) in g.with_ends(edges) {
             n[u].push(v);
             d[u] += 1;
-            if g.is_undirected_edge(e) {
+            if g.orientation(e).is_undirected() {
                 n[v].push(u);
                 d[v] += 1;
             }
@@ -221,7 +221,7 @@ pub trait GraphTests {
         let mut inc = HashMapProp::new(Vec::<Edge<Self::G>>::new());
         for (e, u, v) in g.with_ends(edges) {
             inc[u].push(e);
-            if g.is_undirected_edge(e) {
+            if g.orientation(e).is_undirected() {
                 inc[v].push(g.get_reverse(e).unwrap());
             }
         }
@@ -261,7 +261,7 @@ pub trait GraphTests {
         }
         for (i, &e) in enumerate(&edges) {
             assert_eq!(i + 1, p[e]);
-            if g.is_undirected_edge(e) {
+            if g.orientation(e).is_undirected() {
                 assert_eq!(i + 1, p[g.get_reverse(e).unwrap()])
             }
         }

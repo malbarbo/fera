@@ -47,7 +47,7 @@ impl<'a, G: WithEdge> Visitor<G> for IsDag<'a> {
     }
 
     fn discover_edge(&mut self, g: &G, e: Edge<G>) -> Control {
-        *self.0 &= g.is_directed_edge(e);
+        *self.0 &= g.orientation(e).is_directed();
         continue_if(*self.0)
     }
 

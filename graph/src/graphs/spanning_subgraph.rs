@@ -35,7 +35,7 @@ impl<'a, G> SpanningSubgraph<'a, G>
         let (u, v) = self.g.ends(e);
         self.edges.push(e);
         self.out_edges[u].push(e);
-        if self.g.is_undirected_edge(e) {
+        if self.g.orientation(e).is_undirected() {
             self.out_edges[v].push(self.g.get_reverse(e).unwrap());
         }
     }
@@ -68,7 +68,7 @@ impl<'a, G> SpanningSubgraph<'a, G>
         let (u, v) = self.g.ends(e);
         assert!(vec_find_swap_remove(&mut self.edges, e));
         assert!(vec_find_swap_remove(&mut self.out_edges[u], e));
-        if self.g.is_undirected_edge(e) {
+        if self.g.orientation(e).is_undirected() {
             assert!(vec_find_swap_remove(&mut self.out_edges[v], e));
         }
     }

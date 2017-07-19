@@ -72,7 +72,7 @@ pub fn dfs_visit<'a, G, C, V>(g: &'a G,
     'out: while let Some((from, u, mut inc)) = stack.pop() {
         while let Some(e) = inc.next() {
             let v = g.target(e);
-            if g.is_undirected_edge(e) && color[v] == Color::Black || G::edge_some(e) == from {
+            if g.orientation(e).is_undirected() && color[v] == Color::Black || G::edge_some(e) == from {
                 continue;
             }
             return_unless!(vis.discover_edge(g, e));

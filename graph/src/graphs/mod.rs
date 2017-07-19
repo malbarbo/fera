@@ -61,11 +61,13 @@ pub enum Orientation {
 }
 
 impl Orientation {
-    fn is_directed(&self) -> bool {
+    #[inline]
+    pub fn is_directed(&self) -> bool {
         *self == Orientation::Directed
     }
 
-    fn is_undirected(&self) -> bool {
+    #[inline]
+    pub fn is_undirected(&self) -> bool {
         *self == Orientation::Undirected
     }
 }
@@ -75,10 +77,12 @@ pub trait EdgeKind {}
 pub trait UniformEdgeKind: EdgeKind {
     fn orientation() -> Orientation;
 
+    #[inline]
     fn is_directed() -> bool {
         Self::orientation().is_directed()
     }
 
+    #[inline]
     fn is_undirected() -> bool {
         Self::orientation().is_undirected()
     }
@@ -91,6 +95,7 @@ pub enum Directed {}
 impl EdgeKind for Directed {}
 
 impl UniformEdgeKind for Directed {
+    #[inline]
     fn orientation() -> Orientation {
         Orientation::Directed
     }
@@ -103,6 +108,7 @@ pub enum Undirected {}
 impl EdgeKind for Undirected {}
 
 impl UniformEdgeKind for Undirected {
+    #[inline]
     fn orientation() -> Orientation {
         Orientation::Undirected
     }
@@ -168,14 +174,6 @@ pub trait WithEdge: Sized + WithVertex + for<'a> EdgeTypes<'a, Self> {
     type OptionEdge: 'static + GraphItem + Optional<Edge<Self>> + From<Option<Edge<Self>>>;
 
     fn orientation(&self, _e: Edge<Self>) -> Orientation;
-
-    fn is_directed_edge(&self, e: Edge<Self>) -> bool {
-        self.orientation(e) == Orientation::Directed
-    }
-
-    fn is_undirected_edge(&self, e: Edge<Self>) -> bool {
-        self.orientation(e) == Orientation::Undirected
-    }
 
     fn source(&self, e: Edge<Self>) -> Vertex<Self>;
 
@@ -287,7 +285,7 @@ pub trait EdgeList: Sized + WithEdge {
             if (u, v) == (a, b) {
                 return Some(e);
             }
-            if self.is_directed_edge(e) {
+            if self.orientation(e).is_directed() {
                 continue;
             }
             if let Some(e) = self.get_reverse(e) {

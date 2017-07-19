@@ -69,7 +69,7 @@ pub fn recursive_dfs_visit<G, C, V>(g: &G,
     return_unless!(vis.discover_vertex(g, u));
     for e in g.out_edges(u) {
         let v = g.target(e);
-        if g.is_undirected_edge(e) && color[v] == Color::Black || G::edge_some(e) == from {
+        if g.orientation(e).is_undirected() && color[v] == Color::Black || G::edge_some(e) == from {
             continue;
         }
         return_unless!(vis.discover_edge(g, e));
