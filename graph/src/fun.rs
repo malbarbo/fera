@@ -1,3 +1,5 @@
+//! Free functions.
+
 use prelude::*;
 use ext::IntoOwned;
 use std::iter::Sum;

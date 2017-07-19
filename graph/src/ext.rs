@@ -1,3 +1,5 @@
+//! Extension traits for std types.
+
 use prelude::*;
 
 // TODO: Create an IntoIteratorOwned

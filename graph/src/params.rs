@@ -1,3 +1,5 @@
+//! Support for generic algorithms parameters.
+
 use prelude::*;
 
 use std::ops::{Deref, DerefMut};

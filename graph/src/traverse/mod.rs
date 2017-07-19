@@ -1,3 +1,7 @@
+//! [Graph traversal] (graph search) algoritmos, including BFS, DFS, etc.
+//!
+//! [Graph traversal]: https://en.wikipedia.org/wiki/Graph_traversal.
+
 use graph::*;
 
 #[macro_use]

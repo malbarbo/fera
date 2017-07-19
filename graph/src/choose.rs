@@ -1,3 +1,5 @@
+//! Random selection of vertices and edges.
+
 use prelude::*;
 
 use rand::Rng;

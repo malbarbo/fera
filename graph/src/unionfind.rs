@@ -1,3 +1,6 @@
+//! Union-find ([disjoint-set]) data structure.
+//!
+//! [disjoint-set]: https://en.wikipedia.org/wiki/Disjoint-set_data_structure
 use prelude::*;
 
 use fera_fun::first;

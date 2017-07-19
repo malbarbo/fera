@@ -1,3 +1,7 @@
+//! Generate arbitrary graphs to be use in [quickcheck] tests.
+//!
+//! [quickcheck]: https://github.com/BurntSushi/quickcheck
+
 use prelude::*;
 use adjset::{UndirectedEdge, AdjSetEdge};
 use props::HashMapProp;
