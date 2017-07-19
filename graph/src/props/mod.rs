@@ -250,7 +250,6 @@ pub trait WithEdgeProp<T>: WithEdge {
 
 // Basic properties traits
 
-#[macro_export]
 macro_rules! items {
     ($($item:item)*) => ($($item)*);
 }

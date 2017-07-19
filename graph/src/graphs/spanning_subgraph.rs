@@ -1,7 +1,7 @@
 use prelude::*;
 use choose::Choose;
-use common::OutNeighborFromOutEdge;
 use ext::IntoOwned;
+use graphs::OutNeighborFromOutEdge;
 use props::{DelegateEdgeProp, DelegateVertexProp};
 
 use std::iter::Cloned;

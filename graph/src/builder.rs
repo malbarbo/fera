@@ -1,4 +1,4 @@
-//! Builder to created user defined, standard and random graphs.
+//! Builder to create user defined, standard and random graphs.
 
 use prelude::*;
 use algs::{Components, Trees};

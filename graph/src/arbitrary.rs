@@ -3,7 +3,7 @@
 //! [quickcheck]: https://github.com/BurntSushi/quickcheck
 
 use prelude::*;
-use adjset::{UndirectedEdge, AdjSetEdge};
+use graphs::adjset::{UndirectedEdge, AdjSetEdge};
 use props::HashMapProp;
 
 use fera_fun::vec;

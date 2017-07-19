@@ -1,4 +1,4 @@
-use graph::*;
+use prelude::*;
 use props::*;
 use super::control::*;
 

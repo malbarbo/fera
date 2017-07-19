@@ -1,4 +1,4 @@
-//! Collection of graph algorithms.
+//! Collection of algorithms.
 
 pub mod components;
 pub mod cycles;

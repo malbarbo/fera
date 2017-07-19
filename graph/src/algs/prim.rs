@@ -161,6 +161,7 @@ impl<A: Ord, B> Ord for QueueItem<A, B> {
 mod tests {
     use super::Prim;
     use prelude::*;
+    use fun::sum_prop;
     use fera_fun::vec;
 
     #[test]

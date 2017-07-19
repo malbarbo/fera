@@ -1,9 +1,9 @@
 use prelude::*;
 use choose::Choose;
-use common::OutNeighborFromOutEdge;
-use props::{DelegateEdgeProp, DelegateVertexProp};
-use graphs::spanning_subgraph::SpanningSubgraph;
 use ext::IntoOwned;
+use graphs::OutNeighborFromOutEdge;
+use graphs::spanning_subgraph::SpanningSubgraph;
+use props::{DelegateEdgeProp, DelegateVertexProp};
 
 use fera_fun::vec;
 

@@ -8,6 +8,7 @@ use fera_fun::vec;
 use fera_graph::prelude::*;
 use fera_graph::algs::{Kruskal, Prim, Trees};
 use fera_graph::arbitrary::GnConnectedWithEdgeProp;
+use fera_graph::sum_prop;
 
 quickcheck! {
     fn mst(x: GnConnectedWithEdgeProp<StaticGraph, u32>) -> bool {

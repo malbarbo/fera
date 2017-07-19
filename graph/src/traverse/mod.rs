@@ -1,8 +1,6 @@
-//! [Graph traversal] (graph search) algoritmos, including BFS, DFS, etc.
+//! [Traversal] algorithms, including BFS, DFS, etc.
 //!
-//! [Graph traversal]: https://en.wikipedia.org/wiki/Graph_traversal.
-
-use graph::*;
+//! [Traversal]: https://en.wikipedia.org/wiki/Graph_traversal
 
 #[macro_use]
 mod control;
@@ -16,6 +14,8 @@ pub use self::visitor::*;
 pub use self::bfs::*;
 pub use self::dfs::*;
 pub use self::recursive_dfs::*;
+
+use prelude::*;
 
 pub trait Traverser<'a, G>
     where G: 'a + Incidence

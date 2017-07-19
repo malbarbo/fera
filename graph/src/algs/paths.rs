@@ -52,8 +52,7 @@ impl<'a, G: WithEdge> Visitor<G> for RecordPath<'a, G> {
 #[cfg(test)]
 mod tests {
     use super::Paths;
-    use static_::StaticGraph;
-    use graph::*;
+    use prelude::*;
     use fera_fun::vec;
 
     #[test]

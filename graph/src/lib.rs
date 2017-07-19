@@ -20,40 +20,86 @@ pub mod tests;
 // basic
 #[macro_use]
 pub mod builder;
-#[macro_use]
-pub mod graph;
+
 #[macro_use]
 pub mod params;
-pub mod traverse;
-
-mod graphs;
-pub use graphs::*;
-
-pub mod props;
-
-pub mod fun;
-pub mod ext;
-
-pub mod arbitrary;
 
 pub mod algs;
+pub mod graphs;
+pub mod props;
+pub mod traverse;
 
 // others
+pub mod arbitrary;
 pub mod choose;
+pub mod ext;
 pub mod unionfind;
+
+mod fun;
+pub use fun::*;
 
 /// The fera graph prelude.
 pub mod prelude {
-    pub use fera_optional::Optional;
-    pub use graph::*;
-    pub use fun::*;
-    pub use props::{PropGet, BasicProps, VertexPropGet, VertexProp, VertexPropMut, VertexPropMutNew,
-                    BasicVertexProps, WithVertexProp, EdgePropGet, EdgeProp, EdgePropMut,
-                    EdgePropMutNew, BasicEdgeProps, WithEdgeProp, PropIndexMut};
+    pub use graphs::adjset::{AdjSetGraph, AdjSetDigraph};
+    pub use graphs::complete::{CompleteGraph, CompleteDigraph};
+    pub use graphs::static_::StaticGraph;
+    pub use graphs::subgraph::{Subgraph, WithSubgraph};
+    pub use graphs::spanning_subgraph::SpanningSubgraph;
+    pub use graphs::{
+        Adjacency,
+        AdjacencyDigraph,
+        AdjacencyGraph,
+        DefaultEdgePropMut,
+        DefaultVertexPropMut,
+        Digraph,
+        Directed,
+        Edge,
+        EdgeIndex,
+        EdgeIndexProp,
+        EdgeIter,
+        EdgeKind,
+        EdgeList,
+        EdgeTypes,
+        Graph,
+        GraphItem,
+        Incidence,
+        IncidenceDigraph,
+        IncidenceGraph,
+        Mixed,
+        OptionEdge,
+        OptionVertex,
+        Orientation,
+        OutEdgeIter,
+        OutNeighborIter,
+        Undirected,
+        UniformEdgeKind,
+        Vertex,
+        VertexIndex,
+        VertexIndexProp,
+        VertexIter,
+        VertexList,
+        VertexTypes,
+        WithEdge,
+        WithVertex,
+    };
+    pub use props::{
+        BasicEdgeProps,
+        BasicProps,
+        BasicVertexProps,
+        EdgeProp,
+        EdgePropGet,
+        EdgePropMut,
+        EdgePropMutNew,
+        PropGet,
+        PropIndexMut,
+        VertexProp,
+        VertexPropGet,
+        VertexPropMut,
+        VertexPropMutNew,
+        WithEdgeProp,
+        WithVertexProp,
+    };
     pub use builder::{Builder, WithBuilder};
-    pub use complete::{CompleteGraph, CompleteDigraph};
-    pub use static_::StaticGraph;
-    pub use subgraph::{Subgraph, WithSubgraph};
-    pub use spanning_subgraph::SpanningSubgraph;
     pub use ext::{GraphsSliceExt, GraphsVecExt};
+    pub use fera_optional::Optional;
 }
