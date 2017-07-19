@@ -67,7 +67,7 @@ impl<I, P, D> IndexMut<I> for ArrayProp<P, D>
 }
 
 impl<T, G> VertexPropMutNew<G, T> for ArrayProp<VertexIndexProp<G>, Vec<T>>
-    where G: VertexList + VertexIndex
+    where G: VertexList + WithVertexIndexProp
 {
     fn new_vertex_prop(g: &G, value: T) -> Self
         where T: Clone
@@ -80,7 +80,7 @@ impl<T, G> VertexPropMutNew<G, T> for ArrayProp<VertexIndexProp<G>, Vec<T>>
 }
 
 impl<T, G> EdgePropMutNew<G, T> for ArrayProp<EdgeIndexProp<G>, Vec<T>>
-    where G: EdgeList + EdgeIndex
+    where G: EdgeList + WithEdgeIndexProp
 {
     fn new_edge_prop(g: &G, value: T) -> Self
         where T: Clone

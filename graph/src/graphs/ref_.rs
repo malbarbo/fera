@@ -112,7 +112,7 @@ impl<'a, G: Incidence> Incidence for &'a G {
     }
 }
 
-impl<'a, G: VertexIndex> VertexIndex for &'a G {
+impl<'a, G: WithVertexIndexProp> WithVertexIndexProp for &'a G {
     type VertexIndexProp = VertexIndexProp<G>;
 
     fn vertex_index(&self) -> VertexIndexProp<Self> {
@@ -120,7 +120,7 @@ impl<'a, G: VertexIndex> VertexIndex for &'a G {
     }
 }
 
-impl<'a, G: EdgeIndex> EdgeIndex for &'a G {
+impl<'a, G: WithEdgeIndexProp> WithEdgeIndexProp for &'a G {
     type EdgeIndexProp = EdgeIndexProp<G>;
 
     fn edge_index(&self) -> EdgeIndexProp<Self> {

@@ -176,6 +176,14 @@ pub trait WithVertexProp<T>: WithVertex {
     }
 }
 
+/// A graph that has a property that maps each vertex to an integer in the range `0..num_vertices`.
+pub trait WithVertexIndexProp: WithVertex {
+    type VertexIndexProp: VertexPropGet<Self, usize>;
+
+    /// Creates an vertex index map.
+    fn vertex_index(&self) -> VertexIndexProp<Self>;
+}
+
 
 // Edge
 
@@ -245,6 +253,14 @@ pub trait WithEdgeProp<T>: WithEdge {
     {
         self.edge_prop_from_fn(fun)
     }
+}
+
+/// A graph that has a property that maps each edge to an integer in the range `0..num_edges`.
+pub trait WithEdgeIndexProp: WithEdge {
+    type EdgeIndexProp: EdgePropGet<Self, usize>;
+
+    /// Creates an edge index map.
+    fn edge_index(&self) -> EdgeIndexProp<Self>;
 }
 
 

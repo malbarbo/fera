@@ -54,7 +54,6 @@ pub mod prelude {
         Digraph,
         Directed,
         Edge,
-        EdgeIndex,
         EdgeIndexProp,
         EdgeIter,
         EdgeKind,
@@ -74,7 +73,6 @@ pub mod prelude {
         Undirected,
         UniformEdgeKind,
         Vertex,
-        VertexIndex,
         VertexIndexProp,
         VertexIter,
         VertexList,
@@ -96,7 +94,9 @@ pub mod prelude {
         VertexPropGet,
         VertexPropMut,
         VertexPropMutNew,
+        WithEdgeIndexProp,
         WithEdgeProp,
+        WithVertexIndexProp,
         WithVertexProp,
     };
     pub use builder::{Builder, WithBuilder};

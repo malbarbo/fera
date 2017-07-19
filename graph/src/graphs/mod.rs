@@ -19,14 +19,14 @@ use std::hash::Hash;
 
 pub type Vertex<G> = <G as WithVertex>::Vertex;
 pub type OptionVertex<G> = <G as WithVertex>::OptionVertex;
-pub type VertexIndexProp<G> = <G as VertexIndex>::VertexIndexProp;
+pub type VertexIndexProp<G> = <G as WithVertexIndexProp>::VertexIndexProp;
 pub type VertexIter<'a, G> = <G as VertexTypes<'a, G>>::VertexIter;
 pub type OutNeighborIter<'a, G> = <G as VertexTypes<'a, G>>::OutNeighborIter;
 pub type DefaultVertexPropMut<G, T> = <G as WithVertexProp<T>>::VertexProp;
 
 pub type Edge<G> = <G as WithEdge>::Edge;
 pub type OptionEdge<G> = <G as WithEdge>::OptionEdge;
-pub type EdgeIndexProp<G> = <G as EdgeIndex>::EdgeIndexProp;
+pub type EdgeIndexProp<G> = <G as WithEdgeIndexProp>::EdgeIndexProp;
 pub type EdgeIter<'a, G> = <G as EdgeTypes<'a, G>>::EdgeIter;
 pub type OutEdgeIter<'a, G> = <G as EdgeTypes<'a, G>>::OutEdgeIter;
 pub type DefaultEdgePropMut<G, T> = <G as WithEdgeProp<T>>::EdgeProp;
@@ -323,21 +323,6 @@ pub trait Incidence: WithEdge + Adjacency {
         // TODO: specialize
         self.with_ends(self.out_edges(v))
     }
-}
-
-
-// Index
-
-pub trait VertexIndex: WithVertex {
-    type VertexIndexProp: VertexPropGet<Self, usize>;
-
-    fn vertex_index(&self) -> VertexIndexProp<Self>;
-}
-
-pub trait EdgeIndex: WithEdge {
-    type EdgeIndexProp: EdgePropGet<Self, usize>;
-
-    fn edge_index(&self) -> EdgeIndexProp<Self>;
 }
 
 

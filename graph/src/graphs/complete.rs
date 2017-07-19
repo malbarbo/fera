@@ -151,7 +151,7 @@ impl<T, K: CompleteEdgeKind> WithVertexProp<T> for Complete<K> {
 }
 
 impl<T, K: CompleteEdgeKind> WithEdgeProp<T> for Complete<K>
-    where Complete<K>: EdgeIndex
+    where Complete<K>: WithEdgeIndexProp
 {
     type EdgeProp = VecEdgeProp<Complete<K>, T>;
 }
@@ -208,7 +208,7 @@ impl PropGet<CVertex> for CVertexIndexProp {
     }
 }
 
-impl<K: CompleteEdgeKind> VertexIndex for Complete<K> {
+impl<K: CompleteEdgeKind> WithVertexIndexProp for Complete<K> {
     type VertexIndexProp = CVertexIndexProp;
 
     fn vertex_index(&self) -> CVertexIndexProp {
@@ -229,7 +229,7 @@ impl<E: EdgeImpl> PropGet<E> for CEdgeIndexProp<E> {
     }
 }
 
-impl<K: CompleteEdgeKind> EdgeIndex for Complete<K> {
+impl<K: CompleteEdgeKind> WithEdgeIndexProp for Complete<K> {
     type EdgeIndexProp = CEdgeIndexProp<K::Edge>;
 
     fn edge_index(&self) -> CEdgeIndexProp<K::Edge> {

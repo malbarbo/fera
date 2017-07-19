@@ -392,7 +392,7 @@ impl<V: Num> PropGet<StaticVertex<V>> for SVertexIndexProp {
     }
 }
 
-impl<V: Num, K: StaticEdgeKind> VertexIndex for Static<V, K> {
+impl<V: Num, K: StaticEdgeKind> WithVertexIndexProp for Static<V, K> {
     type VertexIndexProp = SVertexIndexProp;
 
     fn vertex_index(&self) -> VertexIndexProp<Self> {
@@ -413,7 +413,7 @@ impl<K: StaticEdgeKind> PropGet<K::Edge> for SEdgeIndexProp<K> {
 }
 
 
-impl<V: Num, K: StaticEdgeKind> EdgeIndex for Static<V, K> {
+impl<V: Num, K: StaticEdgeKind> WithEdgeIndexProp for Static<V, K> {
     type EdgeIndexProp = SEdgeIndexProp<K>;
 
     fn edge_index(&self) -> EdgeIndexProp<Self> {
