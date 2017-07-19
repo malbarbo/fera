@@ -1,3 +1,5 @@
+//! Components related algorithms, including connectivity, cuts, etc.
+
 use prelude::*;
 use props::Color;
 use traverse::*;
@@ -7,7 +9,7 @@ use fera_fun::{first, vec};
 use std::cmp::min;
 use std::marker::PhantomData;
 
-// FIXME: restrict the method to appropiated graph type
+// FIXME: restrict the method to appropriated graph type
 pub trait Components: Incidence {
     fn num_components(&self) -> u64
         where Self: VertexList + WithVertexProp<Color>

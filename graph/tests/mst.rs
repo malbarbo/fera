@@ -6,9 +6,7 @@ extern crate quickcheck;
 
 use fera_fun::vec;
 use fera_graph::prelude::*;
-use fera_graph::kruskal::Kruskal;
-use fera_graph::prim::Prim;
-use fera_graph::trees::Trees;
+use fera_graph::algs::{Kruskal, Prim, Trees};
 use fera_graph::arbitrary::GnConnectedWithEdgeProp;
 
 quickcheck! {

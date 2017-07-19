@@ -3,7 +3,8 @@ extern crate fera_graph;
 extern crate quickcheck;
 
 use fera_graph::prelude::*;
-use fera_graph::components::{Components, cut_vertices_naive, cut_edges_naive};
+use fera_graph::algs::Components;
+use fera_graph::algs::components::{cut_vertices_naive, cut_edges_naive};
 
 use std::cmp::max;
 

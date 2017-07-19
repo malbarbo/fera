@@ -36,18 +36,13 @@ pub mod ext;
 
 pub mod arbitrary;
 
-// algorithms
-pub mod components;
-pub mod cycles;
-pub mod kruskal;
-pub mod prim;
-pub mod paths;
-pub mod trees;
+pub mod algs;
 
 // others
 pub mod choose;
 pub mod unionfind;
 
+/// The fera graph prelude.
 pub mod prelude {
     pub use fera_optional::Optional;
     pub use graph::*;

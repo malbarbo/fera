@@ -1,7 +1,8 @@
+//! Builder to created user defined, standard and random graphs.
+
 use prelude::*;
+use algs::{Components, Trees};
 use props::Color;
-use components::Components;
-use trees::Trees;
 use fera_fun::set;
 
 use std::cmp;

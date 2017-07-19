@@ -4,9 +4,7 @@ extern crate fera_fun;
 
 use fera_fun::enumerate;
 use fera_graph::prelude::*;
-use fera_graph::components::Components;
-use fera_graph::cycles::Cycles;
-use fera_graph::trees::Trees;
+use fera_graph::algs::{Components, Cycles, Trees};
 
 struct Case {
     g: StaticGraph,
