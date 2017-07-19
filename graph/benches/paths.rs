@@ -5,7 +5,7 @@ extern crate rand;
 extern crate test;
 
 use fera_graph::prelude::*;
-use fera_graph::paths::Paths;
+use fera_graph::algs::Paths;
 use rand::XorShiftRng;
 use test::Bencher;
 
