@@ -43,8 +43,7 @@ pub mod prelude {
     pub use graphs::adjset::{AdjSetGraph, AdjSetDigraph};
     pub use graphs::complete::{CompleteGraph, CompleteDigraph};
     pub use graphs::static_::{StaticGraph, StaticDigraph};
-    pub use graphs::subgraph::{Subgraph, WithSubgraph};
-    pub use graphs::spanning_subgraph::SpanningSubgraph;
+    pub use graphs::adaptors::{Subgraph, SpanningSubgraph, WithSubgraph};
     pub use graphs::{
         Adjacency,
         AdjacencyDigraph,

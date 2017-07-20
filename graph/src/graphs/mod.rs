@@ -1,10 +1,9 @@
 //! Graph traits and implementations.
 
+pub mod adaptors;
 pub mod adjset;
 pub mod complete;
-pub mod spanning_subgraph;
 pub mod static_;
-pub mod subgraph;
 
 mod common;
 mod ref_;

@@ -1,7 +1,6 @@
 use prelude::*;
 use choose::Choose;
 use graphs::OutNeighborFromOutEdge;
-use graphs::spanning_subgraph::SpanningSubgraph;
 use params::IntoOwned;
 use props::{DelegateEdgeProp, DelegateVertexProp};
 
