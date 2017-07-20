@@ -1,34 +1,7 @@
 //! Extension traits for std types.
 
 use prelude::*;
-
-// TODO: Create an IntoIteratorOwned
-// FIXME: move to other module
-pub trait IntoOwned<Owned> {
-    fn into_owned(self) -> Owned;
-}
-
-impl<T> IntoOwned<T> for T {
-    #[inline]
-    fn into_owned(self) -> T {
-        self
-    }
-}
-
-impl<'a, T: Clone> IntoOwned<T> for &'a T {
-    #[inline]
-    fn into_owned(self) -> T {
-        T::clone(self)
-    }
-}
-
-impl<'a, T: Clone> IntoOwned<T> for &'a mut T {
-    #[inline]
-    fn into_owned(self) -> T {
-        T::clone(self)
-    }
-}
-
+use params::IntoOwned;
 
 pub trait GraphsSliceExt<T> {
     fn sort_by_prop<P, K>(&mut self, prop: P)

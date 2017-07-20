@@ -1,7 +1,7 @@
 //! Free functions.
 
 use prelude::*;
-use ext::IntoOwned;
+use params::IntoOwned;
 use std::iter::Sum;
 
 #[inline]

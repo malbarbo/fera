@@ -1,8 +1,8 @@
 use prelude::*;
 use choose::Choose;
-use ext::IntoOwned;
 use graphs::OutNeighborFromOutEdge;
 use graphs::spanning_subgraph::SpanningSubgraph;
+use params::IntoOwned;
 use props::{DelegateEdgeProp, DelegateVertexProp};
 
 use fera_fun::vec;

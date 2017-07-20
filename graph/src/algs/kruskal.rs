@@ -4,7 +4,6 @@
 
 use prelude::*;
 use params::*;
-use ext::IntoOwned;
 use unionfind::{UnionFind, WithUnionFind};
 
 use fera_fun::vec;

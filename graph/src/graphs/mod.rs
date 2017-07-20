@@ -12,7 +12,7 @@ mod ref_;
 pub use self::common::*;
 
 use prelude::*;
-use ext::IntoOwned;
+use params::IntoOwned;
 
 use std::fmt::Debug;
 use std::hash::Hash;

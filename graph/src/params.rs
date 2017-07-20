@@ -130,6 +130,7 @@ macro_rules! generic_struct {
     );
 }
 
+
 pub trait ParamDerefMut {
     type Target;
     type Output: DerefMut<Target = Self::Target>;
@@ -143,6 +144,33 @@ impl<'a, T> ParamDerefMut for &'a mut T {
 
     fn build(self) -> Self::Output {
         self
+    }
+}
+
+
+// TODO: Create an IntoIteratorOwned
+pub trait IntoOwned<Owned> {
+    fn into_owned(self) -> Owned;
+}
+
+impl<T> IntoOwned<T> for T {
+    #[inline]
+    fn into_owned(self) -> T {
+        self
+    }
+}
+
+impl<'a, T: Clone> IntoOwned<T> for &'a T {
+    #[inline]
+    fn into_owned(self) -> T {
+        T::clone(self)
+    }
+}
+
+impl<'a, T: Clone> IntoOwned<T> for &'a mut T {
+    #[inline]
+    fn into_owned(self) -> T {
+        T::clone(self)
     }
 }
 

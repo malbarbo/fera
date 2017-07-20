@@ -30,7 +30,7 @@ pub use self::fn_::*;
 pub use self::hashmap::*;
 pub use self::ignore::*;
 
-use ext::IntoOwned;
+use params::IntoOwned;
 
 /// An abstract property that maps keys in domain `K` to the corresponding values.
 pub trait PropGet<K> {
