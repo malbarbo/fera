@@ -1,4 +1,4 @@
-//! [Kruskal] minimum spanning tree algorithm.
+//! [Kruskal]'s minimum spanning tree algorithm.
 //!
 //! [Kruskal]: https://en.wikipedia.org/wiki/Kruskal's_algorithm
 

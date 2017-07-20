@@ -1,3 +1,5 @@
+//! Trees related algortihms, including testing if a graph is a tree.
+
 use prelude::*;
 use props::Color;
 use traverse::*;

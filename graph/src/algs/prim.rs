@@ -1,4 +1,4 @@
-//! [Prim] minimum spanning tree algorithm.
+//! [Prim]'s minimum spanning tree algorithm.
 //!
 //! [Prim]: https://en.wikipedia.org/wiki/Prim's_algorithm
 use params::*;

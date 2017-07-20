@@ -1,3 +1,5 @@
+//! Cycles related algorithms, including testing if a graph is acyclic.
+
 use prelude::*;
 use props::Color;
 use traverse::*;

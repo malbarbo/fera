@@ -1,3 +1,5 @@
+//! Paths related algorithms, including find path between two vertices.
+
 use prelude::*;
 use props::Color;
 use traverse::*;
