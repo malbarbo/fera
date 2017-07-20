@@ -80,8 +80,10 @@ pub type OptionalMax<T> = Optioned<T, MaxNone<T>>;
 /// An `Optional` that uses `T::min_value()` as `None`.
 pub type OptionalMin<T> = Optioned<T, MinNone<T>>;
 
-/// A trait that represents an optional value. This is a complement to [`std::option::Option`] that
-/// allows implementations to choose how to represent `Some` and `None`.
+/// A trait that represents an optional value.
+///
+/// This is a complement to [`std::option::Option`] that allows implementations to choose how to
+/// represent `Some` and `None`.
 ///
 /// [`std::option::Option`]: https://doc.rust-lang.org/stable/std/option/enum.Option.html
 pub trait Optional<T>: Default + From<T> {
