@@ -1,4 +1,75 @@
 //! Builder to create user defined, standard and random graphs.
+//!
+//! This module offers an abstract way (independent of the graph type) to create graphs. To support
+//! graph building a graph type must implement the [`WithBuilder`] trait, which requires defining a
+//! type that implements the [`Builder`] trait. Each graph type has its own vertex and edge
+//! representation, but the [`Builder`] trait works with numeric vertices.
+//!
+//! # Examples
+//!
+//! Creating a literal graph:
+//!
+//! ```
+//! use fera_graph::prelude::*;
+//!
+//! // Creates a graph builder for a graph with 4 vertices and initial capacity for 5 edges
+//! let mut builder = StaticGraph::builder(4, 5);
+//! builder.add_edge(0, 1);
+//! builder.add_edge(1, 2);
+//! builder.add_edge(1, 3);
+//! builder.add_edge(2, 3);
+//! builder.add_edge(3, 0);
+//! // Note that we can add more than 5 edges
+//! builder.add_edge(2, 0);
+//!
+//! let g = builder.finalize();
+//! assert_eq!(4, g.num_vertices());
+//! assert_eq!(6, g.num_edges());
+//! ```
+//!
+//! The [`graph!`] macro can be used to simplify the creation of literal graphs.
+//!
+//! Creating standard graphs (see also [`Complete`]):
+//!
+//! ```
+//! use fera_graph::prelude::*;
+//!
+//! // Creates a complete graph with 4 vertices
+//! let g = StaticGraph::new_complete(4);
+//! assert_eq!(4, g.num_vertices());
+//! assert_eq!(6, g.num_edges());
+//! let edges = [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)];
+//! assert!(edges.iter().all(|&(u, v)| g.get_edge_by_ends(u, v).is_some()));
+//! ```
+//!
+//! Creating random graphs:
+//!
+//! ```
+//! extern crate rand;
+//! extern crate fera_graph;
+//!
+//! use fera_graph::prelude::*;
+//! use fera_graph::algs::{Components, Trees};
+//!
+//! # fn main() {
+//! let mut rng = rand::weak_rng();
+//!
+//! // Creates a connected graph with 10 vertices
+//! let g = StaticGraph::new_gn_connected(10, &mut rng);
+//! assert!(g.is_connected());
+//!
+//! // Creates a graph with 7 vertices that is a tree.
+//! let g = StaticGraph::new_random_tree(7, &mut rng);
+//! assert!(g.is_tree());
+//! # }
+//! ```
+//!
+//! See [`WithBuilder`] for other methods to create standard and random graphs.
+//!
+//! [`graph!`]: ../macro.graph.html
+//! [`Builder`]: trait.Builder.html
+//! [`Complete`]: ../graphs/complete/index.html
+//! [`WithBuilder`]: trait.WithBuilder.html
 
 use prelude::*;
 use algs::{Components, Trees};
@@ -10,6 +81,63 @@ use std::cmp;
 use rand::{Rng, XorShiftRng};
 use rand::distributions::{IndependentSample, Range};
 
+/// Creates a new graph with `n` vertices and the specified edges.
+///
+/// The type of the graph that will be created needs to be specified. Any graph that implements
+/// [`Builder`] can be used. There are two forms of this macro:
+///
+/// - Creates a graph with a list of edges:
+///
+/// ```
+/// #[macro_use] extern crate fera_graph;
+/// use fera_graph::prelude::*;
+///
+/// # fn main() {
+/// let g: StaticGraph = graph!{
+///     4,
+///     (0, 2),
+///     (0, 3),
+///     (1, 2)
+/// };
+///
+/// assert_eq!(4, g.num_vertices());
+/// assert_eq!(3, g.num_edges());
+///
+/// for u in 0..4 {
+///     for v in 0..4 {
+///         if [(0, 2), (2, 0), (0, 3), (3, 0), (1, 2), (2, 1)].contains(&(u, v)) {
+///             assert_eq!(g.end_vertices(g.edge_by_ends(u, v)), (u, v));
+///         } else {
+///             assert_eq!(None, g.get_edge_by_ends(u, v));
+///         }
+///     }
+/// }
+/// # }
+/// ```
+///
+/// - Creates a graph with a list of edges and an associated property:
+///
+/// ```
+/// #[macro_use] extern crate fera_graph;
+/// use fera_graph::prelude::*;
+/// use fera_graph::sum_prop;
+///
+/// # fn main() {
+/// let (g, w): (StaticGraph, _) = graph!{
+///     4,
+///     (0, 2) -> 4,
+///     (0, 3) -> 2,
+///     (1, 2) -> 3
+/// };
+///
+/// assert_eq!(9, sum_prop(&w, g.edges()));
+/// # }
+/// ```
+///
+/// In this case, a [`DefaultEdgePropMut`] is created.
+///
+/// [`Builder`]: builder/trait.Builder.html
+/// [`DefaultEdgePropMut`]: graphs/type.DefaultEdgePropMut.html
 #[macro_export]
 macro_rules! graph {
     () => (
@@ -28,9 +156,8 @@ macro_rules! graph {
 
     ($n:expr, $(($u:expr, $v:expr)),+) => (
         {
-            use $crate::builder::WithBuilder;
             let edges = [$(($u, $v)),*];
-            WithBuilder::new_with_edges($n, edges.iter().cloned())
+            $crate::builder::WithBuilder::new_with_edges($n, edges.iter().cloned())
         }
     );
 
@@ -40,9 +167,8 @@ macro_rules! graph {
 
     ($n:expr, $(($u:expr, $v:expr) -> $p:expr),+) => (
         {
-            use $crate::builder::WithBuilder;
             let edges = [$(($u, $v, $p)),*];
-            WithBuilder::new_with_edges_prop($n, &edges)
+            $crate::builder::WithBuilder::new_with_edges_prop($n, &edges)
         }
     );
 
@@ -51,29 +177,60 @@ macro_rules! graph {
     );
 }
 
+
+/// A builder used to build graphs.
+///
+/// See the [module documentation] for examples.
+///
+/// [module documentation]: index.html
 pub trait Builder {
+    /// The graph type produced by this builder.
     type Graph: WithEdge;
 
-    fn new(num_vertices: usize, num_edges: usize) -> Self;
+    /// Creates a new builder for a graph with exactly `n` vertices and initial capacity for `m`
+    /// edges.
+    ///
+    /// This method is generally called through [`WithBuilder::builder`], for example,
+    /// `StaticGraph::builder(10, 26)`.
+    ///
+    /// [`WithBuilder::builder`]: trait.WithBuilder.html#method.builder
+    fn new(n: usize, m: usize) -> Self;
 
+    /// Add `(u, v)` edge to the graph. Support for multiple edges and loops are graph dependent.
+    ///
+    /// # Panics
+    ///
+    /// If `u` or `v` is not a valid vertex, that is `>= num_vertices`.
     fn add_edge(&mut self, u: usize, v: usize);
 
+    /// Builds the graph.
     fn finalize(self) -> Self::Graph;
 
+    #[doc(hidden)]
     fn finalize_(self) -> (Self::Graph, Vec<Vertex<Self::Graph>>, Vec<Edge<Self::Graph>>);
 }
 
+/// A graph that has a [`Builder`].
+///
+/// See the [module documentation] for examples.
+///
+/// [`Builder`]: trait.Builder.html
+/// [module documentation]: index.html
 pub trait WithBuilder: WithEdge {
+    /// The builder for this graph type.
     type Builder: Builder<Graph = Self>;
 
+    /// Creates a new builder for a graph of this type with `n` vertices and initial capacity for
+    /// `m` edges.
     fn builder(num_vertices: usize, num_edges: usize) -> Self::Builder {
         Self::Builder::new(num_vertices, num_edges)
     }
 
-    fn new_empty(n: usize) -> Self {
-        Self::Builder::new(n, 0).finalize()
-    }
-
+    /// Creates a new graph with `n` vertices from `edges` iterator.
+    ///
+    /// # Panics
+    ///
+    /// If some edges is not valid.
     fn new_with_edges<I>(n: usize, edges: I) -> Self
         where I: IntoIterator<Item = (usize, usize)>
     {
@@ -105,20 +262,41 @@ pub trait WithBuilder: WithEdge {
         (g, p)
     }
 
-    fn new_complete(n: usize) -> Self {
+    /// Creates a graph with `n` vertices and no edges.
+    fn new_empty(n: usize) -> Self {
+        Self::Builder::new(n, 0).finalize()
+    }
+
+    /// Creates a complete graph with `n` vertices.
+    ///
+    /// A complete graph has an edge between each pair of vertices.
+    fn new_complete(n: usize) -> Self
+        where Self: WithEdge<Kind = Undirected>
+    {
         complete::<Self>(n).finalize()
     }
 
-    fn new_complete_binary_tree(height: u32) -> Self {
-        complete_binary_tree::<Self>(height).finalize()
+    /// Creates a graph that is a complete binary tree with height `h`.
+    ///
+    /// In complete binary tree all interior vertices have two children an all leaves have the
+    /// same depth.
+    fn new_complete_binary_tree(h: u32) -> Self
+        where Self: WithEdge<Kind = Undirected>
+    {
+        complete_binary_tree::<Self>(h).finalize()
     }
 
+    /// Creates a graph with `n` vertices that is a tree, that is, is connected and acyclic.
+    ///
+    /// The graph has `n - 1` edges if `n > 0` or zero edges if `n = 0`.
     fn new_random_tree<R: Rng>(n: usize, rng: R) -> Self {
         random_tree::<Self, _>(n, rng).finalize()
     }
 
-    fn new_gn<R: Rng>(n: usize, mut rng: R) -> Self
+    /// Creates a random graph with `n` vertices.
+    fn new_gn<R>(n: usize, mut rng: R) -> Self
         where Self::Kind: UniformEdgeKind,
+              R: Rng,
     {
         let m = if n > 1 {
             rng.gen_range(0, max_num_edges::<Self>(n))
@@ -128,12 +306,7 @@ pub trait WithBuilder: WithEdge {
         Self::new_gnm(n, m, rng).unwrap()
     }
 
-    fn new_gnm<R: Rng>(n: usize, m: usize, rng: R) -> Option<Self>
-        where Self::Kind: UniformEdgeKind,
-    {
-        gnm::<Self, _>(n, m, rng).map(Builder::finalize)
-    }
-
+    /// Creates a random connected graph with `n` vertices.
     fn new_gn_connected<R: Rng>(n: usize, mut rng: R) -> Self
         where Self::Kind: UniformEdgeKind,
     {
@@ -146,6 +319,20 @@ pub trait WithBuilder: WithEdge {
         Self::new_gnm_connected(n, m, rng).unwrap()
     }
 
+    /// Creates a random graph with `n` vertices and `m` edges.
+    ///
+    /// Returns `None` with `m` exceeds the maximum number of edges.
+    fn new_gnm<R>(n: usize, m: usize, rng: R) -> Option<Self>
+        where Self::Kind: UniformEdgeKind,
+              R: Rng,
+    {
+        gnm::<Self, _>(n, m, rng).map(Builder::finalize)
+    }
+
+    /// Creates a random connected graph (weakly connected if `Self` is a digraph) with `n`
+    /// vertices and `m` edges.
+    ///
+    /// Returns `None` if `m` exceeds the maximum number of edges or if `m` is less than `n - 1`.
     fn new_gnm_connected<R: Rng>(n: usize, m: usize, rng: R) -> Option<Self>
         where Self::Kind: UniformEdgeKind,
     {
@@ -310,6 +497,7 @@ impl<R: Rng> Iterator for RandomTreeIter<R> {
 
 // Tests
 
+#[doc(hidden)]
 pub trait BuilderTests {
     type G: WithBuilder + VertexList + EdgeList;
 
@@ -436,6 +624,7 @@ pub trait BuilderTests {
     }
 }
 
+#[doc(hidden)]
 #[macro_export]
 macro_rules! graph_builder_tests {
     ($T: ident) => (
