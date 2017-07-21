@@ -1,6 +1,32 @@
 //! Generate arbitrary graphs to be use in [quickcheck] tests.
 //!
+//! # Examples:
+//!
+//! Testing [`WithBuilder::new_gn_connected`] against [`Components::is_connected`]:
+//!
+//! ```
+//! #[macro_use]
+//! extern crate quickcheck;
+//! extern crate fera_graph;
+//!
+//! use fera_graph::prelude::*;
+//! use fera_graph::algs::Components;
+//! use fera_graph::arbitrary::GnConnected;
+//! use quickcheck::quickcheck;
+//!
+//! fn main() {
+//!     fn tree(g: GnConnected<StaticGraph>) -> bool {
+//!         let GnConnected(g) = g;
+//!         g.is_connected()
+//!     }
+//!
+//!     quickcheck(tree as fn(GnConnected<StaticGraph>) -> bool);
+//! }
+//! ```
+//!
 //! [quickcheck]: https://github.com/BurntSushi/quickcheck
+//! [`Components::is_connected`]: ../algs/components/trait.Components.html#method.is_connected
+//! [`WithBuilder::new_gn_connected`]: ../builder/trait.WithBuilder.html#method.new_gn_connected
 
 use prelude::*;
 use graphs::adjset::{UndirectedEdge, AdjSetEdge};
@@ -51,7 +77,11 @@ fn shrink_graph<G>(g: &G) -> Box<Iterator<Item = G>>
 }
 
 macro_rules! def_random {
-    ($name:ident, $namev:ident, $namee:ident, $fun:ident) => (
+    ($(#[$name_meta:meta])* $name:ident,
+     $(#[$namev_meta:meta])* $namev:ident,
+     $(#[$namee_meta:meta])* $namee:ident,
+     $fun:ident) => (
+        $(#[$name_meta])*
         #[derive(Clone, Debug)]
         pub struct $name<G>(pub G);
 
@@ -70,6 +100,7 @@ macro_rules! def_random {
             }
         }
 
+        $(#[$namev_meta])*
         #[derive(Clone, Debug)]
         pub struct $namev<G, T>(pub G, pub DefaultVertexPropMut<G, T>)
             where G: WithVertexProp<T>,
@@ -100,6 +131,7 @@ macro_rules! def_random {
             }
         }
 
+        $(#[$namee_meta])*
         #[derive(Clone, Debug)]
         pub struct $namee<G, T>(pub G, pub DefaultEdgePropMut<G, T>)
             where G: WithEdgeProp<T>,
@@ -137,8 +169,44 @@ macro_rules! def_random {
     )
 }
 
-def_random!(Gn, GnWithVertexProp, GnWithEdgeProp, new_gn);
-def_random!(GnConnected, GnConnectedWithVertexProp, GnConnectedWithEdgeProp, new_gn_connected);
+def_random!{
+    /// A wrapper to create arbitrary graphs using [`WithBuilder::new_gn`].
+    ///
+    /// [`WithBuilder::new_gn`]: ../builder/trait.WithBuilder.html#method.new_gn
+    Gn,
+
+    /// A wrapper to create arbitrary graphs with a vertex property using [`WithBuilder::new_gn`].
+    ///
+    /// [`WithBuilder::new_gn`]: ../builder/trait.WithBuilder.html#method.new_gn
+    GnWithVertexProp,
+
+    /// A wrapper to create arbitrary graphs with an edge property using [`WithBuilder::new_gn`].
+    ///
+    /// [`WithBuilder::new_gn`]: ../builder/trait.WithBuilder.html#method.new_gn
+    GnWithEdgeProp,
+
+    new_gn
+}
+
+def_random!{
+    /// A wrapper to create arbitrary graphs using [`WithBuilder::new_gn_connected`].
+    ///
+    /// [`WithBuilder::new_gn_connected`]: trait.WithBuilder.html#method.new_gn_connected
+    GnConnected,
+
+    /// A wrapper to create arbitrary graphs with a vertex property using
+    /// [`WithBuilder::new_gn_connected`].
+    ///
+    /// [`WithBuilder::new_gn_connected`]: ../builder/trait.WithBuilder.html#method.new_gn_connected
+    GnConnectedWithVertexProp,
+
+    /// A wrapper to create arbitrary graphs with an edge property using
+    /// [`WithBuilder::new_gn_connected`].
+    ///
+    /// [`WithBuilder::new_gn_connected`]: ../builder/trait.WithBuilder.html#method.new_gn_connected
+    GnConnectedWithEdgeProp,
+    new_gn_connected
+}
 
 // TODO: add CompleteWithVertexProp and CompleteWithVertexProp
 impl Arbitrary for CompleteGraph {
