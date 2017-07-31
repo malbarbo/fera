@@ -1,5 +1,6 @@
 //! Support for generic algorithms parameters.
 
+// TODO: new names: Param, OwnedParam, IntoIteratorParam
 use prelude::*;
 
 use std::ops::{Deref, DerefMut};

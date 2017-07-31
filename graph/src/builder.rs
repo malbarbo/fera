@@ -216,6 +216,7 @@ pub trait Builder {
 ///
 /// [`Builder`]: trait.Builder.html
 /// [module documentation]: index.html
+// TODO: ex: G::new().complete(5), G::new_with_rng(rng).random_tree(10)
 pub trait WithBuilder: WithEdge {
     /// The builder for this graph type.
     type Builder: Builder<Graph = Self>;

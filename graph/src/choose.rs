@@ -29,6 +29,7 @@ use rand::Rng;
 
 // TODO: specialization of *_iter
 // TODO: remove WithEdge bound and add bounds to methods
+// TODO: ex: g.choose().vertex(), g.choose_with_rng(rng).vertices()
 /// A graph from which vertices and edges can be randomly selected.
 ///
 /// See the [module documentation] for examples.
