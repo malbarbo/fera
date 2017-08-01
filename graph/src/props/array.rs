@@ -1,6 +1,6 @@
 use prelude::*;
 
-use std::ops::{Deref, Index, IndexMut};
+use std::ops::{Index, IndexMut};
 
 // TODO: define a feature to disable bounds check (or a property type?).
 /// A vertex property backed by a [`Vec`].
@@ -23,11 +23,9 @@ pub struct ArrayProp<P, D> {
     data: D,
 }
 
-impl<P, D> Deref for ArrayProp<P, D> {
-    type Target = D;
-
-    fn deref(&self) -> &Self::Target {
-        &self.data
+impl<P, D> ArrayProp<P, D> {
+    fn new(index: P, data: D) -> Self {
+        Self { index, data }
     }
 }
 
@@ -72,10 +70,7 @@ impl<T, G> VertexPropMutNew<G, T> for ArrayProp<VertexIndexProp<G>, Vec<T>>
     fn new_vertex_prop(g: &G, value: T) -> Self
         where T: Clone
     {
-        ArrayProp {
-            index: g.vertex_index(),
-            data: vec![value; g.num_vertices()],
-        }
+        ArrayProp::new(g.vertex_index(), vec![value; g.num_vertices()])
     }
 }
 
@@ -85,9 +80,6 @@ impl<T, G> EdgePropMutNew<G, T> for ArrayProp<EdgeIndexProp<G>, Vec<T>>
     fn new_edge_prop(g: &G, value: T) -> Self
         where T: Clone
     {
-        ArrayProp {
-            index: g.edge_index(),
-            data: vec![value; g.num_edges()],
-        }
+        ArrayProp::new(g.edge_index(), vec![value; g.num_edges()])
     }
 }
