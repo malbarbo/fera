@@ -144,6 +144,15 @@ impl<G, V> ConnectedComponents<G, V>
     pub fn is_connected(&self, u: Vertex<G>, v: Vertex<G>) -> bool {
         self.comp[u] == self.comp[v]
     }
+
+    pub fn is_disconnected(&self, u: Vertex<G>, v: Vertex<G>) -> bool {
+        self.comp[u] != self.comp[v]
+    }
+
+    pub fn component(&self, v: Vertex<G>) -> usize {
+        // FIXME: can fail if the search was interrupted
+        self.comp[v] - 1
+    }
 }
 
 
