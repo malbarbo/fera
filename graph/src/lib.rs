@@ -33,6 +33,7 @@ pub mod traverse;
 pub mod arbitrary;
 pub mod choose;
 pub mod ext;
+pub mod sets;
 pub mod unionfind;
 
 mod fun;
