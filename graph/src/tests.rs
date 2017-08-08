@@ -35,7 +35,8 @@ macro_rules! graph_edge_list_tests {
             option_edge,
             end_vertices,
             get_reverse,
-            opposite
+            opposite,
+            is_incident
         }
     )
 }
@@ -191,6 +192,16 @@ pub trait GraphTests {
         for (e, u, v) in g.with_ends(edges) {
             assert_eq!(u, g.opposite(v, e));
             assert_eq!(v, g.opposite(u, e));
+        }
+    }
+
+    fn is_incident() {
+        let (g, _, edges) = Self::new();
+        for (e, u, v) in g.with_ends(&edges) {
+            for (x, y) in g.ends(&edges) {
+                assert_eq!(x == u || x == v, g.is_incident(x, e));
+                assert_eq!(y == u || y == v, g.is_incident(y, e));
+            }
         }
     }
 

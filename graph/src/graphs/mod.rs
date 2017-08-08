@@ -209,6 +209,11 @@ pub trait WithEdge: Sized + WithVertex + for<'a> EdgeTypes<'a, Self> {
         }
     }
 
+    fn is_incident(&self, v: Vertex<Self>, e: Edge<Self>) -> bool {
+        let (s, t) = self.ends(e);
+        v == s || v == t
+    }
+
     fn reverse(&self, e: Edge<Self>) -> Edge<Self>
         where Self: WithEdge<Kind = Undirected>
     {
