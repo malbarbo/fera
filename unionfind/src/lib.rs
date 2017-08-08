@@ -1,4 +1,4 @@
-// Copyright (C) 2016 Marco A L Barbosa
+// Copyright 2017, Marco A L Barbosa.
 //
 // This Source Code Form is subject to the terms of the Mozilla Public
 // License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -85,6 +85,9 @@
 //! assert_eq!(4, s.num_sets());
 //! assert!(!s.in_same_set(0, 1));
 //! assert!(s.in_same_set(0, 2));
+//!
+//! s.reset();
+//! assert_eq!(5, s.num_sets());
 //! ```
 //!
 //!
@@ -156,7 +159,6 @@ impl<Key, Parent, Rank> UnionFind<Key, Parent, Rank>
     /// # Panics
     ///
     /// If `x` or `y` is not in any set or if both are in the same set.
-    // TODO: create reset method to allow reuse
     pub fn union(&mut self, x: Key, y: Key) {
         let a = self.find_set(x);
         let b = self.find_set(y);
@@ -251,6 +253,17 @@ impl UnionFindRange {
         UnionFind::with_parent_rank_num_sets((0..range.end).collect(),
                                              vec![0; range.end],
                                              range.end)
+    }
+
+    /// Reset the struct putting each key in it's own set.
+    // TODO: how to implement this method for any UnionFind?
+    pub fn reset(&mut self) {
+        let n = self.parent.len();
+        for i in 0..n {
+            self.parent[i] = i;
+            self.rank[i] = 0;
+        }
+        self.num_sets = n;
     }
 }
 
