@@ -48,3 +48,5 @@ crate_as_mod!(fera_fun, fun, "fun", "Free function for fun programming.");
 crate_as_mod!(fera_graph, graph, "graph", "Graph data structures and algorithms.");
 crate_as_mod!(fera_optional, optional, "optional", "Generic optional value.");
 crate_as_mod!(fera_unionfind, unionfind, "unionfind", "Union find data structure.");
+
+// TODO: create a prelude including all others prelude?

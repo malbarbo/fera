@@ -138,6 +138,8 @@ use rand::distributions::{IndependentSample, Range};
 ///
 /// [`Builder`]: builder/trait.Builder.html
 /// [`DefaultEdgePropMut`]: graphs/type.DefaultEdgePropMut.html
+// TODO: move to macros.rs
+// TODO: create a vertex_prop macro
 #[macro_export]
 macro_rules! graph {
     () => (
