@@ -41,6 +41,11 @@ pub trait GraphsSliceExt<T> {
         where P: PropGet<K>,
               for<'a> &'a T: IntoOwned<K>,
               P::Output: Ord;
+
+    fn binary_search_by_prop<P, K>(&self, item: K, prop: P) -> Result<usize, usize>
+        where P: PropGet<K>,
+              for<'a> &'a T: IntoOwned<K>,
+              P::Output: Ord;
 }
 
 impl<T> GraphsSliceExt<T> for [T] {
@@ -50,7 +55,16 @@ impl<T> GraphsSliceExt<T> for [T] {
               for<'a> &'a T: IntoOwned<K>,
               P::Output: Ord
     {
-        self.sort_by_key(|v| prop.get(v.into_owned()))
+        self.sort_by_key(|item| prop.get(item.into_owned()))
+    }
+
+    #[inline]
+    fn binary_search_by_prop<P, K>(&self, item: K, prop: P) -> Result<usize, usize>
+        where P: PropGet<K>,
+              for<'a> &'a T: IntoOwned<K>,
+              P::Output: Ord
+    {
+        self.binary_search_by_key(&prop.get(item), |item| prop.get(item.into_owned()))
     }
 }
 
