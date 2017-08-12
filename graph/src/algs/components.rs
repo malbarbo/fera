@@ -126,7 +126,7 @@ impl<G, V> Visitor<G> for ConnectedComponents<G, V>
     where G: WithEdge,
           V: VertexPropMut<G, usize>
 {
-    fn discover_root_vertex(&mut self, _g: &G, _v: Vertex<G>) -> Control {
+    fn finish_root_vertex(&mut self, _g: &G, _v: Vertex<G>) -> Control {
         self.cur += 1;
         Control::Continue
     }
@@ -151,7 +151,11 @@ impl<G, V> ConnectedComponents<G, V>
 
     pub fn component(&self, v: Vertex<G>) -> usize {
         // FIXME: can fail if the search was interrupted
-        self.comp[v] - 1
+        self.comp[v]
+    }
+
+    pub fn num_components(&self) -> usize {
+        self.cur
     }
 }
 
