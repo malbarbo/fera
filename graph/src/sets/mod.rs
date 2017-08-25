@@ -2,6 +2,7 @@
 
 use prelude::*;
 
+use std::iter;
 use std::ops::IndexMut;
 use std::slice;
 use std::vec;
@@ -36,13 +37,23 @@ where
 
     pub fn remove(&mut self, item: T) -> bool {
         if let Some(i) = self.index(item) {
-            let last = *self.values.last().unwrap();
+            let last = self.values.last().cloned();
             self.values.swap_remove(i);
-            self.set_index(last, i);
+            if let Some(last) = last {
+                self.set_index(last, i);
+            }
+            self.set_index(item, NONE);
             true
         } else {
             false
         }
+    }
+
+    pub fn clear(&mut self) {
+        for &v in &self.values {
+            self.index[v] = NONE;
+        }
+        self.values.clear();
     }
 
     #[inline]
@@ -51,8 +62,8 @@ where
     }
 
     #[inline]
-    pub fn iter(&self) -> slice::Iter<T> {
-        self.values.iter()
+    pub fn iter(&self) -> iter::Cloned<slice::Iter<T>> {
+        self.values.iter().cloned()
     }
 
     #[inline]
@@ -95,11 +106,26 @@ where
     P: IndexMut<T, Output = usize>,
     T: Copy,
 {
-    type Item = &'a T;
-    type IntoIter = slice::Iter<'a, T>;
+    type Item = T;
+    type IntoIter = iter::Cloned<slice::Iter<'a, T>>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.values.iter()
+        self.values.iter().cloned()
+    }
+}
+
+impl<'a, T, P> Extend<T> for FastVecSet<T, P>
+where
+    P: IndexMut<T, Output = usize>,
+    T: Copy,
+{
+    fn extend<I>(&mut self, iter: I)
+    where
+        I: IntoIterator<Item = T>,
+    {
+        for item in iter {
+            self.insert(item);
+        }
     }
 }
 
