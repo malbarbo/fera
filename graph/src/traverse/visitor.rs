@@ -321,7 +321,7 @@ pub struct Count<'a> {
 }
 
 #[allow(non_snake_case)]
-pub fn Count(mut count: &mut u64) -> Count {
+pub fn Count(count: &mut u64) -> Count {
     *count = 0;
     Count { count: count }
 }

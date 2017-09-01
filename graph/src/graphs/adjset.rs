@@ -282,7 +282,7 @@ impl<V, K> AdjSet<V, K>
         self.adj.entry(u).or_insert_with(Default::default).insert(v);
 
         // insert v
-        let mut entry = self.adj.entry(v).or_insert_with(Default::default);
+        let entry = self.adj.entry(v).or_insert_with(Default::default);
 
         if K::is_undirected() {
             // insert (v, u)
