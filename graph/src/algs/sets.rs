@@ -31,6 +31,39 @@ pub trait Sets {
             set,
         }
     }
+
+    fn independent_vertex_set_from_iter<I>(
+        &self,
+        vertices: I,
+    ) -> IndependentVertexSetFromIter<Self, I::IntoIter>
+    where
+        Self: Adjacency + WithVertexProp<bool>,
+        I: IntoIterator,
+        I::Item: IntoOwned<Vertex<Self>>,
+    {
+        IndependentVertexSetFromIter {
+            g: self,
+            vertices: vertices.into_iter(),
+            marked: self.default_vertex_prop(false),
+        }
+    }
+
+    fn is_independent_vertex_set<I>(&self, vertices: I) -> bool
+    where
+        Self: Adjacency + WithVertexProp<bool>,
+        I: IntoIterator,
+        I::Item: IntoOwned<Vertex<Self>>,
+    {
+        let mut marked = self.default_vertex_prop(false);
+        for v in vertices {
+            let v = v.into_owned();
+            if marked[v] {
+                return false;
+            }
+            marked.set_values(self.out_neighbors(v), true);
+        }
+        return true;
+    }
 }
 
 impl<G> Sets for G {}
@@ -78,6 +111,39 @@ where
             if !self.set[e] {
                 return Some(e);
             }
+        }
+        None
+    }
+}
+
+pub struct IndependentVertexSetFromIter<'a, G, I>
+where
+    G: 'a + Adjacency + WithVertexProp<bool>,
+{
+    g: &'a G,
+    vertices: I,
+    marked: DefaultVertexPropMut<G, bool>,
+}
+
+impl<'a, G, I> Iterator for IndependentVertexSetFromIter<'a, G, I>
+where
+    G: 'a
+        + Adjacency
+        + WithVertexProp<bool>,
+    I: Iterator,
+    I::Item: IntoOwned<Vertex<G>>,
+{
+    type Item = Vertex<G>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        for v in self.vertices.by_ref() {
+            let v = v.into_owned();
+            if self.marked[v] {
+                continue;
+            }
+            self.marked[v] = true;
+            self.marked.set_values(self.g.out_neighbors(v), true);
+            return Some(v);
         }
         None
     }
