@@ -6,6 +6,8 @@ use prelude::*;
 use fera_fun::first;
 use fera_unionfind::UnionFind as InnerUnionFind;
 
+// FIXME: only union and reset should need &mut self
+
 pub struct UnionFind<G: Graph> {
     inner: InnerUnionFind<Vertex<G>,
                           DefaultVertexPropMut<G, Vertex<G>>,
@@ -21,6 +23,11 @@ impl<G: Graph> UnionFind<G> {
     #[inline]
     pub fn in_same_set(&mut self, u: Vertex<G>, v: Vertex<G>) -> bool {
         self.inner.in_same_set(u, v)
+    }
+
+    #[inline]
+    pub fn find_set(&mut self, v: Vertex<G>) -> Vertex<G> {
+        self.inner.find_set(v)
     }
 
     #[inline]
