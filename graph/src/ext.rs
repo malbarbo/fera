@@ -69,6 +69,19 @@ pub trait GraphsSliceExt<T> {
         for<'a> &'a T: IntoOwned<K>,
         P::Output: Ord;
 
+    /// Sort a slice using a [property].
+    ///
+    /// This functions calls [`slice::sort_unstable_by_key`].
+    ///
+    /// [property]: ../props/index.html
+    /// [`slice::sort_unstable_by_key`]:
+    /// https://doc.rust-lang.org/stable/std/primitive.slice.html#method.sort_unstable_by_key
+    fn sort_unstable_by_prop<P, K>(&mut self, prop: P)
+    where
+        P: PropGet<K>,
+        for<'a> &'a T: IntoOwned<K>,
+        P::Output: Ord;
+
     /// Binary searches a slice that is sorted by a [property].
     ///
     /// This functions calls [`slice::binary_search_by_key`].
@@ -115,6 +128,16 @@ impl<T> GraphsSliceExt<T> for [T] {
     }
 
     #[inline]
+    fn sort_unstable_by_prop<P, K>(&mut self, prop: P)
+    where
+        P: PropGet<K>,
+        for<'a> &'a T: IntoOwned<K>,
+        P::Output: Ord,
+    {
+        self.sort_unstable_by_key(|item| prop.get(item.into_owned()))
+    }
+
+    #[inline]
     fn binary_search_by_prop<P, K>(&self, prop_value: &P::Output, prop: P) -> Result<usize, usize>
     where
         P: PropGet<K>,
@@ -142,6 +165,18 @@ pub trait GraphsVecExt<T> {
         P: PropGet<K>,
         for<'a> &'a T: IntoOwned<K>,
         P::Output: Ord;
+
+    /// Returns a vector sorted by a [property].
+    ///
+    /// This functions calls [`GraphsSliceExt::sort_unstable_by_prop`].
+    ///
+    /// [property]: ../props/index.html
+    /// [`GraphsSliceExt::sort_unstable_by_prop`]: trait.GraphsSliceExt.html#tymethod.sort_unstable_by_prop
+    fn sorted_unstable_by_prop<P, K>(self, prop: P) -> Self
+    where
+        P: PropGet<K>,
+        for<'a> &'a T: IntoOwned<K>,
+        P::Output: Ord;
 }
 
 impl<T> GraphsVecExt<T> for Vec<T> {
@@ -153,6 +188,17 @@ impl<T> GraphsVecExt<T> for Vec<T> {
         P::Output: Ord,
     {
         self.sort_by_prop(prop);
+        self
+    }
+
+    #[inline]
+    fn sorted_unstable_by_prop<P, K>(mut self, prop: P) -> Self
+    where
+        P: PropGet<K>,
+        for<'a> &'a T: IntoOwned<K>,
+        P::Output: Ord,
+    {
+        self.sort_unstable_by_prop(prop);
         self
     }
 }
