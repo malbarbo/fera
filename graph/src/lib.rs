@@ -4,6 +4,7 @@
 #[cfg(test)]
 extern crate itertools;
 
+#[cfg(feature = "quickcheck")]
 extern crate quickcheck;
 
 extern crate fera_fun;
@@ -30,6 +31,7 @@ pub mod props;
 pub mod traverse;
 
 // others
+#[cfg(feature = "quickcheck")]
 pub mod arbitrary;
 pub mod choose;
 pub mod ext;
