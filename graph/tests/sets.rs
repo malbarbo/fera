@@ -14,7 +14,7 @@ quickcheck! {
         let mut actual = FastVecSet::new_vertex_set(&g);
 
         for v in vertices {
-            let v = v as u32 % n;
+            let v = u32::from(v) % n;
             let vu = v as usize;
 
             if expected[vu] {
@@ -27,8 +27,8 @@ quickcheck! {
                 actual.insert(v);
             }
 
-            for u in 0..n {
-                assert_eq!(expected[u as usize], actual.contains(u));
+            for (u, &exp) in expected.iter().enumerate() {
+                assert_eq!(exp, actual.contains(u as u32));
             }
 
             assert_eq!(count == 0, actual.is_empty());

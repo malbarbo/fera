@@ -368,7 +368,7 @@ impl<K: StaticEdgeKind> Iterator for SEdgeIter<K> {
     type Item = K::Edge;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(|i| K::Edge::new(i))
+        self.0.next().map(K::Edge::new)
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {

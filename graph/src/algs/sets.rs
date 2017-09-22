@@ -62,7 +62,7 @@ pub trait Sets {
             }
             marked.set_values(self.out_neighbors(v), true);
         }
-        return true;
+        true
     }
 }
 

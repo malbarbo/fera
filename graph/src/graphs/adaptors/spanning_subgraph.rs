@@ -66,17 +66,17 @@ impl<'a, G> SpanningSubgraph<'a, G>
 
     pub fn remove_edge(&mut self, e: Edge<G>) {
         let (u, v) = self.g.ends(e);
-        assert!(vec_find_swap_remove(&mut self.edges, e));
-        assert!(vec_find_swap_remove(&mut self.out_edges[u], e));
+        assert!(vec_find_swap_remove(&mut self.edges, &e));
+        assert!(vec_find_swap_remove(&mut self.out_edges[u], &e));
         if self.g.orientation(e).is_undirected() {
-            assert!(vec_find_swap_remove(&mut self.out_edges[v], e));
+            assert!(vec_find_swap_remove(&mut self.out_edges[v], &e));
         }
     }
 }
 
 #[inline]
-fn vec_find_swap_remove<T: PartialEq>(vec: &mut Vec<T>, value: T) -> bool {
-    if let Some(i) = position_item(&*vec, &value) {
+fn vec_find_swap_remove<T: PartialEq>(vec: &mut Vec<T>, value: &T) -> bool {
+    if let Some(i) = position_item(&*vec, value) {
         vec.swap_remove(i);
         true
     } else {

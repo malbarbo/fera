@@ -89,22 +89,20 @@ fn cases() -> Vec<Case> {
 #[test]
 fn is_connected() {
     for (i, case) in enumerate(cases()) {
-        assert!(case.is_connected == case.g.is_connected(),
-                format!("Case {}", i));
+        assert_eq!(case.is_connected, case.g.is_connected(), "Case {}", i);
     }
 }
 
 #[test]
 fn is_acyclic() {
     for (i, case) in enumerate(cases()) {
-        assert!(case.is_acyclic == case.g.is_acyclic(),
-                format!("Case {}", i));
+        assert_eq!(case.is_acyclic, case.g.is_acyclic(), "Case {}", i);
     }
 }
 
 #[test]
 fn is_tree() {
     for (i, case) in enumerate(cases()) {
-        assert!(case.is_tree == case.g.is_tree(), format!("Case {}", i));
+        assert_eq!(case.is_tree, case.g.is_tree(), "Case {}", i);
     }
 }

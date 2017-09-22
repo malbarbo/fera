@@ -20,6 +20,15 @@ pub struct AdjSet<V: AdjSetVertex, K: AdjSetEdgeKind<V>> {
     _marker: PhantomData<K>,
 }
 
+impl<V, K> Default for AdjSet<V, K>
+    where V: AdjSetVertex,
+          K: AdjSetEdgeKind<V>
+{
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub trait AdjSetEdgeKind<V: AdjSetVertex>: UniformEdgeKind {
     type Edge: AdjSetEdge<V>;
 }
@@ -64,12 +73,10 @@ impl<V: Ord> PartialOrd for UndirectedEdge<V> {
             } else {
                 self.0.cmp(&other.1).then_with(|| self.1.cmp(&other.0))
             }
+        } else if other.0 <= other.1 {
+            self.1.cmp(&other.0).then_with(|| self.0.cmp(&other.1))
         } else {
-            if other.0 <= other.1 {
-                self.1.cmp(&other.0).then_with(|| self.0.cmp(&other.1))
-            } else {
-                self.1.cmp(&other.1).then_with(|| self.0.cmp(&other.0))
-            }
+            self.1.cmp(&other.1).then_with(|| self.0.cmp(&other.0))
         };
         Some(r)
     }
