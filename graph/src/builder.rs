@@ -180,6 +180,7 @@ macro_rules! graph {
 }
 
 
+// TODO: rename to GraphBuilder
 /// A builder used to build graphs.
 ///
 /// See the [module documentation] for examples.

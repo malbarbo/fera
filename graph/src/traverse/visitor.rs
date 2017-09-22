@@ -351,6 +351,7 @@ pub struct Time {
 }
 
 impl Time {
+    #[inline]
     fn get_and_inc(&self) -> u64 {
         let t = self.cur.get();
         self.cur.set(t + 1);

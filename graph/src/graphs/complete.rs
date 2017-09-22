@@ -313,24 +313,28 @@ impl CompleteEdgeKind for Undirected {
 pub struct UndirectedEdge(usize);
 
 impl PartialEq for UndirectedEdge {
+    #[inline]
     fn eq(&self, other: &UndirectedEdge) -> bool {
         self.to_index() == other.to_index()
     }
 }
 
 impl PartialOrd for UndirectedEdge {
+    #[inline]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
 impl Ord for UndirectedEdge {
+    #[inline]
     fn cmp(&self, other: &Self) -> Ordering {
         self.to_index().cmp(&other.to_index())
     }
 }
 
 impl Hash for UndirectedEdge {
+    #[inline]
     fn hash<H>(&self, state: &mut H)
         where H: Hasher
     {
@@ -339,10 +343,12 @@ impl Hash for UndirectedEdge {
 }
 
 impl EdgeImpl for UndirectedEdge {
+    #[inline]
     fn from_index(index: usize) -> Self {
         UndirectedEdge(index << 1)
     }
 
+    #[inline]
     fn to_index(self) -> usize {
         self.0 >> 1
     }
@@ -362,6 +368,7 @@ impl EdgeImpl for UndirectedEdge {
         }
     }
 
+    #[inline]
     fn ends(self, n: CVertex) -> (CVertex, CVertex) {
         let (u, v) = {
             let e = (self.0 >> 1) as CVertex;
@@ -376,6 +383,7 @@ impl EdgeImpl for UndirectedEdge {
         if self.0 & 1 == 0 { (u, v) } else { (v, u) }
     }
 
+    #[inline]
     fn reverse(self, _n: CVertex) -> Self {
         UndirectedEdge(self.0 ^ 1)
     }
@@ -392,10 +400,12 @@ impl CompleteEdgeKind for Directed {
 }
 
 impl EdgeImpl for DirectedEdge {
+    #[inline]
     fn from_index(index: usize) -> Self {
         DirectedEdge(index)
     }
 
+    #[inline]
     fn to_index(self) -> usize {
         self.0
     }
@@ -405,6 +415,7 @@ impl EdgeImpl for DirectedEdge {
         DirectedEdge(n * u + v - u - (if v < u { 0 } else { 1 }))
     }
 
+    #[inline]
     fn ends(self, n: CVertex) -> (CVertex, CVertex) {
         let e = self.0 as CVertex;
         let u = e / (n - 1);
