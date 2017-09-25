@@ -3,6 +3,7 @@
 use prelude::*;
 use props::Color;
 use traverse::*;
+use params::IntoOwned;
 
 pub trait Paths: Incidence {
     fn find_path(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Vec<Edge<Self>>>
@@ -16,6 +17,61 @@ pub trait Paths: Incidence {
             .root(u)
             .run();
         if path.is_empty() { None } else { Some(path) }
+    }
+
+    fn is_walk<I>(&self, edges: I) -> bool
+        where I: IntoIterator,
+              I::Item: IntoOwned<Edge<Self>>
+    {
+        let mut edges = edges.into_iter();
+        let mut last = if let Some(e) = edges.next() {
+            self.target(e.into_owned())
+        } else {
+            return true;
+        };
+
+        edges.all(|e| {
+            let (u, v) = self.ends(e.into_owned());
+            if last == u {
+                last = v;
+                true
+            } else {
+                false
+            }
+        })
+    }
+
+    fn is_path<I>(&self, edges: I) -> bool
+        where Self: WithVertexProp<bool>,
+              I: IntoIterator,
+              I::Item: IntoOwned<Edge<Self>>
+    {
+        let mut visited = self.default_vertex_prop(false);
+        let mut edges = edges.into_iter();
+
+        let mut last = if let Some(e) = edges.next() {
+            let (u, v) = self.ends(e.into_owned());
+            if u == v {
+                return false;
+            }
+            visited[u] = true;
+            visited[v] = true;
+            v
+        } else {
+            return true;
+        };
+
+        edges.all(|e| {
+            let (u, v) = self.ends(e.into_owned());
+
+            if last != u || visited[v] {
+                false
+            } else {
+                visited[v] = true;
+                last = v;
+                true
+            }
+        })
     }
 }
 
