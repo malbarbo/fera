@@ -371,6 +371,7 @@ impl<'a, G, P> VisitVertex<G> for StampTime<'a, P>
     }
 }
 
+
 pub struct RecordDistance<'a, P: 'a>(pub &'a mut P);
 
 impl<'a, G, P> VisitEdge<G> for RecordDistance<'a, P>
@@ -380,6 +381,33 @@ impl<'a, G, P> VisitEdge<G> for RecordDistance<'a, P>
     fn visit_edge(&mut self, g: &G, e: Edge<G>) -> Control {
         let (u, v) = g.ends(e);
         self.0[v] = self.0[u] + 1;
+        Control::Continue
+    }
+}
+
+
+pub struct RecordParent<'a, P: 'a>(pub &'a mut P);
+
+impl<'a, G, P> VisitEdge<G> for RecordParent<'a, P>
+    where G: WithEdge,
+          P: VertexPropMut<G, OptionVertex<G>>
+{
+    fn visit_edge(&mut self, g: &G, e: Edge<G>) -> Control {
+        let (u, v) = g.ends(e);
+        self.0[v] = u.into();
+        Control::Continue
+    }
+}
+
+
+pub struct RecordParentEdge<'a, P: 'a>(pub &'a mut P);
+
+impl<'a, G, P> VisitEdge<G> for RecordParentEdge<'a, P>
+    where G: WithEdge<Kind = Undirected>,
+          P: VertexPropMut<G, OptionEdge<G>>
+{
+    fn visit_edge(&mut self, g: &G, e: Edge<G>) -> Control {
+        self.0[g.target(e)] = g.reverse(e).into();
         Control::Continue
     }
 }
