@@ -5,6 +5,7 @@ use props::Color;
 use traverse::*;
 
 use fera_fun::{first, vec};
+use num_traits::{zero, Zero};
 
 use std::cmp::min;
 use std::marker::PhantomData;
@@ -103,8 +104,11 @@ impl<'a, G: WithEdge> Visitor<G> for IsConnected<'a> {
 
 
 #[allow(non_snake_case)]
-pub fn NumComponents(num: &mut u64) -> OnDiscoverRootVertex<Count> {
-    OnDiscoverRootVertex(Count(num))
+pub fn NumComponents<T>(num: &mut T) -> OnDiscoverRootVertex<Add1<T>>
+    where T: Counter + Zero,
+{
+    *num = zero();
+    OnDiscoverRootVertex(Add1(num))
 }
 
 pub struct ConnectedComponents<G, V> {

@@ -1,3 +1,8 @@
+use std::ops::AddAssign;
+use std::marker::PhantomData;
+
+use num_traits::{one, zero, One, Zero};
+
 use prelude::*;
 use props::*;
 use super::control::*;
@@ -316,54 +321,62 @@ def_on_edge_visitor!(OnDiscoverCrossOrBackEdge, discover_cross_or_forward_edge);
 
 use std::cell::Cell;
 
-pub struct Count<'a> {
-    count: &'a mut u64,
+pub trait Counter {
+    fn add1(&mut self);
 }
 
-#[allow(non_snake_case)]
-pub fn Count(count: &mut u64) -> Count {
-    *count = 0;
-    Count { count: count }
+impl<T> Counter for T
+    where T: One + AddAssign
+{
+    fn add1(&mut self) {
+        *self += one();
+    }
 }
 
-impl<'a, G> VisitVertex<G> for Count<'a>
-    where G: WithEdge
+pub struct Add1<'a, T: 'a>(pub &'a mut T);
+
+impl<'a, G, T> VisitVertex<G> for Add1<'a, T>
+    where G: WithEdge,
+          T: Counter,
 {
     fn visit_vertex(&mut self, _g: &G, _v: Vertex<G>) -> Control {
-        *self.count += 1;
+        self.0.add1();
         Control::Continue
     }
 }
 
-impl<'a, G> VisitEdge<G> for Count<'a>
-    where G: WithEdge
+impl<'a, G, T> VisitEdge<G> for Add1<'a, T>
+    where G: WithEdge,
+          T: Counter
 {
     fn visit_edge(&mut self, _g: &G, _e: Edge<G>) -> Control {
-        *self.count += 1;
+        self.0.add1();
         Control::Continue
     }
 }
 
-
 #[derive(Default)]
-pub struct Time {
-    cur: Cell<u64>,
+pub struct Time<T> {
+    cur: Cell<T>,
 }
 
-impl Time {
+impl<T> Time<T>
+    where T: Copy + Counter
+{
     #[inline]
-    fn get_and_inc(&self) -> u64 {
-        let t = self.cur.get();
-        self.cur.set(t + 1);
-        t
+    fn get_and_inc(&self) -> T {
+        let mut t = self.cur.get();
+        t.add1();
+        self.cur.replace(t)
     }
 }
 
-pub struct StampTime<'a, P: 'a>(pub &'a Time, pub &'a mut P);
+pub struct StampTime<'a, T: 'a, P: 'a>(pub &'a Time<T>, pub &'a mut P);
 
-impl<'a, G, P> VisitVertex<G> for StampTime<'a, P>
+impl<'a, G, T, P> VisitVertex<G> for StampTime<'a, T, P>
     where G: WithEdge,
-          P: VertexPropMut<G, u64>
+          T: Copy + Counter,
+          P: VertexPropMut<G, T>
 {
     fn visit_vertex(&mut self, _g: &G, v: Vertex<G>) -> Control {
         self.1[v] = self.0.get_and_inc();
@@ -372,15 +385,30 @@ impl<'a, G, P> VisitVertex<G> for StampTime<'a, P>
 }
 
 
-pub struct RecordDistance<'a, P: 'a>(pub &'a mut P);
+pub struct RecordDistance<'a, P: 'a, T> {
+    dist: &'a mut P,
+    _marker: PhantomData<T>,
+}
 
-impl<'a, G, P> VisitEdge<G> for RecordDistance<'a, P>
+#[allow(non_snake_case)]
+pub fn RecordDistante<P, T>(dist: &mut P) -> RecordDistance<P, T> {
+    RecordDistance {dist, _marker: PhantomData}
+}
+
+impl<'a, G, P, T> Visitor<G> for RecordDistance<'a, P, T>
     where G: WithEdge,
-          P: VertexPropMut<G, u64>
+          P: VertexPropMut<G, T>,
+          T: Counter + Copy + Zero,
 {
-    fn visit_edge(&mut self, g: &G, e: Edge<G>) -> Control {
+    fn discover_root_vertex(&mut self, _g: &G, v: Vertex<G>) -> Control {
+        self.dist[v] = zero();
+        Control::Continue
+    }
+
+    fn discover_tree_edge(&mut self, g: &G, e: Edge<G>) -> Control {
         let (u, v) = g.ends(e);
-        self.0[v] = self.0[u] + 1;
+        self.dist[v] = self.dist[u];
+        self.dist[v].add1();
         Control::Continue
     }
 }
@@ -388,11 +416,16 @@ impl<'a, G, P> VisitEdge<G> for RecordDistance<'a, P>
 
 pub struct RecordParent<'a, P: 'a>(pub &'a mut P);
 
-impl<'a, G, P> VisitEdge<G> for RecordParent<'a, P>
+impl<'a, G, P> Visitor<G> for RecordParent<'a, P>
     where G: WithEdge,
           P: VertexPropMut<G, OptionVertex<G>>
 {
-    fn visit_edge(&mut self, g: &G, e: Edge<G>) -> Control {
+    fn discover_root_vertex(&mut self, _g: &G, v: Vertex<G>) -> Control {
+        self.0[v] = G::vertex_none();
+        Control::Continue
+    }
+
+    fn discover_tree_edge(&mut self, g: &G, e: Edge<G>) -> Control {
         let (u, v) = g.ends(e);
         self.0[v] = u.into();
         Control::Continue
@@ -402,11 +435,16 @@ impl<'a, G, P> VisitEdge<G> for RecordParent<'a, P>
 
 pub struct RecordParentEdge<'a, P: 'a>(pub &'a mut P);
 
-impl<'a, G, P> VisitEdge<G> for RecordParentEdge<'a, P>
+impl<'a, G, P> Visitor<G> for RecordParentEdge<'a, P>
     where G: WithEdge<Kind = Undirected>,
           P: VertexPropMut<G, OptionEdge<G>>
 {
-    fn visit_edge(&mut self, g: &G, e: Edge<G>) -> Control {
+    fn discover_root_vertex(&mut self, _g: &G, v: Vertex<G>) -> Control {
+        self.0[v] = G::edge_none();
+        Control::Continue
+    }
+
+    fn discover_tree_edge(&mut self, g: &G, e: Edge<G>) -> Control {
         self.0[g.target(e)] = g.reverse(e).into();
         Control::Continue
     }
