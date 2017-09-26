@@ -117,6 +117,7 @@ pub type BfsQueue<G> = VecDeque<(OptionEdge<G>, Vertex<G>)>;
 mod tests {
     use prelude::*;
     use traverse::*;
+    use traverse::TraverseEvent::*;
     use fera_fun::vec;
 
     fn new() -> StaticGraph {
@@ -137,26 +138,11 @@ mod tests {
                (5, 6))
     }
 
-    fn edge_by_ends(g: &StaticGraph,
-                    u: Vertex<StaticGraph>,
-                    v: Vertex<StaticGraph>)
-                    -> Edge<StaticGraph> {
-        for (e, x, y) in g.edges_with_ends() {
-            if u == x && v == y {
-                return e;
-            } else if u == y && v == x {
-                return g.reverse(e);
-            }
-        }
-        panic!()
-    }
-
     #[test]
     fn events() {
-        use traverse::TraverseEvent::*;
         let g = new();
         let v = vec(g.vertices());
-        let e = |x: usize, y: usize| edge_by_ends(&g, v[x], v[y]);
+        let e = |x: usize, y: usize| g.edge_by_ends(v[x], v[y]);
         let expected = vec![
             Start,
 
