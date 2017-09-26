@@ -1,5 +1,5 @@
 use prelude::*;
-use props::Color;
+use props::{Color, IgnoreWriteProp};
 use traverse::*;
 use params::*;
 
@@ -58,6 +58,13 @@ impl<'a, G, V, R, C, Q> BfsAlg<&'a G, V, R, C, Q> {
         where G: WithVertex
     {
         self.roots(iter::once(root))
+    }
+
+    pub fn ignore_color_changes(self) -> BfsAlg<&'a G, V, R, Owned<IgnoreWriteProp<Color>>, Q>
+        where G: WithVertex
+    {
+        let color = Owned(self.0.vertex_prop(Color::White));
+        self.color(color)
     }
 }
 
