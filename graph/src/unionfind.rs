@@ -2,6 +2,7 @@
 //!
 //! [disjoint-set]: https://en.wikipedia.org/wiki/Disjoint-set_data_structure
 use prelude::*;
+use params::{ParamDerefMut, Owned};
 
 use fera_fun::first;
 use fera_unionfind::UnionFind as InnerUnionFind;
@@ -59,6 +60,18 @@ pub trait WithUnionFind: Graph {
 }
 
 impl<G: Graph> WithUnionFind for G {}
+
+
+pub struct NewUnionFind<'a, G: 'a>(pub &'a G);
+
+impl<'a, G: 'a + WithUnionFind> ParamDerefMut for NewUnionFind<'a, G> {
+    type Target = UnionFind<G>;
+    type Output = Owned<UnionFind<G>>;
+
+    fn build(self) -> Self::Output {
+        Owned(self.0.new_unionfind())
+    }
+}
 
 
 #[cfg(test)]

@@ -4,7 +4,7 @@
 
 use prelude::*;
 use params::*;
-use unionfind::{UnionFind, WithUnionFind};
+use unionfind::{NewUnionFind, UnionFind, WithUnionFind};
 
 use fera_fun::vec;
 
@@ -134,17 +134,6 @@ impl<'a, G, E, V, U> IntoIterator for KruskalAlg<&'a G, E, V, U>
     }
 }
 
-// TODO: move to unionfind.rs
-pub struct NewUnionFind<'a, G: 'a>(pub &'a G);
-
-impl<'a, G: 'a + WithUnionFind> ParamDerefMut for NewUnionFind<'a, G> {
-    type Target = UnionFind<G>;
-    type Output = Owned<UnionFind<G>>;
-
-    fn build(self) -> Self::Output {
-        Owned(self.0.new_unionfind())
-    }
-}
 
 #[cfg(test)]
 mod tests {
