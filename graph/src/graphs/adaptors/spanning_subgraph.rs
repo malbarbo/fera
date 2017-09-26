@@ -40,6 +40,17 @@ impl<'a, G> SpanningSubgraph<'a, G>
         }
     }
 
+    pub fn set_edges<I>(&mut self, iter: I)
+        where G: VertexList,
+              I: IntoIterator,
+              I::Item: IntoOwned<Edge<G>>
+    {
+        self.clear_edges();
+        for e in iter {
+            self.add_edge(e.into_owned());
+        }
+    }
+
     pub fn add_edges<I>(&mut self, iter: I)
         where I: IntoIterator,
               I::Item: IntoOwned<Edge<G>>
