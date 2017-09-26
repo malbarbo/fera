@@ -6,7 +6,7 @@ use fera_graph::prelude::*;
 use fera_graph::sets::FastVecSet;
 
 quickcheck! {
-    fn sets(vertices: Vec<u8>) -> bool {
+    fn quickcheck_sets(vertices: Vec<u8>) -> bool {
         let n = 20;
         let g = CompleteGraph::new(n);
         let mut count = 0;

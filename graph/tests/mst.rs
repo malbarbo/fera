@@ -11,7 +11,7 @@ use fera_graph::arbitrary::GnConnectedWithEdgeProp;
 use fera_graph::sum_prop;
 
 quickcheck! {
-    fn mst(x: GnConnectedWithEdgeProp<StaticGraph, u32>) -> bool {
+    fn quickcheck_mst(x: GnConnectedWithEdgeProp<StaticGraph, u32>) -> bool {
         let GnConnectedWithEdgeProp(g, w) = x;
         if g.num_vertices() == 0 || g.num_edges() == 0 {
             return true;

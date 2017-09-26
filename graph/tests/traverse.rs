@@ -8,7 +8,7 @@ use fera_graph::traverse::{Dfs, RecursiveDfs, OnTraverseEvent};
 use fera_graph::arbitrary::Gn;
 
 quickcheck! {
-    fn dfs(x: Gn<StaticGraph>) -> bool {
+    fn quickcheck_dfs(x: Gn<StaticGraph>) -> bool {
         let Gn(g) = x;
 
         let mut v1 = vec![];
