@@ -53,7 +53,7 @@ impl<T> Sequence<T> for Vec<T> {
 pub struct Edge {
     pub id: usize,
     rank: Cell<usize>,
-    tour: Cell<usize>,
+    tree: Cell<usize>,
 }
 
 impl Edge {
@@ -61,7 +61,7 @@ impl Edge {
         Self {
             id: id,
             rank: 0.into(),
-            tour: 0.into(),
+            tree: 0.into(),
         }
     }
 
@@ -73,12 +73,12 @@ impl Edge {
         self.id >> 1
     }
 
-    pub fn tour(&self) -> usize {
-        self.tour.get()
+    pub fn tree(&self) -> usize {
+        self.tree.get()
     }
 
-    pub fn set_tour(&self, tour: usize) {
-        self.tour.set(tour)
+    pub fn set_tree(&self, tree: usize) {
+        self.tree.set(tree)
     }
 
     pub fn rank(&self) -> usize {
