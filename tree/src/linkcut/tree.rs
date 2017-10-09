@@ -4,6 +4,7 @@ use std::mem;
 use std::ptr;
 
 use linkcut::{Node, link, cut, is_connected};
+use DynamicTree;
 
 pub struct LinkCutTree {
     nodes: Vec<UnsafeCellNode<'static>>,
@@ -13,17 +14,22 @@ impl LinkCutTree {
     pub fn new(n: usize) -> Self {
         Self { nodes: (0..n).map(UnsafeCellNode::new).collect() }
     }
+}
 
-    pub fn link(&mut self, x: usize, y: usize) {
+impl DynamicTree for LinkCutTree {
+    type Edge = (usize, usize);
+
+    fn is_connected(&self, x: usize, y: usize) -> bool {
+        x == y || is_connected(&self.nodes[x], &self.nodes[y])
+    }
+
+    fn link(&mut self, x: usize, y: usize) -> Option<Self::Edge> {
         link(&self.nodes[x], &self.nodes[y]);
+        Some((x, y))
     }
 
-    pub fn cut(&mut self, x: usize, y: usize) {
+    fn cut(&mut self, (x, y): Self::Edge) {
         cut(&self.nodes[x], &self.nodes[y]);
-    }
-
-    pub fn is_connected(&self, x: usize, y: usize) -> bool {
-        is_connected(&self.nodes[x], &self.nodes[y])
     }
 }
 
