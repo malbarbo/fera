@@ -1,4 +1,9 @@
+#![feature(slice_rotate)]
+
 use std::collections::HashMap;
+
+pub mod eulertour;
+pub use eulertour::EulerTourTree;
 
 pub mod linkcut;
 pub use linkcut::LinkCutTree;
