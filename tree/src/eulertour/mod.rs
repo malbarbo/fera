@@ -1,5 +1,5 @@
 use std::mem;
-use std::ops::{Deref, Range};
+use std::ops::Range;
 use std::ptr;
 
 use DynamicTree;
@@ -115,10 +115,11 @@ impl<A: 'static + Sequence> EulerTourTree<A> {
     fn make_root(&mut self, x: usize) {
         if let Some(e) = self.active[x] {
             assert_eq!(x, self.source(e));
-            if e.rank() == 0 {
+            let (tree, rank) = self.tree_rank(e);
+            if rank == 0 {
                 return;
             }
-            self.tree(e).rotate(e.rank());
+            tree.rotate(rank);
         }
         debug_assert_eq!(x, self.find_root_node(x));
         debug_assert!(self.check());
@@ -142,15 +143,21 @@ impl<A: 'static + Sequence> EulerTourTree<A> {
     }
 
     fn tree(&self, e: &Edge) -> &'static A {
-        unsafe { static_lifetime(&self.trees[e.tree()]) }
+        A::tree_rank(e).0
+    }
+
+    fn tree_rank(&self, e: &Edge) -> (&'static A, usize) {
+        A::tree_rank(e)
     }
 
     fn tree_range(&self, index: usize) -> (&'static A, Range<usize>) {
         let (e, f) = self.edges(index);
-        if e.rank() < f.rank() {
-            (self.tree(e), e.rank()..f.rank() + 1)
+        let (e_tree, e_rank) = self.tree_rank(e);
+        let (_, f_rank) = self.tree_rank(f);
+        if e_rank < f_rank {
+            (e_tree, e_rank..f_rank + 1)
         } else {
-            (self.tree(e), f.rank()..e.rank() + 1)
+            (e_tree, f_rank..e_rank + 1)
         }
     }
 
@@ -162,7 +169,7 @@ impl<A: 'static + Sequence> EulerTourTree<A> {
             } else {
                 assert_eq!(v, t);
                 // pair edge
-                unsafe { static_lifetime(&self.edges[e.id ^ 1]) }
+                unsafe { static_lifetime(&self.edges[e.id_pair()]) }
             }
         });
     }
@@ -189,7 +196,7 @@ impl<A: 'static + Sequence> EulerTourTree<A> {
         if let Some(tree) = self.free_trees.pop() {
             tree
         } else {
-            let tree = Box::new(A::with_capacity(self.trees.len(), self.edges.len()));
+            let tree = Box::new(A::with_capacity(self.edges.len()));
             self.trees.push(tree);
             unsafe { static_lifetime(self.trees.last().unwrap()) }
         }
@@ -209,29 +216,26 @@ impl<A: 'static + Sequence> EulerTourTree<A> {
     fn check(&self) -> bool {
         for i in 0..self.active.len() {
             if let Some(e) = self.active[i] {
-                assert!(ptr::eq(e, self.trees[e.tree()][e.rank()]));
+                let (tree, rank) = self.tree_rank(e);
+                assert!(ptr::eq(e, tree[rank]));
             }
         }
-        for (i, tree) in self.trees.iter().enumerate() {
+        for tree in &self.trees {
             for j in 0..tree.len() {
                 let (u, v) = self.ends(tree[j]);
-                assert_eq!(
-                    self.find_root_node(u),
-                    self.find_root_node(v),
-                    "\nactive {} = {:?}\nactive {} = {:?}",
-                    u,
-                    self.active[u],
-                    v,
-                    self.active[v]
-                );
-                assert_eq!(
-                    tree[j].tree(),
-                    i,
-                    "edge {} = {:?}",
-                    tree[j].index(),
-                    self.ends(tree[j])
-                );
-                assert_eq!(tree[j].rank(), j);
+                assert_eq!(self.find_root_node(u),
+                           self.find_root_node(v),
+                           "\nactive {} = {:?}\nactive {} = {:?}",
+                           u,
+                           self.active[u],
+                           v,
+                           self.active[v]);
+                let (j_tree, j_rank) = self.tree_rank(tree[j]);
+                assert!(ptr::eq(j_tree, &**tree),
+                        "edge {} = {:?}",
+                        tree[j].index(),
+                        self.ends(tree[j]));
+                assert_eq!(j_rank, j);
             }
         }
         true

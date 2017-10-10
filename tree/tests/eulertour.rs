@@ -2,12 +2,12 @@
 extern crate quickcheck;
 extern crate fera_tree;
 
-use fera_tree::eulertour::EulerTourTree;
+use fera_tree::eulertour::{EulerTourTree, Seq};
 use fera_tree::{check_dynamic_tree, check_dynamic_tree_incremental, DynamicTree};
 
 #[test]
 fn basic() {
-    let mut dc = EulerTourTree::<Vec<_>>::new(3);
+    let mut dc = EulerTourTree::<Seq>::new(3);
 
     assert!(!dc.is_connected(0, 1));
     assert!(!dc.is_connected(0, 2));
@@ -54,10 +54,10 @@ quickcheck! {
 
 fn incremental(edges: Vec<(u8, u8)>) {
     let n = 25;
-    check_dynamic_tree_incremental(edges, EulerTourTree::<Vec<_>>::new(n), n);
+    check_dynamic_tree_incremental(edges, EulerTourTree::<Seq>::new(n), n);
 }
 
 fn check(edges: Vec<(u8, u8)>) {
     let n = 25;
-    check_dynamic_tree(edges, EulerTourTree::<Vec<_>>::new(n), n);
+    check_dynamic_tree(edges, EulerTourTree::<Seq>::new(n), n);
 }
