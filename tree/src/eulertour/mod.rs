@@ -13,7 +13,7 @@ pub use self::seq::*;
 //     active[x] == None
 // else
 //     active[x].source == u
-pub struct EulerTourTree<A: 'static + Sequence> {
+pub struct EulerTourTree<A: Sequence> {
     trees: Vec<Box<A>>,
     ends: Box<[(usize, usize)]>,
     edges: Box<[Edge]>,
@@ -22,7 +22,7 @@ pub struct EulerTourTree<A: 'static + Sequence> {
     free_edges: Vec<usize>,
 }
 
-impl<A: 'static + Sequence> DynamicTree for EulerTourTree<A> {
+impl<A: Sequence> DynamicTree for EulerTourTree<A> {
     // TODO: use an opaque type
     type Edge = usize;
 
@@ -48,20 +48,20 @@ impl<A: 'static + Sequence> DynamicTree for EulerTourTree<A> {
             }
             (Some(u_act), None) => {
                 self.make_root(u);
-                self.set_active(v, Some(f));
                 self.tree(u_act).push(e);
                 self.tree(u_act).push(f);
+                self.set_active(v, Some(f));
             }
             (None, Some(v_act)) => {
                 self.make_root(v);
-                self.set_active(u, Some(e));
                 self.tree(v_act).push(f);
                 self.tree(v_act).push(e);
+                self.set_active(u, Some(e));
             }
             (None, None) => {
+                self.new_tree_with_edges(e, f);
                 self.set_active(u, Some(e));
                 self.set_active(v, Some(f));
-                self.new_tree_with_edges(e, f);
             }
         }
         debug_assert!(self.is_connected(u, v));
@@ -94,7 +94,7 @@ impl<A: 'static + Sequence> DynamicTree for EulerTourTree<A> {
     }
 }
 
-impl<A: 'static + Sequence> EulerTourTree<A> {
+impl<A: Sequence> EulerTourTree<A> {
     pub fn new(n: usize) -> Self {
         let max_edges = 2 * (n - 1);
         let max_trees = n / 2 + 1;
