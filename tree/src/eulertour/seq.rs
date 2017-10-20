@@ -155,8 +155,7 @@ impl Sequence for NestedSeq {
     }
 
     fn first(&self) -> Option<EdgeRef> {
-        // self.inner().first().and_then(|x| x.first())
-        self.inner().iter().find(|x| x.len() != 0).and_then(|x| x.first())
+        self.inner().first().and_then(|x| x.first())
     }
 
     fn push(&self, edge: EdgeRef) {
@@ -200,39 +199,58 @@ impl Sequence for NestedSeq {
     }
 
     fn extract(&self, range: Range<usize>, to: &Self) {
-        let (start, si) = self.find_seq(range.start);
+        let (mut start, si) = self.find_seq(range.start);
         let (end, ei) = self.find_seq(range.end - 1);
 
         if start == end {
             self.inner()[start].extract(si..ei + 1, to.add_new_seq());
-            //if self.inner()[start].len() == 0 {
-            //    self.inner_mut().remove(0);
-            //}
-            // TODO: to and start can be empty
+            if self.inner()[start].len() == 0 {
+                self.inner_mut().remove(start);
+            }
+            if to.inner().last().unwrap().len() == 0 {
+                to.inner_mut().pop().unwrap();
+            }
             return;
         }
 
         // first tree
-        let seq = to.add_new_seq();
+        let other = to.add_new_seq();
         let tree = &self.inner()[start];
-        tree.extract_to(si + 1..tree.len(), seq);
+        tree.extract_to(si + 1..tree.len(), other);
         tree.pop().unwrap();
-        if seq.len() == 0 {
+        if other.len() == 0 {
             to.inner_mut().pop().unwrap();
         }
-        // TODO: tree can be empty
 
         // middle trees
-        to.inner_mut().extend(self.inner_mut().drain(start + 1..end));
+        {
+            let d = if tree.len() == 0 {
+                let mut d = self.inner_mut().drain(start..end);
+                d.next().unwrap();
+                d
+            } else {
+                start += 1;
+                self.inner_mut().drain(start..end)
+            };
+            to.inner_mut().extend(d);
+        }
 
         // last tree
-        let seq = to.add_new_seq();
-        let tree = &self.inner()[start + 1];
-        tree.extract_to(0..ei + 1, seq);
-        seq.pop().unwrap();
+        let other = to.add_new_seq();
+        let tree = &self.inner()[start];
+        tree.extract_to(0..ei + 1, other);
+        other.pop().unwrap();
+
+        if other.len() == 0 {
+            to.inner_mut().pop().unwrap();
+        }
 
         for seq in to.inner() {
             seq.set_parent(ptr(to))
+        }
+
+        if tree.len() == 0 {
+            self.inner_mut().remove(start);
         }
 
         self.check();
@@ -240,12 +258,14 @@ impl Sequence for NestedSeq {
     }
 
     fn append(&self, from: &Self) {
-        let last = self.inner().last().unwrap();
-        let first = from.inner().first().unwrap();
-        if last.len() + first.len() < self.max_seq_len() {
-            last.append(first);
-            self.inner_mut().extend(from.inner_mut().drain(1..));
-            from.inner_mut().pop();
+        if let (Some(last), Some(first)) = (self.inner().last(), from.inner().first()) {
+            if last.len() + first.len() < self.max_seq_len() {
+                last.append(first);
+                self.inner_mut().extend(from.inner_mut().drain(1..));
+                from.inner_mut().pop();
+            } else {
+                self.inner_mut().append(from.inner_mut());
+            }
         } else {
             self.inner_mut().append(from.inner_mut());
         }
@@ -313,6 +333,7 @@ impl NestedSeq {
         let mut count = 0;
         for t in self.inner() {
             let t: &Seq = t;
+            assert_ne!(0, t.len());
             assert_eq!(ptr(self), t.parent());
             for (i, &e) in t.inner().iter().enumerate() {
                 let (tt, r) = Seq::tree_rank(e);
