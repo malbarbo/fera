@@ -27,7 +27,15 @@ impl<A: Sequence> DynamicTree for EulerTourTree<A> {
     type Edge = usize;
 
     fn is_connected(&self, u: usize, v: usize) -> bool {
-        self.find_root_node(u) == self.find_root_node(v)
+        if u == v {
+            return true
+        }
+        if let Some(e1) = self.active[u] {
+            if let Some(e2) = self.active[v] {
+                return ptr::eq(self.tree(e1), self.tree(e2));
+            }
+        }
+        false
     }
 
     fn link(&mut self, u: usize, v: usize) -> Option<Self::Edge> {
@@ -38,6 +46,10 @@ impl<A: Sequence> DynamicTree for EulerTourTree<A> {
         match (self.active[u], self.active[v]) {
             (Some(u_act), Some(v_act)) => {
                 // TODO: avoid one call to make_root
+                // let (u_tree, u_rank) = self.tree_and_rank(u_act);
+                // let (v_tree, v_rank) = self.tree_and_rank(v_act);
+                // u_tree.insert_rotated(u_rank, e, f, v_tree, v_rank);
+                // self.dispose_tree(v_tree);
                 let t = self.tree(v_act);
                 self.make_root(u);
                 self.make_root(v);
@@ -70,23 +82,37 @@ impl<A: Sequence> DynamicTree for EulerTourTree<A> {
     }
 
     fn cut(&mut self, edge: Self::Edge) {
-        // TODO: avoid make_root
-        let (u, v) = self.ends(self.edges(edge).0);
-        self.make_root(u);
+        let (mut u, mut v) = self.ends(self.edges(edge).0);
 
         let (i_tree, range) = self.tree_range(edge);
-        let j_tree = self.new_tree();
-        i_tree.extract(range, j_tree);
 
-        self.set_active(u, i_tree.first());
+        // assure that u is parent of v, so that
+        // - u subtree (if any) will be in i_tree
+        // - v subtree (if any) will be in j_tree
+        if self.source(i_tree[range.start]) == v {
+            mem::swap(&mut u, &mut v);
+        }
+
+        // do the extraction
+        let j_tree = self.new_tree();
+        i_tree.extract(range.clone(), j_tree);
+
+        // update active
+        if range.start < i_tree.len() {
+            self.set_active(u, Some(i_tree[range.start]));
+        } else {
+            self.set_active(u, i_tree.first());
+        }
         self.set_active(v, j_tree.first());
 
+        // dispose empty trees
         if i_tree.len() == 0 {
             self.dispose_tree(i_tree);
         }
         if j_tree.len() == 0 {
             self.dispose_tree(j_tree);
         }
+
         self.dispose_edge(edge);
 
         debug_assert!(!self.is_connected(u, v));
@@ -115,7 +141,7 @@ impl<A: Sequence> EulerTourTree<A> {
     fn make_root(&mut self, x: usize) {
         if let Some(e) = self.active[x] {
             assert_eq!(x, self.source(e));
-            let (tree, rank) = self.tree_rank(e);
+            let (tree, rank) = self.tree_and_rank(e);
             if rank == 0 {
                 return;
             }
@@ -143,17 +169,17 @@ impl<A: Sequence> EulerTourTree<A> {
     }
 
     fn tree(&self, e: &Edge) -> &'static A {
-        A::tree_rank(e).0
+        A::seq(e)
     }
 
-    fn tree_rank(&self, e: &Edge) -> (&'static A, usize) {
-        A::tree_rank(e)
+    fn tree_and_rank(&self, e: &Edge) -> (&'static A, usize) {
+        A::seq_and_rank(e)
     }
 
     fn tree_range(&self, index: usize) -> (&'static A, Range<usize>) {
         let (e, f) = self.edges(index);
-        let (e_tree, e_rank) = self.tree_rank(e);
-        let (_, f_rank) = self.tree_rank(f);
+        let (e_tree, e_rank) = self.tree_and_rank(e);
+        let (_, f_rank) = self.tree_and_rank(f);
         if e_rank < f_rank {
             (e_tree, e_rank..f_rank + 1)
         } else {
@@ -216,7 +242,7 @@ impl<A: Sequence> EulerTourTree<A> {
     fn check(&self) -> bool {
         for i in 0..self.active.len() {
             if let Some(e) = self.active[i] {
-                let (tree, rank) = self.tree_rank(e);
+                let (tree, rank) = self.tree_and_rank(e);
                 assert!(ptr::eq(e, tree[rank]));
             }
         }
@@ -230,7 +256,7 @@ impl<A: Sequence> EulerTourTree<A> {
                            self.active[u],
                            v,
                            self.active[v]);
-                let (j_tree, j_rank) = self.tree_rank(tree[j]);
+                let (j_tree, j_rank) = self.tree_and_rank(tree[j]);
                 assert!(ptr::eq(j_tree, &**tree),
                         "edge {} = {:?}",
                         tree[j].index(),
@@ -240,6 +266,15 @@ impl<A: Sequence> EulerTourTree<A> {
         }
         true
     }
+
+    /*
+    fn print_tree(&self, seq: &A) {
+        for i in 0..seq.len() {
+            println!("{:?} = {:?}", self.ends(seq[i]), seq[i]);
+        }
+        println!("");
+    }
+    */
 }
 
 unsafe fn static_lifetime<T>(x: &T) -> &'static T {

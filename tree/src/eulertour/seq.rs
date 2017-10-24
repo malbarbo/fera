@@ -9,9 +9,11 @@ pub trait Sequence: 'static + Index<usize, Output = EdgeRef> {
     fn push(&self, value: EdgeRef);
     fn rotate(&self, p: usize);
     fn extract(&self, range: Range<usize>, to: &Self);
+    fn insert_rotated(&self, index: usize, first: EdgeRef, last: EdgeRef, other: &Self, p: usize);
     fn append(&self, from: &Self);
     fn len(&self) -> usize;
-    fn tree_rank(e: &Edge) -> (&'static Self, usize);
+    fn seq(e: &Edge) -> &'static Self;
+    fn seq_and_rank(e: &Edge) -> (&'static Self, usize);
 }
 
 pub struct Seq {
@@ -23,6 +25,7 @@ pub struct Seq {
 impl Index<usize> for Seq {
     type Output = EdgeRef;
 
+    #[inline]
     fn index(&self, index: usize) -> &EdgeRef {
         &self.inner()[index]
     }
@@ -48,34 +51,86 @@ impl Sequence for Seq {
 
     fn rotate(&self, p: usize) {
         self.inner_mut().rotate(p);
-        for i in 0..self.len() {
-            self[i].set_rank(i);
+        for (i, t) in self.inner_mut().iter_mut().enumerate() {
+            t.set_rank(i);
         }
     }
 
     fn extract(&self, range: Range<usize>, to: &Self) {
-        {
-            let mut d = self.inner_mut().drain(range.clone());
-            d.next().unwrap();
-            d.next_back().unwrap();
-            to.inner_mut().extend(d);
+        let s = to.len();
+        to.inner_mut().extend(&self.inner()[range.start + 1..range.end - 1]);
+        self.inner_mut().drain(range.clone());
+
+        for (t, i) in to.inner_mut()[s..].iter_mut().zip(s..) {
+            t.set_tree(ptr(to));
+            t.set_rank(i);
         }
 
-        for i in 0..to.len() {
-            to[i].set_tree(ptr(to));
-            to[i].set_rank(i);
-        }
-
-        for i in range.start..self.len() {
-            self[i].set_tree(ptr(self));
-            self[i].set_rank(i);
+        let s = range.start;
+        for (t, i) in self.inner_mut()[s..].iter_mut().zip(s..) {
+            t.set_rank(i);
         }
     }
 
+    fn insert_rotated(&self,
+                      mut index: usize,
+                      first: EdgeRef,
+                      last: EdgeRef,
+                      other: &Self,
+                      p: usize) {
+        let inner = self.inner_mut();
+        let new_len = inner.len() + other.len() + 2;
+        let old_index = index;
+
+        inner.reserve(other.len() + 2);
+        unsafe {
+            let old_len = inner.len();
+            let to = index + other.len() + 2;
+            // Safe version
+            // inner.resize(new_len, first);
+            // for i in (index..old_len).rev() {
+            //      let val = inner[i];
+            //      inner[to + i - index] = val;
+            // }
+
+            // unsafe version is faster
+            inner.set_len(new_len);
+            if to < inner.len() {
+                ptr::copy(&inner[index], &mut inner[to], old_len - index);
+            } else {
+                // nothing to copy
+            }
+        }
+
+        inner[index] = first;
+        index += 1;
+
+        inner[index..index + other.len() - p].copy_from_slice(&other.inner()[p..]);
+        index += other.len() - p;
+
+        inner[index..index + p].copy_from_slice(&other.inner()[0..p]);
+        index += p;
+
+        inner[index] = last;
+
+        // update tree and rank
+        let start = old_index;
+        let to = start + other.len() + 2;
+        for t in &mut self.inner_mut()[start..to] {
+            t.set_tree(ptr(self));
+        }
+
+        for (t, i) in self.inner_mut()[start..].iter_mut().zip(start..) {
+            t.set_rank(i);
+        }
+
+        other.inner_mut().clear();
+    }
+
     fn append(&self, from: &Self) {
-        for i in 0..from.len() {
-            from[i].set_tree(ptr(self));
-            from[i].set_rank(self.len() + i);
+        for (i, t) in from.inner_mut().iter_mut().enumerate() {
+            t.set_tree(ptr(self));
+            t.set_rank(self.len() + i);
         }
         self.inner_mut().append(from.inner_mut());
     }
@@ -84,8 +139,12 @@ impl Sequence for Seq {
         self.inner().len()
     }
 
-    fn tree_rank(e: &Edge) -> (&'static Self, usize) {
-        (unsafe { mem::transmute(e.tree()) }, e.rank())
+    fn seq(e: &Edge) -> &'static Self {
+        unsafe { mem::transmute(e.tree()) }
+    }
+
+    fn seq_and_rank(e: &Edge) -> (&'static Self, usize) {
+        (Self::seq(e), e.rank())
     }
 }
 
@@ -114,14 +173,14 @@ impl Seq {
             to.inner_mut().extend(d);
         }
 
-        for i in 0..to.len() {
-            to[i].set_tree(ptr(to));
-            to[i].set_rank(i);
+        for (i, t) in to.inner_mut().iter_mut().enumerate() {
+            t.set_tree(ptr(to));
+            t.set_rank(i);
         }
 
-        for i in range.start..self.len() {
-            self[i].set_tree(ptr(self));
-            self[i].set_rank(i);
+        let s = range.start;
+        for (t, i) in self.inner_mut()[s..].iter_mut().zip(s..) {
+            t.set_rank(i);
         }
     }
 
@@ -162,14 +221,13 @@ impl Sequence for NestedSeq {
         if let Some(seq) = self.inner().last() {
             if seq.len() < self.max_seq_len() {
                 seq.push(edge);
-                self.check();
+                debug_assert!(self.check());
                 return;
             }
         }
         // FIXME: respect min_seq_len, add and split
         self.add_new_seq().push(edge);
-
-        self.check();
+        debug_assert!(self.check());
     }
 
     fn rotate(&self, p: usize) {
@@ -195,7 +253,7 @@ impl Sequence for NestedSeq {
             self.inner_mut().rotate(i);
         }
 
-        self.check();
+        debug_assert!(self.check());
     }
 
     fn extract(&self, range: Range<usize>, to: &Self) {
@@ -253,8 +311,16 @@ impl Sequence for NestedSeq {
             self.inner_mut().remove(start);
         }
 
-        self.check();
-        to.check();
+        debug_assert!(self.check());
+        debug_assert!(to.check());
+    }
+
+    fn insert_rotated(&self,
+                      _index: usize,
+                      _first: EdgeRef,
+                      _last: EdgeRef,
+                      _other: &Self,
+                      _p: usize) {
     }
 
     fn append(&self, from: &Self) {
@@ -272,16 +338,20 @@ impl Sequence for NestedSeq {
         for t in self.inner() {
             t.set_parent(ptr(self));
         }
-        self.check();
-        from.check();
+        debug_assert!(self.check());
+        debug_assert!(from.check());
     }
 
     fn len(&self) -> usize {
         self.inner().iter().map(|x| x.len()).sum()
     }
 
-    fn tree_rank(e: &Edge) -> (&'static Self, usize) {
-        let (tree, rank) = Seq::tree_rank(e);
+    fn seq(e: &Edge) -> &'static Self {
+        unsafe { mem::transmute(Seq::seq(e).parent()) }
+    }
+
+    fn seq_and_rank(e: &Edge) -> (&'static Self, usize) {
+        let (tree, rank) = Seq::seq_and_rank(e);
         let seq: &'static Self = unsafe { mem::transmute(tree.parent()) };
         let mut count = 0;
         for t in seq.inner().iter() {
@@ -329,25 +399,26 @@ impl NestedSeq {
         seq
     }
 
-    fn check(&self) {
+    fn check(&self) -> bool {
         let mut count = 0;
         for t in self.inner() {
             let t: &Seq = t;
             assert_ne!(0, t.len());
             assert_eq!(ptr(self), t.parent());
             for (i, &e) in t.inner().iter().enumerate() {
-                let (tt, r) = Seq::tree_rank(e);
+                let (tt, r) = Seq::seq_and_rank(e);
                 assert_eq!(i, r);
                 assert_eq!(ptr(tt), ptr(t));
                 assert_eq!(ptr(e), ptr(t[r]));
                 assert_eq!(ptr(self[count + r]), ptr(e));
 
-                let (x, rr) = NestedSeq::tree_rank(e);
+                let (x, rr) = NestedSeq::seq_and_rank(e);
                 assert_eq!(count + r, rr);
                 assert_eq!(ptr(x), ptr(self));
             }
             count += t.len();
         }
+        true
     }
 }
 

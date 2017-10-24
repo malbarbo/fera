@@ -17,7 +17,7 @@ fn basic_nested_seq() {
 }
 
 fn basic<S: Sequence>() {
-    let mut dc = EulerTourTree::<NestedSeq>::new(3);
+    let mut dc = EulerTourTree::<S>::new(3);
 
     assert!(!dc.is_connected(0, 1));
     assert!(!dc.is_connected(0, 2));
