@@ -118,6 +118,22 @@ pub struct EmptyVisitor;
 impl<G: WithEdge> Visitor<G> for EmptyVisitor {}
 
 macro_rules! def_visitor_tuple_m {
+    ($m:ident ; $($name:ident),*) => (
+        #[allow(non_snake_case)]
+        #[cfg_attr(feature = "cargo-clippy", allow(let_and_return))]
+        fn $m(&mut self, g: &G) -> Control {
+            let ($(ref mut $name),*) = *self;
+            let r = Control::Continue;
+            $(
+                let r = if r == Control::Continue {
+                    $name.$m(g)
+                } else {
+                    return Control::Break;
+                };
+            )*
+            r
+        }
+    );
     ($t:ident, $m:ident, $($name:ident),*) => (
         #[allow(non_snake_case)]
         #[cfg_attr(feature = "cargo-clippy", allow(let_and_return))]
@@ -142,6 +158,9 @@ macro_rules! def_visitor_tuple {
             where G: WithEdge,
                   $($name: Visitor<G>),*
         {
+            def_visitor_tuple_m!{start ; $($name),*}
+            def_visitor_tuple_m!{finish ; $($name),*}
+
             def_visitor_tuple_m!{Vertex, discover_root_vertex, $($name),*}
             def_visitor_tuple_m!{Vertex, finish_root_vertex, $($name),*}
 
@@ -337,7 +356,7 @@ pub struct Add1<'a, T: 'a>(pub &'a mut T);
 
 impl<'a, G, T> VisitVertex<G> for Add1<'a, T>
     where G: WithEdge,
-          T: Counter,
+          T: Counter
 {
     fn visit_vertex(&mut self, _g: &G, _v: Vertex<G>) -> Control {
         self.0.add1();
@@ -391,14 +410,17 @@ pub struct RecordDistance<'a, P: 'a, T> {
 }
 
 #[allow(non_snake_case)]
-pub fn RecordDistante<P, T>(dist: &mut P) -> RecordDistance<P, T> {
-    RecordDistance {dist, _marker: PhantomData}
+pub fn RecordDistance<P, T>(dist: &mut P) -> RecordDistance<P, T> {
+    RecordDistance {
+        dist: dist,
+        _marker: PhantomData,
+    }
 }
 
 impl<'a, G, P, T> Visitor<G> for RecordDistance<'a, P, T>
     where G: WithEdge,
           P: VertexPropMut<G, T>,
-          T: Counter + Copy + Zero,
+          T: Counter + Copy + Zero
 {
     fn discover_root_vertex(&mut self, _g: &G, v: Vertex<G>) -> Control {
         self.dist[v] = zero();
