@@ -74,10 +74,12 @@
 use prelude::*;
 use algs::{Components, Trees};
 use props::Color;
-use fera_fun::set;
+use sets::FastVecSet;
 
 use std::cmp;
+use std::mem;
 
+use fera_fun::set;
 use rand::{Rng, XorShiftRng};
 use rand::distributions::{IndependentSample, Range};
 
@@ -293,14 +295,23 @@ pub trait WithBuilder: WithEdge {
     /// Creates a graph with `n` vertices that is a tree, that is, is connected and acyclic.
     ///
     /// The graph has `n - 1` edges if `n > 0` or zero edges if `n = 0`.
+    ///
+    /// See <https://doi.org/10.1109/SFCS.1989.63516>.
     fn new_random_tree<R: Rng>(n: usize, rng: R) -> Self {
         random_tree::<Self, _>(n, rng).finalize()
+    }
+
+    /// Similar to [`new_random_tree`] but creates a tree with diameter `d`. Returns `None`
+    /// if the diameter is invalid.
+    // TODO: describe what is a invalid diameter.
+    fn new_random_tree_with_diameter<R: Rng>(n: u32, d: u32, rng: R) -> Option<Self> {
+        random_tree_with_diameter::<Self, _>(n, d, rng).map(Builder::finalize)
     }
 
     /// Creates a random graph with `n` vertices.
     fn new_gn<R>(n: usize, mut rng: R) -> Self
         where Self::Kind: UniformEdgeKind,
-              R: Rng,
+              R: Rng
     {
         let m = if n > 1 {
             rng.gen_range(0, max_num_edges::<Self>(n))
@@ -312,7 +323,7 @@ pub trait WithBuilder: WithEdge {
 
     /// Creates a random connected graph with `n` vertices.
     fn new_gn_connected<R: Rng>(n: usize, mut rng: R) -> Self
-        where Self::Kind: UniformEdgeKind,
+        where Self::Kind: UniformEdgeKind
     {
         let m = max_num_edges::<Self>(n);
         let m = if m > n {
@@ -328,7 +339,7 @@ pub trait WithBuilder: WithEdge {
     /// Returns `None` with `m` exceeds the maximum number of edges.
     fn new_gnm<R>(n: usize, m: usize, rng: R) -> Option<Self>
         where Self::Kind: UniformEdgeKind,
-              R: Rng,
+              R: Rng
     {
         gnm::<Self, _>(n, m, rng).map(Builder::finalize)
     }
@@ -338,7 +349,7 @@ pub trait WithBuilder: WithEdge {
     ///
     /// Returns `None` if `m` exceeds the maximum number of edges or if `m` is less than `n - 1`.
     fn new_gnm_connected<R: Rng>(n: usize, m: usize, rng: R) -> Option<Self>
-        where Self::Kind: UniformEdgeKind,
+        where Self::Kind: UniformEdgeKind
     {
         gnm_connected::<Self, _>(n, m, rng).map(Builder::finalize)
     }
@@ -378,6 +389,116 @@ fn random_tree<G, R>(n: usize, rng: R) -> G::Builder
     b
 }
 
+fn random_tree_with_diameter<G, R>(n: u32, d: u32, mut rng: R) -> Option<G::Builder>
+    where G: WithBuilder,
+          R: Rng
+{
+    if n == 0 {
+        return if d == 0 { Some(G::builder(0, 0)) } else { None };
+    }
+
+    if d > n - 1 || n > 2 && d < 2 {
+        return None;
+    }
+
+    let mut b = G::builder(n as usize, (n - 1) as usize);
+    let mut vertices: Vec<_> = (0..n).collect();
+    let mut visited = vec![false; n as usize];
+    let mut maxd = vec![0; n as usize];
+    // create a complete graph so we can use graph properties
+    let g = CompleteGraph::new(n);
+    let mut dist = g.default_edge_prop(0);
+    let mut num_edges = 0;
+
+    // create the initial path
+    rng.shuffle(&mut vertices);
+    vertices.truncate(d as usize + 1);
+    for i in 0..vertices.len() - 1 {
+        for j in (i + 1)..vertices.len() {
+            let (u, v) = (vertices[i], vertices[j]);
+            let duv = (j - i) as u32;
+            dist[g.edge_by_ends(u, v)] = duv;
+            maxd[u as usize] = maxd[u as usize].max(duv);
+            maxd[v as usize] = maxd[v as usize].max(duv);
+        }
+        b.add_edge(vertices[i] as usize, vertices[i + 1] as usize);
+        num_edges += 1;
+    }
+
+    if num_edges == n - 1 {
+        return Some(b);
+    }
+
+    // compute good
+    let mut good = FastVecSet::new_vertex_set(&g);
+    for &v in &vertices {
+        visited[v as usize] = true;
+    }
+    for v in 0..n {
+        if maxd[v as usize] != d {
+            good.insert(v);
+        }
+    }
+
+    // complete the tree
+    let mut cur = *good.choose(&mut rng).unwrap();
+    while !visited[cur as usize] {
+        cur = *good.choose(&mut rng).unwrap();
+    }
+    while num_edges != n - 1 {
+        // choose a new edge
+        if !good.contains(cur) {
+            cur = *good.choose(&mut rng).unwrap();
+            while !visited[cur as usize] {
+                cur = *good.choose(&mut rng).unwrap();
+            }
+        }
+        let v = *good.choose(&mut rng).unwrap();
+        if visited[v as usize] || cur == v {
+            cur = v;
+            continue;
+        }
+        assert!(maxd[cur as usize] < d);
+
+        // update dist
+        for i in 0..n {
+            if i == cur {
+                continue;
+            }
+            let dci = dist[g.edge_by_ends(cur, i)];
+            if dci != 0 && v != i {
+                dist[g.edge_by_ends(v, i)] = dci + 1;
+            }
+        }
+
+        // update maxd and good
+        maxd[v as usize] = maxd[cur as usize] + 1;
+        if maxd[v as usize] == d {
+            good.remove(v);
+        }
+        for i in 0..n {
+            if v == i {
+                continue;
+            }
+            maxd[i as usize] = maxd[i as usize].max(dist[g.edge_by_ends(v, i)]);
+            if maxd[i as usize] == d && good.contains(i) {
+                good.remove(i);
+            }
+            assert!(maxd[i as usize] <= d);
+        }
+
+        // update tree
+        b.add_edge(cur as usize, v as usize);
+        num_edges += 1;
+        visited[v as usize] = true;
+
+        // iterate
+        cur = v;
+    }
+
+    Some(b)
+}
+
 fn max_num_edges<G>(n: usize) -> usize
     where G: WithEdge,
           G::Kind: UniformEdgeKind
@@ -401,7 +522,7 @@ fn gnm_connected<G, R>(n: usize, m: usize, mut rng: R) -> Option<G::Builder>
     }
 
     if m > max_num_edges::<G>(n) || m < n - 1 {
-        return None
+        return None;
     }
 
     let mut b = G::builder(n, m);
@@ -432,7 +553,7 @@ fn gnm<G, R>(n: usize, m: usize, mut rng: R) -> Option<G::Builder>
     use std::collections::HashSet;
 
     if m > max_num_edges::<G>(n) {
-        return None
+        return None;
     }
 
     let mut b = G::builder(n, m);
@@ -482,7 +603,7 @@ impl<R: Rng> Iterator for RandomTreeIter<R> {
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.rem == 0 {
-            return None
+            return None;
         }
         loop {
             let v = self.range.ind_sample(&mut self.rng);
@@ -491,8 +612,8 @@ impl<R: Rng> Iterator for RandomTreeIter<R> {
             } else {
                 self.rem -= 1;
                 self.visited[v] = true;
-                let u = self.cur;
-                return Some((u, v))
+                let u = mem::replace(&mut self.cur, v);
+                return Some((u, v));
             }
         }
     }
@@ -591,7 +712,7 @@ pub trait BuilderTests {
 
     fn gnm()
         where Self::G: WithEdge + VertexList + EdgeList,
-              <Self::G as WithEdge>::Kind: UniformEdgeKind,
+              <Self::G as WithEdge>::Kind: UniformEdgeKind
     {
         let mut rng = XorShiftRng::new_unseeded();
 
@@ -609,7 +730,7 @@ pub trait BuilderTests {
 
     fn gnm_connected()
         where Self::G: Incidence + WithVertexProp<Color>,
-              <Self::G as WithEdge>::Kind: UniformEdgeKind,
+              <Self::G as WithEdge>::Kind: UniformEdgeKind
     {
         let mut rng = XorShiftRng::new_unseeded();
 
@@ -643,4 +764,21 @@ macro_rules! graph_builder_tests {
             gnm_connected
         }
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rand;
+
+    #[test]
+    fn random_tree_mean_diameter() {
+        let mut rng = rand::weak_rng();
+        let n = 100;
+        let times = 1000;
+        let sum: Result<usize, _> = (0..times)
+            .map(|_| StaticGraph::new_random_tree(n, &mut rng).tree_diameter())
+            .sum();
+        assert_eq!(28, sum.unwrap() / times);
+    }
 }
