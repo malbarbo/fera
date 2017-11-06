@@ -3,6 +3,7 @@
 pub mod components;
 pub mod cycles;
 pub mod degrees;
+pub mod distances;
 pub mod kruskal;
 pub mod paths;
 pub mod prim;
@@ -12,6 +13,7 @@ pub mod trees;
 pub use self::components::Components;
 pub use self::cycles::Cycles;
 pub use self::degrees::Degrees;
+pub use self::distances::Distances;
 pub use self::kruskal::Kruskal;
 pub use self::paths::Paths;
 pub use self::prim::Prim;

@@ -472,4 +472,46 @@ impl<'a, G, P> Visitor<G> for RecordParentEdge<'a, P>
     }
 }
 
+pub struct FarthestVertex<'a, G: WithVertex> {
+    cur_dist: usize,
+    dist: &'a mut usize,
+    v: &'a mut OptionVertex<G>,
+}
+
+#[allow(non_snake_case)]
+pub fn FarthestVertex<'a, G>(v: &'a mut OptionVertex<G>,
+                             dist: &'a mut usize)
+                             -> FarthestVertex<'a, G>
+    where G: WithVertex
+{
+    FarthestVertex {
+        cur_dist: 0,
+        dist: dist,
+        v: v,
+    }
+}
+
+impl<'a, G> Visitor<G> for FarthestVertex<'a, G>
+    where G: 'a + WithEdge
+{
+    fn start(&mut self, _: &G) -> Control {
+        *self.dist = 0;
+        Control::Continue
+    }
+
+    fn finish_tree_edge(&mut self, _: &G, _: Edge<G>) -> Control {
+        self.cur_dist -= 1;
+        Control::Continue
+    }
+
+    fn discover_tree_edge(&mut self, g: &G, e: Edge<G>) -> Control {
+        self.cur_dist += 1;
+        if self.cur_dist > *self.dist {
+            *self.dist = self.cur_dist;
+            *self.v = g.target(e).into();
+        }
+        Control::Continue
+    }
+}
+
 // TODO: write tests

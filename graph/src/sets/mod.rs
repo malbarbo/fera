@@ -7,6 +7,8 @@ use std::ops::IndexMut;
 use std::slice;
 use std::vec;
 
+use rand::Rng;
+
 // TODO: use OptionalMax
 const NONE: usize = ::std::usize::MAX;
 
@@ -74,6 +76,11 @@ where
     #[inline]
     pub fn is_empty(&self) -> bool {
         self.values.is_empty()
+    }
+
+    #[inline]
+    pub fn choose<R: Rng>(&self, mut rng: R) -> Option<&T> {
+        rng.choose(&self.values)
     }
 
     #[inline]
