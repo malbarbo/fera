@@ -1,3 +1,7 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 //! Free functions for fun programming.
 //!
 //! This crate can be used through [`fera`] crate.
@@ -94,7 +98,7 @@ pub fn position_min_by_key<I, F, X>(iter: I, mut f: F) -> Option<usize>
         .map(|x| x.0)
 }
 
-/// Creates a Vector from a iterator.
+/// Creates a `Vector` from a iterator.
 ///
 /// ```
 /// use fera_fun::vec;
@@ -107,7 +111,7 @@ pub fn vec<I>(iter: I) -> Vec<I::Item>
     iter.into_iter().collect()
 }
 
-/// Creates a HashSet from a iterator.
+/// Creates a `HashSet` from a iterator.
 ///
 /// ```
 /// use fera_fun::set;
