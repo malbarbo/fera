@@ -16,7 +16,7 @@ members = [
     "fun",
     "graph",
     "optional",
-    "tree",
+#    "tree",
     "unionfind",
 ]
 
@@ -25,7 +25,7 @@ fera-ext = { path = "ext/", optional = true }
 fera-fun = { path = "fun/", optional = true }
 fera-graph = { path = "graph/", optional = true }
 fera-optional = { path = "optional/", optional = true }
-fera-tree = { path = "tree/", optional = true }
+# fera-tree = { path = "tree/", optional = true }
 fera-unionfind = { path = "unionfind/", optional = true }
 
 [dev-dependencies]
@@ -36,7 +36,7 @@ ext = ["fera-ext"]
 fun = ["fera-fun"]
 graph = ["fera-graph"]
 optional = ["fera-optional"]
-tree = ["fera-tree"]
+# tree = ["fera-tree"]
 unionfind = ["fera-unionfind"]
 
 [package.metadata.docs.rs]
