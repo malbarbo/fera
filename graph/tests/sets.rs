@@ -2,55 +2,59 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-extern crate fera_graph;
+#[cfg(feature = "quickcheck")]
 #[macro_use]
 extern crate quickcheck;
+extern crate fera_graph;
 
-use fera_graph::prelude::*;
-use fera_graph::sets::FastVecSet;
+#[cfg(feature = "quickcheck")]
+mod quickchecks {
+    use fera_graph::prelude::*;
+    use fera_graph::sets::FastVecSet;
 
-quickcheck! {
-    fn quickcheck_sets(vertices: Vec<u8>) -> bool {
-        let n = 20;
-        let g = CompleteGraph::new(n);
-        let mut count = 0;
-        let mut expected = vec![false; n as usize];
-        let mut actual = FastVecSet::new_vertex_set(&g);
+    quickcheck! {
+        fn sets(vertices: Vec<u8>) -> bool {
+            let n = 20;
+            let g = CompleteGraph::new(n);
+            let mut count = 0;
+            let mut expected = vec![false; n as usize];
+            let mut actual = FastVecSet::new_vertex_set(&g);
 
-        for v in vertices {
-            let v = u32::from(v) % n;
-            let vu = v as usize;
+            for v in vertices {
+                let v = u32::from(v) % n;
+                let vu = v as usize;
 
-            if expected[vu] {
-                count -= 1;
-                expected[vu] = false;
-                actual.remove(v);
-            } else {
-                count += 1;
-                expected[vu] = true;
-                actual.insert(v);
+                if expected[vu] {
+                    count -= 1;
+                    expected[vu] = false;
+                    actual.remove(v);
+                } else {
+                    count += 1;
+                    expected[vu] = true;
+                    actual.insert(v);
+                }
+
+                for (u, &exp) in expected.iter().enumerate() {
+                    assert_eq!(exp, actual.contains(u as u32));
+                }
+
+                assert_eq!(count == 0, actual.is_empty());
+                assert_eq!(count, actual.len());
+                assert_eq!(count, actual.iter().count());
+                let mut vec = vec![false; n as usize];
+                for u in &actual {
+                    vec[u as usize] = true;
+                }
+                assert_eq!(expected, vec);
             }
 
-            for (u, &exp) in expected.iter().enumerate() {
-                assert_eq!(exp, actual.contains(u as u32));
-            }
+            actual.clear();
+            assert!((0..n).all(|u| !actual.contains(u)));
+            assert!(actual.is_empty());
+            assert_eq!(0, actual.len());
+            assert_eq!(0, actual.iter().count());
 
-            assert_eq!(count == 0, actual.is_empty());
-            assert_eq!(count, actual.len());
-            assert_eq!(count, actual.iter().count());
-            let mut vec = vec![false; n as usize];
-            for u in &actual {
-                vec[u as usize] = true;
-            }
-            assert_eq!(expected, vec);
+            true
         }
-
-        actual.clear();
-        assert!((0..n).all(|u| !actual.contains(u)));
-        assert!(actual.is_empty());
-        assert_eq!(0, actual.len());
-        assert_eq!(0, actual.iter().count());
-
-        true
     }
 }

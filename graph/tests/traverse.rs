@@ -2,25 +2,28 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-extern crate fera_graph;
-
+#[cfg(feature = "quickcheck")]
 #[macro_use]
 extern crate quickcheck;
+extern crate fera_graph;
 
-use fera_graph::prelude::*;
-use fera_graph::traverse::{Dfs, RecursiveDfs, OnTraverseEvent};
-use fera_graph::arbitrary::Gn;
+#[cfg(feature = "quickcheck")]
+mod quickchecks {
+    use fera_graph::prelude::*;
+    use fera_graph::traverse::{Dfs, RecursiveDfs, OnTraverseEvent};
+    use fera_graph::arbitrary::Gn;
 
-quickcheck! {
-    fn quickcheck_dfs(x: Gn<StaticGraph>) -> bool {
-        let Gn(g) = x;
+    quickcheck! {
+        fn dfs(x: Gn<StaticGraph>) -> bool {
+            let Gn(g) = x;
 
-        let mut v1 = vec![];
-        g.recursive_dfs(OnTraverseEvent(|evt| v1.push(evt))).run();
+            let mut v1 = vec![];
+            g.recursive_dfs(OnTraverseEvent(|evt| v1.push(evt))).run();
 
-        let mut v2 = vec![];
-        g.dfs(OnTraverseEvent(|evt| v2.push(evt))).run();
+            let mut v2 = vec![];
+            g.dfs(OnTraverseEvent(|evt| v2.push(evt))).run();
 
-        v1 == v2
+            v1 == v2
+        }
     }
 }
