@@ -26,9 +26,9 @@ extern crate fera;
 use fera::ext::VecExt;
 use fera::fun::vec;
 
-# fn main() {
-assert_eq!(vec![3, 2, 1], vec(1..4).reversed());
-# }
+fn main() {
+    assert_eq!(vec![3, 2, 1], vec(1..4).reversed());
+}
 ```
 
 it is necessary to add this to `Cargo.toml`:
@@ -44,11 +44,11 @@ fera = { version = "0.1", features = ["ext", "fun"] }
 Licensed under [Mozilla Public License 2.0][mpl]. Contributions will be
 accepted under the same license.
 
-[`fera-ext`]: https://github.com/malbarbo/fera/master/ext
-[`fera-fun`]: https://github.com/malbarbo/fera/master/fun
-[`fera-graph`]: https://github.com/malbarbo/fera/master/graph
-[`fera-optional`]: https://github.com/malbarbo/fera/master/optional
-[`fera-unionfind`]: https://github.com/malbarbo/fera/master/unionfind
+[`fera-ext`]: https://github.com/malbarbo/fera/tree/master/ext
+[`fera-fun`]: https://github.com/malbarbo/fera/tree/master/fun
+[`fera-graph`]: https://github.com/malbarbo/fera/tree/master/graph
+[`fera-optional`]: https://github.com/malbarbo/fera/tree/master/optional
+[`fera-unionfind`]: https://github.com/malbarbo/fera/tree/master/unionfind
 [mpl]: https://www.mozilla.org/en-US/MPL/2.0/
 [`std`]: https://doc.rust-lang.org/stable/std/
 [Union-find]: https://en.wikipedia.org/wiki/Disjoint-set_data_structure
