@@ -98,16 +98,11 @@
 
 #![cfg_attr(feature = "cargo-clippy", allow(inline_always))]
 
-// TODO: remove fnv dependency
-extern crate fnv;
-
 use std::collections::HashMap;
-use std::hash::BuildHasherDefault;
-use std::hash::Hash;
+use std::collections::hash_map::RandomState;
+use std::hash::{BuildHasher, Hash};
 use std::marker::PhantomData;
 use std::ops::{Index, IndexMut, RangeTo};
-
-type HashMapFnv<K, V> = HashMap<K, V, BuildHasherDefault<fnv::FnvHasher>>;
 
 /// [`UnionFind`] with keys in range `0..n`.
 ///
@@ -238,13 +233,11 @@ impl<K: Copy + Hash + Eq> UnionFind<K> {
     ///
     /// [`UnionFind`]: struct.UnionFind.html
     pub fn new() -> Self {
-        fn zero<K: Clone>(_: &K) -> usize {
-            0
-        }
-
-        UnionFind::with_parent_rank_num_sets(IndexedHashMap::new(Clone::clone),
-                                             IndexedHashMap::new(zero),
-                                             0)
+        UnionFind::with_parent_rank_num_sets(
+            IndexedHashMap::new_parent_with_hasher(RandomState::new()),
+            IndexedHashMap::new_rank_with_hasher(RandomState::new()),
+            0,
+        )
     }
 }
 
@@ -271,21 +264,40 @@ impl UnionFindRange {
 /// This implements a map that can be used with [`UnionFind`].
 ///
 /// [`UnionFind`]: struct.UnionFind.html
-// TODO: allow the hasher to be specified
-pub struct IndexedHashMap<K, V>
-    where K: Copy + Hash + Eq
+///
+/// TODO: add docs of how to use a different hasher
+pub struct IndexedHashMap<K, V, S = RandomState>
+    where K: Copy + Hash + Eq,
+          S: BuildHasher
 {
-    map: HashMapFnv<K, V>,
+    map: HashMap<K, V, S>,
     default: fn(&K) -> V,
 }
 
-impl<K, V> IndexedHashMap<K, V>
-    where K: Copy + Hash + Eq
+impl<K, S> IndexedHashMap<K, K, S>
+    where K: Copy + Hash + Eq,
+          S: BuildHasher
 {
-    fn new(f: fn(&K) -> V) -> Self {
+    pub fn new_parent_with_hasher(hasher: S) -> Self {
         IndexedHashMap {
-            map: HashMapFnv::default(),
-            default: f,
+            map: HashMap::with_hasher(hasher),
+            default: K::clone,
+        }
+    }
+}
+
+impl<K, S> IndexedHashMap<K, usize, S>
+    where K: Copy + Hash + Eq,
+          S: BuildHasher
+{
+    pub fn new_rank_with_hasher(hasher: S) -> Self {
+        fn zero<K: Clone>(_: &K) -> usize {
+            0
+        }
+
+        IndexedHashMap {
+            map: HashMap::with_hasher(hasher),
+            default: zero,
         }
     }
 }
