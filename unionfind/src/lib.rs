@@ -2,6 +2,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#![doc(html_root_url="https://docs.rs/fera-unionfind/0.1.0/")]
+
 //! Union-find ([disjoint-set]) data structure implementation.
 //!
 //! This implementation use path compression and rank heuristic. With default type parameters the

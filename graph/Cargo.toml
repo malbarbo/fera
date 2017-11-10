@@ -1,7 +1,13 @@
 [package]
 name = "fera-graph"
 version = "0.1.0"
-authors = ["Marco A L Barbosa <malbarbo@gmail.com>"]
+authors = ["malbarbo"]
+description = """
+Graph data structures and algorithms.
+"""
+repository = "https://github.com/malbarbo/fera/tree/master/graph"
+readme = "README.md"
+license = "MPL-2.0"
 
 [dependencies]
 num-traits = "0.1"
@@ -10,7 +16,8 @@ fnv = "1.0"
 fera-fun = { path = "../fun/" }
 fera-optional = { path = "../optional/" }
 fera-unionfind = { path = "../unionfind/" }
-quickcheck = { version = "0.4", optional = true }
+quickcheck = { version = "0.4.1", optional = true }
 
 [dev-dependencies]
-itertools = "0.5"
+itertools = "0.6"
+version-sync = "0.4"

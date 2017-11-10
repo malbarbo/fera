@@ -2,6 +2,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#![doc(html_root_url="https://docs.rs/fera-optional/0.1.0/")]
+
 //! An optional value trait and some implementations.
 //!
 //! There are two main uses for this:

@@ -1,7 +1,16 @@
 [package]
 name = "fera-unionfind"
 version = "0.1.0"
-authors = ["Marco A L Barbosa <malbarbo@gmail.com>"]
+authors = ["malbarbo"]
+description = """
+Union-find (disjoint-set) data structure implementation.
+"""
+repository = "https://github.com/malbarbo/fera/tree/master/unionfind"
+readme = "README.md"
+license = "MPL-2.0"
 
 [dependencies]
 fnv = "1.0"
+
+[dev-dependencies]
+version-sync = "0.4"

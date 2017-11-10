@@ -1,7 +1,16 @@
 [package]
 name = "fera-ext"
 version = "0.1.0"
-authors = ["Marco A L Barbosa <malbarbo@gmail.com>"]
+authors = ["malbarbo"]
+description = """
+Extensions traits for std types.
+"""
+repository = "https://github.com/malbarbo/fera/tree/master/ext"
+readme = "README.md"
+license = "MPL-2.0"
 
 [dependencies]
 rand = "0.3"
+
+[dev-dependencies]
+version-sync = "0.4"

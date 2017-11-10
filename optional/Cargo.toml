@@ -1,7 +1,16 @@
 [package]
 name = "fera-optional"
 version = "0.1.0"
-authors = ["Marco A L Barbosa <malbarbo@gmail.com>"]
+authors = ["malbarbo"]
+description = """
+An optional value trait and some implementations.
+"""
+repository = "https://github.com/malbarbo/fera/master/optional"
+readme = "README.md"
+license = "MPL-2.0"
 
 [dependencies]
 num-traits = "0.1"
+
+[dev-dependencies]
+version-sync = "0.4"

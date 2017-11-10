@@ -1,7 +1,18 @@
 [package]
 name = "fera-tree"
 version = "0.1.0"
-authors = ["Marco A L Barbosa <malbarbo@gmail.com>"]
+authors = ["malbarbo"]
+description = """
+Tree data structures. Including Link/cut trees and Euler tour trees.
+"""
+repository = "https://github.com/malbarbo/fera/tree/master/tree"
+readme = "README.md"
+license = "MPL-2.0"
+
+[dependencies]
+rand = "0.3"
 
 [dev-dependencies]
 quickcheck = "0.4"
+rand = "0.3"
+version-sync = "0.4"
