@@ -19,6 +19,9 @@ fn sorted<T: Ord>(mut v: Vec<T>) -> Vec<T> {
 quickcheck! {
     fn quickcheck_cut_vertices(g: Gn<StaticGraph>) -> bool {
         let g = g.0;
+        if g.num_vertices() > 20 {
+            return true
+        }
         let expect = sorted(cut_vertices_naive(&g));
         let actual = sorted(g.cut_vertices());
         expect == actual
@@ -26,6 +29,9 @@ quickcheck! {
 
     fn quickcheck_cut_edges(g: Gn<StaticGraph>) -> bool {
         let g = g.0;
+        if g.num_vertices() > 20 {
+            return true
+        }
         let expect = sorted(cut_edges_naive(&g));
         let actual = sorted(g.cut_edges());
         expect == actual
