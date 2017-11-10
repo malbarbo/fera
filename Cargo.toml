@@ -1,7 +1,14 @@
 [package]
 name = "fera"
 version = "0.1.0"
-authors = ["Marco A L Barbosa <malbarbo@gmail.com>"]
+authors = ["malbarbo"]
+description = """
+An aggregation of algorithms, data structures and supporting crates.
+"""
+categories = ["algorithms", "data-structures"]
+repository = "https://github.com/malbarbo/fera"
+readme = "README.md"
+license = "MPL-2.0"
 
 [workspace]
 members = [
@@ -21,6 +28,9 @@ fera-optional = { path = "optional/", optional = true }
 fera-tree = { path = "tree/", optional = true }
 fera-unionfind = { path = "unionfind/", optional = true }
 
+[dev-dependencies]
+version-sync = "0.4"
+
 [features]
 ext = ["fera-ext"]
 fun = ["fera-fun"]
@@ -28,3 +38,6 @@ graph = ["fera-graph"]
 optional = ["fera-optional"]
 tree = ["fera-tree"]
 unionfind = ["fera-unionfind"]
+
+[package.metadata.docs.rs]
+all-features = true

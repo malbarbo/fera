@@ -1,3 +1,9 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+#![doc(html_root_url="https://docs.rs/fera/0.1.0/")]
+
 //! An aggregation of algorithms, data structures and supporting crates.
 //!
 //! This crate does not directly provides any item, it only reexports modules corresponding to
