@@ -5,21 +5,22 @@
 use prelude::*;
 
 use std::collections::HashMap;
-use std::hash::BuildHasherDefault;
+use std::collections::hash_map::RandomState;
+use std::hash::BuildHasher;
 use std::ops::{Index, IndexMut};
-use fnv::FnvHasher;
-
-type HashMapFnv<K, V> = HashMap<K, V, BuildHasherDefault<FnvHasher>>;
 
 /// A property backed by a [`HashMap`].
 ///
 /// [`HashMap`]: https://doc.rust-lang.org/stable/std/collections/struct.HashMap.html
-pub struct HashMapProp<I: GraphItem, T: Clone> {
+pub struct HashMapProp<I: GraphItem, T: Clone, S = RandomState> {
     default: T,
-    map: HashMapFnv<I, T>,
+    map: HashMap<I, T, S>,
 }
 
-impl<I: GraphItem, T: Clone> HashMapProp<I, T> {
+impl<I, T> HashMapProp<I, T>
+    where I: GraphItem,
+          T: Clone,
+{
     /// Creates a new [`HashMapProp`] that maps each to key to a reference to `default` value until
     /// a value is associated with the key.
     ///
@@ -28,12 +29,29 @@ impl<I: GraphItem, T: Clone> HashMapProp<I, T> {
     pub fn new(default: T) -> Self {
         HashMapProp {
             default: default,
-            map: HashMapFnv::default(),
+            map: HashMap::default(),
         }
     }
 }
 
-impl<I: GraphItem, T: Clone> Index<I> for HashMapProp<I, T> {
+impl<I, T, S> HashMapProp<I, T, S>
+    where I: GraphItem,
+          T: Clone,
+          S: BuildHasher,
+{
+    pub fn with_hasher(default: T, hasher: S) -> Self {
+        HashMapProp {
+            default: default,
+            map: HashMap::with_hasher(hasher),
+        }
+    }
+}
+
+impl<I, T, S> Index<I> for HashMapProp<I, T, S>
+    where I: GraphItem,
+          T: Clone,
+          S: BuildHasher,
+{
     type Output = T;
 
     #[inline]
@@ -42,7 +60,11 @@ impl<I: GraphItem, T: Clone> Index<I> for HashMapProp<I, T> {
     }
 }
 
-impl<I: GraphItem, T: Clone> IndexMut<I> for HashMapProp<I, T> {
+impl<I, T, S> IndexMut<I> for HashMapProp<I, T, S>
+    where I: GraphItem,
+          T: Clone,
+          S: BuildHasher,
+{
     #[inline]
     fn index_mut(&mut self, v: I) -> &mut Self::Output {
         let default = &self.default;
@@ -50,24 +72,26 @@ impl<I: GraphItem, T: Clone> IndexMut<I> for HashMapProp<I, T> {
     }
 }
 
-impl<G, T> VertexPropMutNew<G, T> for HashMapProp<Vertex<G>, T>
+impl<G, T, S> VertexPropMutNew<G, T> for HashMapProp<Vertex<G>, T, S>
     where G: WithVertex,
-          T: Clone
+          T: Clone,
+          S: BuildHasher + Default,
 {
     fn new_vertex_prop(_: &G, value: T) -> Self
         where T: Clone
     {
-        Self::new(value)
+        Self::with_hasher(value, S::default())
     }
 }
 
-impl<G, T> EdgePropMutNew<G, T> for HashMapProp<Edge<G>, T>
+impl<G, T, S> EdgePropMutNew<G, T> for HashMapProp<Edge<G>, T, S>
     where G: WithEdge,
-          T: Clone
+          T: Clone,
+          S: BuildHasher + Default,
 {
     fn new_edge_prop(_: &G, value: T) -> Self
         where T: Clone
     {
-        Self::new(value)
+        Self::with_hasher(value, S::default())
     }
 }

@@ -16,7 +16,6 @@ extern crate quickcheck;
 extern crate fera_fun;
 extern crate fera_optional;
 extern crate fera_unionfind;
-extern crate fnv;
 extern crate num_traits;
 extern crate rand;
 

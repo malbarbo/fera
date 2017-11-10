@@ -7,19 +7,18 @@ use props::HashMapProp;
 
 use std::cmp::Ordering;
 use std::collections::{hash_map, hash_set, HashMap, HashSet};
-use std::hash::{BuildHasherDefault, Hash, Hasher};
+use std::hash::{Hash, Hasher};
 use std::iter::Cloned;
 use std::marker::PhantomData;
-use fnv::FnvHasher;
 
 pub type AdjSetGraph<V> = AdjSet<V, Undirected>;
 pub type AdjSetDigraph<V> = AdjSet<V, Directed>;
 
-type HashMapFnv<K, V> = HashMap<K, V, BuildHasherDefault<FnvHasher>>;
-type HashSetFnv<K> = HashSet<K, BuildHasherDefault<FnvHasher>>;
+type HashMapAdj<K, V> = HashMap<K, V>;
+type HashSetAdj<K> = HashSet<K>;
 
 pub struct AdjSet<V: AdjSetVertex, K: AdjSetEdgeKind<V>> {
-    adj: HashMapFnv<V, HashSetFnv<V>>,
+    adj: HashMapAdj<V, HashSetAdj<V>>,
     num_edges: usize,
     _marker: PhantomData<K>,
 }
@@ -160,7 +159,7 @@ impl<'a, V, K> VertexTypes<'a, AdjSet<V, K>> for AdjSet<V, K>
     where V: AdjSetVertex,
           K: AdjSetEdgeKind<V>
 {
-    type VertexIter = Cloned<hash_map::Keys<'a, V, HashSetFnv<V>>>;
+    type VertexIter = Cloned<hash_map::Keys<'a, V, HashSetAdj<V>>>;
     type OutNeighborIter = Cloned<hash_set::Iter<'a, V>>;
 }
 
@@ -305,7 +304,7 @@ impl<V, K> AdjSet<V, K>
         K::Edge::new(u, v)
     }
 
-    fn out_neighbors_(&self, v: Vertex<Self>) -> &HashSetFnv<V> {
+    fn out_neighbors_(&self, v: Vertex<Self>) -> &HashSetAdj<V> {
         self.adj
             .get(&v)
             .unwrap_or_else(|| panic!("{:?} is not a valid vertex", v))
@@ -338,7 +337,7 @@ pub struct Edges<'a, V, K>
     where V: AdjSetVertex,
           K: AdjSetEdgeKind<V>
 {
-    iter: hash_map::Iter<'a, V, HashSetFnv<V>>,
+    iter: hash_map::Iter<'a, V, HashSetAdj<V>>,
     inner: Option<(V, hash_set::Iter<'a, V>)>,
     _marker: PhantomData<K>,
 }
