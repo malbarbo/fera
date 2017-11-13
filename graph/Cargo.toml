@@ -12,11 +12,14 @@ license = "MPL-2.0"
 [dependencies]
 num-traits = "0.1"
 rand = "0.3"
-fera-fun = { path = "../fun/" }
-fera-optional = { path = "../optional/" }
-fera-unionfind = { path = "../unionfind/" }
+fera-fun = { version = "0.1", path = "../fun" }
+fera-optional = { version = "0.1", path = "../optional" }
+fera-unionfind = { version = "0.1", path = "../unionfind" }
 quickcheck = { version = "0.4.1", optional = true }
 
 [dev-dependencies]
 itertools = "0.7"
 version-sync = "0.4"
+
+[package.metadata.docs.rs]
+all-features = true

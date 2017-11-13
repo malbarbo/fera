@@ -4,6 +4,8 @@
 
 //! Generate arbitrary graphs to be use in [quickcheck] tests.
 //!
+//! This requires enabling `quickcheck` feature.
+//!
 //! # Examples:
 //!
 //! Testing [`WithBuilder::new_gn_connected`] against [`Components::is_connected`]:

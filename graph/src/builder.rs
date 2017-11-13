@@ -783,6 +783,7 @@ mod tests {
         let sum: Result<usize, _> = (0..times)
             .map(|_| StaticGraph::new_random_tree(n, &mut rng).tree_diameter())
             .sum();
-        assert_eq!(28, sum.unwrap() / times);
+        let mean = sum.unwrap() / times;
+        assert!(27 == mean || 28 == mean || 29 == mean);
     }
 }
