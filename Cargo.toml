@@ -21,12 +21,12 @@ members = [
 ]
 
 [dependencies]
-fera-ext = { path = "ext/", optional = true }
-fera-fun = { path = "fun/", optional = true }
-fera-graph = { path = "graph/", optional = true }
-fera-optional = { path = "optional/", optional = true }
-# fera-tree = { path = "tree/", optional = true }
-fera-unionfind = { path = "unionfind/", optional = true }
+fera-ext = { version = "0.1", path = "ext", optional = true }
+fera-fun = { version = "0.1", path = "fun", optional = true }
+fera-graph = { version = "0.1", path = "graph", optional = true }
+fera-optional = { version = "0.1", path = "optional", optional = true }
+# fera-tree = { version = "0.1", path = "tree/", optional = true }
+fera-unionfind = { version = "0.1", path = "unionfind", optional = true }
 
 [dev-dependencies]
 version-sync = "0.4"

@@ -7,6 +7,9 @@ corresponding to others crates. Each module is enable with a feature with the
 same name. All features are disable by default. To avoid longer compile times,
 it is recommend to enable only the features that will be used.
 
+[![Docs.rs](https://docs.rs/fera/badge.svg)](https://docs.rs/fera/)
+[![Crates.io](https://img.shields.io/crates/v/fera.svg)](https://crates.io/crates/fera)
+
 ## Crates
 
 - [`fera-ext`]: Extensions traits for [`std`] types.
