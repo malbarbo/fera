@@ -17,8 +17,8 @@
 //! use [`std::option::Option`] interface by converting an [`Optional`] value to an
 //! [`std::option::Option`] value.
 //!
-//! The [`optional`] crate is similar, but we think that this module is more generic, mainly
-//! because [`optional`] crate is not concerned with the use case 1.
+//! The [`optional`][optional_crate] crate is similar, but we think that this module is more
+//! generic, mainly because `optional` crate is not concerned with the use case 1.
 //!
 //! This crate can be used through [`fera`] crate.
 //!
@@ -66,7 +66,7 @@
 //!
 //! [`fera`]: https://docs.rs/fera
 //! [`OptionalBool`]: struct.OptionalBool.html
-//! [`optional`]: https://crates.io/crates/optional
+//! [optional_crate]: https://crates.io/crates/optional
 //! [`OptionalMax`]: type.OptionalMax.html
 //! [`OptionalMin`]: type.OptionalMin.html
 //! [`Optional`]: trait.Optional.html
