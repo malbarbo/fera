@@ -13,17 +13,6 @@
 use std::borrow::Borrow;
 use std::collections::HashSet;
 use std::hash::Hash;
-use std::iter::Enumerate;
-
-/// [`IntoIterator`] version of [`Iterator::enumerate`].
-///
-/// [`IntoIterator`]: https://doc.rust-lang.org/stable/std/iter/trait.IntoIterator.html
-/// [`Iterator::enumerate`]: https://doc.rust-lang.org/stable/std/iter/trait.Iterator.html#method.enumerate
-pub fn enumerate<I>(iter: I) -> Enumerate<I::IntoIter>
-    where I: IntoIterator
-{
-    iter.into_iter().enumerate()
-}
 
 /// Returns the first item of an iterator.
 ///
@@ -49,11 +38,11 @@ pub fn first<I>(iter: I) -> I::Item
 /// produces the item.
 ///
 /// ```
-/// use fera_fun::position_item;
+/// use fera_fun::position_of;
 ///
-/// assert_eq!(Some(1), position_item(&[0, 3, 3, 0, 5], &3));
+/// assert_eq!(Some(1), position_of(&[0, 3, 3, 0, 5], &3));
 /// ```
-pub fn position_item<I, T>(iter: I, item: &T) -> Option<usize>
+pub fn position_of<I, T>(iter: I, item: &T) -> Option<usize>
     where I: IntoIterator,
           I::Item: Borrow<T>,
           T: PartialEq

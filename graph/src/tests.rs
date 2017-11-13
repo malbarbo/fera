@@ -5,7 +5,7 @@
 use prelude::*;
 use props::HashMapProp;
 
-use fera_fun::{enumerate, vec, set};
+use fera_fun::{vec, set};
 
 use std::collections::HashSet;
 
@@ -258,10 +258,10 @@ pub trait GraphTests {
     {
         let (g, vertices, _) = Self::new();
         let mut p = g.default_vertex_prop(0usize);
-        for (i, &u) in enumerate(&vertices) {
+        for (i, &u) in vertices.iter().enumerate() {
             p[u] = 10 * i;
         }
-        for (i, &u) in enumerate(&vertices) {
+        for (i, &u) in vertices.iter().enumerate() {
             assert_eq!(10 * i, p[u])
         }
     }
@@ -271,10 +271,10 @@ pub trait GraphTests {
     {
         let (g, _, edges) = Self::new();
         let mut p = g.default_edge_prop(0usize);
-        for (i, &e) in enumerate(&edges) {
+        for (i, &e) in edges.iter().enumerate() {
             p[e] = i + 1;
         }
-        for (i, &e) in enumerate(&edges) {
+        for (i, &e) in edges.iter().enumerate() {
             assert_eq!(i + 1, p[e]);
             if g.orientation(e).is_undirected() {
                 assert_eq!(i + 1, p[g.get_reverse(e).unwrap()])

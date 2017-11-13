@@ -4,9 +4,7 @@
 
 #[macro_use]
 extern crate fera_graph;
-extern crate fera_fun;
 
-use fera_fun::enumerate;
 use fera_graph::prelude::*;
 use fera_graph::algs::{Components, Cycles, Trees};
 
@@ -92,21 +90,21 @@ fn cases() -> Vec<Case> {
 
 #[test]
 fn is_connected() {
-    for (i, case) in enumerate(cases()) {
+    for (i, case) in cases().into_iter().enumerate() {
         assert_eq!(case.is_connected, case.g.is_connected(), "Case {}", i);
     }
 }
 
 #[test]
 fn is_acyclic() {
-    for (i, case) in enumerate(cases()) {
+    for (i, case) in cases().into_iter().enumerate() {
         assert_eq!(case.is_acyclic, case.g.is_acyclic(), "Case {}", i);
     }
 }
 
 #[test]
 fn is_tree() {
-    for (i, case) in enumerate(cases()) {
+    for (i, case) in cases().into_iter().enumerate() {
         assert_eq!(case.is_tree, case.g.is_tree(), "Case {}", i);
     }
 }
