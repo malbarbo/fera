@@ -4,7 +4,7 @@
 
 //! An extension trait for `std::vec::Vec`.
 
-use rand::Rng;
+use rand::{self, Rng};
 
 use std::cmp::Ordering;
 
@@ -27,7 +27,7 @@ pub trait VecExt<T> {
     ///
     /// # Safety
     ///
-    /// This is unsafe because some values maybe not be dropped or some values maybe dropped
+    /// This is unsafe because some values may not be dropped or some values may be dropped
     /// without being initialized. See [`std::mem::uninitialized`] for more informations.
     ///
     /// [`std::mem::uninitialized`]: https://doc.rust-lang.org/stable/std/mem/fn.uninitialized.html
@@ -37,13 +37,24 @@ pub trait VecExt<T> {
 
     fn deduped(self) -> Self where T: PartialEq;
 
+    fn deduped_by<F>(self, same_bucket: F) -> Self
+        where F: FnMut(&mut T, &mut T) -> bool;
+
+    fn deduped_by_key<F, K>(self, key: F) -> Self
+        where F: FnMut(&mut T) -> K,
+              K: PartialEq<K>;
+
     fn resized(self, new_len: usize, value: T) -> Self where T: Clone;
 
     fn reversed(self) -> Self;
 
     fn shrinked_to_fit(self) -> Self;
 
-    fn shuffled<R: Rng>(self, rng: R) -> Self;
+    /// Shuffle this vector using `rand::weak_rng`.
+    fn shuffled(self) -> Self;
+
+    /// Shuffle this vector using `rng`.
+    fn shuffled_with<R: Rng>(self, rng: R) -> Self;
 
     fn sorted(self) -> Self where T: Ord;
 
@@ -70,6 +81,21 @@ impl<T> VecExt<T> for Vec<T> {
         self
     }
 
+    fn deduped_by<F>(mut self, same_bucket: F) -> Self
+        where F: FnMut(&mut T, &mut T) -> bool
+    {
+        self.dedup_by(same_bucket);
+        self
+    }
+
+    fn deduped_by_key<F, K>(mut self, key: F) -> Self
+        where F: FnMut(&mut T) -> K,
+              K: PartialEq<K>
+    {
+        self.dedup_by_key(key);
+        self
+    }
+
     fn appended(mut self, other: &mut Self) -> Self {
         self.append(other);
         self
@@ -92,7 +118,11 @@ impl<T> VecExt<T> for Vec<T> {
         self
     }
 
-    fn shuffled<R: Rng>(mut self, mut rng: R) -> Self {
+    fn shuffled(self) -> Self {
+        self.shuffled_with(rand::weak_rng())
+    }
+
+    fn shuffled_with<R: Rng>(mut self, mut rng: R) -> Self {
         rng.shuffle(&mut self[..]);
         self
     }
@@ -129,7 +159,6 @@ impl<T> VecExt<T> for Vec<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rand::XorShiftRng;
 
     #[test]
     fn test_deduped() {
@@ -170,9 +199,8 @@ mod tests {
 
     #[test]
     fn test_shuffled() {
-        let mut rng = XorShiftRng::new_unseeded();
-        let v = vec![1, 2, 3, 4, 5];
-        let s = v.clone().shuffled(&mut rng);
+        let v = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        let s = v.clone().shuffled();
         assert!(v != s);
         assert_eq!(v, s.sorted());
     }
