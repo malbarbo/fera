@@ -35,16 +35,22 @@ pub trait VecExt<T> {
 
     fn appended(self, other: &mut Self) -> Self;
 
-    fn deduped(self) -> Self where T: PartialEq;
+    fn deduped(self) -> Self
+    where
+        T: PartialEq;
 
     fn deduped_by<F>(self, same_bucket: F) -> Self
-        where F: FnMut(&mut T, &mut T) -> bool;
+    where
+        F: FnMut(&mut T, &mut T) -> bool;
 
     fn deduped_by_key<F, K>(self, key: F) -> Self
-        where F: FnMut(&mut T) -> K,
-              K: PartialEq<K>;
+    where
+        F: FnMut(&mut T) -> K,
+        K: PartialEq<K>;
 
-    fn resized(self, new_len: usize, value: T) -> Self where T: Clone;
+    fn resized(self, new_len: usize, value: T) -> Self
+    where
+        T: Clone;
 
     fn reversed(self) -> Self;
 
@@ -56,13 +62,18 @@ pub trait VecExt<T> {
     /// Shuffle this vector using `rng`.
     fn shuffled_with<R: Rng>(self, rng: R) -> Self;
 
-    fn sorted(self) -> Self where T: Ord;
+    fn sorted(self) -> Self
+    where
+        T: Ord;
 
-    fn sorted_by<F>(self, compare: F) -> Self where F: FnMut(&T, &T) -> Ordering;
+    fn sorted_by<F>(self, compare: F) -> Self
+    where
+        F: FnMut(&T, &T) -> Ordering;
 
     fn sorted_by_key<F, K>(self, key: F) -> Self
-        where F: FnMut(&T) -> K,
-              K: Ord;
+    where
+        F: FnMut(&T) -> K,
+        K: Ord;
 
     fn truncated(self, len: usize) -> Self;
 }
@@ -75,22 +86,25 @@ impl<T> VecExt<T> for Vec<T> {
     }
 
     fn deduped(mut self) -> Self
-        where T: PartialEq
+    where
+        T: PartialEq,
     {
         self.dedup();
         self
     }
 
     fn deduped_by<F>(mut self, same_bucket: F) -> Self
-        where F: FnMut(&mut T, &mut T) -> bool
+    where
+        F: FnMut(&mut T, &mut T) -> bool,
     {
         self.dedup_by(same_bucket);
         self
     }
 
     fn deduped_by_key<F, K>(mut self, key: F) -> Self
-        where F: FnMut(&mut T) -> K,
-              K: PartialEq<K>
+    where
+        F: FnMut(&mut T) -> K,
+        K: PartialEq<K>,
     {
         self.dedup_by_key(key);
         self
@@ -102,7 +116,8 @@ impl<T> VecExt<T> for Vec<T> {
     }
 
     fn resized(mut self, new_len: usize, value: T) -> Self
-        where T: Clone
+    where
+        T: Clone,
     {
         self.resize(new_len, value);
         self
@@ -128,22 +143,25 @@ impl<T> VecExt<T> for Vec<T> {
     }
 
     fn sorted(mut self) -> Self
-        where T: Ord
+    where
+        T: Ord,
     {
         self.sort();
         self
     }
 
     fn sorted_by<F>(mut self, compare: F) -> Self
-        where F: FnMut(&T, &T) -> Ordering
+    where
+        F: FnMut(&T, &T) -> Ordering,
     {
         self.sort_by(compare);
         self
     }
 
     fn sorted_by_key<F, K>(mut self, key: F) -> Self
-        where F: FnMut(&T) -> K,
-              K: Ord
+    where
+        F: FnMut(&T) -> K,
+        K: Ord,
     {
         self.sort_by_key(key);
         self
@@ -154,7 +172,6 @@ impl<T> VecExt<T> for Vec<T> {
         self
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -193,8 +210,10 @@ mod tests {
 
     #[test]
     fn test_sorted_by_key() {
-        assert_eq!(vec![1isize, 2, -3],
-                   vec![-3isize, 2, 1].sorted_by_key(|a| a.abs()));
+        assert_eq!(
+            vec![1isize, 2, -3],
+            vec![-3isize, 2, 1].sorted_by_key(|a| a.abs())
+        );
     }
 
     #[test]

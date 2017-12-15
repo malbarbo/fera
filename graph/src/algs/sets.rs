@@ -131,9 +131,7 @@ where
 
 impl<'a, G, I> Iterator for IndependentVertexSetFromIter<'a, G, I>
 where
-    G: 'a
-        + Adjacency
-        + WithVertexProp<bool>,
+    G: 'a + Adjacency + WithVertexProp<bool>,
     I: Iterator,
     I::Item: IntoOwned<Vertex<G>>,
 {

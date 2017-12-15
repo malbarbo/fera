@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#![doc(html_root_url="https://docs.rs/fera-optional/0.1.0/")]
+#![doc(html_root_url = "https://docs.rs/fera-optional/0.1.0/")]
 
 //! An optional value trait and some implementations.
 //!
@@ -222,7 +222,6 @@ impl<T: Bounded> BuildNone<T> for MinNone<T> {
     }
 }
 
-
 /// An `Optional` for `bool` with 1 byte size.
 /// `std::option::Option<bool>` have size 1 since rustc 1.23.
 #[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Default)]
@@ -230,7 +229,9 @@ pub struct OptionalBool(OptionalMax<u8>);
 
 impl From<bool> for OptionalBool {
     fn from(value: bool) -> Self {
-        OptionalBool(OptionalMax::from(unsafe { mem::transmute::<bool, u8>(value) }))
+        OptionalBool(OptionalMax::from(unsafe {
+            mem::transmute::<bool, u8>(value)
+        }))
     }
 }
 
@@ -328,7 +329,7 @@ mod tests {
     }
 
     mod optional_bool {
-        use *;
+        use ::*;
         struct T;
 
         impl OptionalTest for T {
@@ -344,17 +345,23 @@ mod tests {
 
         #[test]
         fn debug() {
-            assert_eq!("OptionalBool::None",
-                       format!("{:?}", OptionalBool::default()));
-            assert_eq!("OptionalBool::Some(true)",
-                       format!("{:?}", OptionalBool::from(true)));
-            assert_eq!("OptionalBool::Some(false)",
-                       format!("{:?}", OptionalBool::from(false)));
+            assert_eq!(
+                "OptionalBool::None",
+                format!("{:?}", OptionalBool::default())
+            );
+            assert_eq!(
+                "OptionalBool::Some(true)",
+                format!("{:?}", OptionalBool::from(true))
+            );
+            assert_eq!(
+                "OptionalBool::Some(false)",
+                format!("{:?}", OptionalBool::from(false))
+            );
         }
     }
 
     mod optioned_u32 {
-        use *;
+        use ::*;
         struct T;
 
         impl OptionalTest for T {
@@ -370,15 +377,23 @@ mod tests {
 
         #[test]
         fn debug() {
-            assert_eq!("OptionalMax::None",
-                       format!("{:?}", OptionalMax::<u32>::default()));
-            assert_eq!("OptionalMax::Some(10)",
-                       format!("{:?}", OptionalMax::from(10u32)));
+            assert_eq!(
+                "OptionalMax::None",
+                format!("{:?}", OptionalMax::<u32>::default())
+            );
+            assert_eq!(
+                "OptionalMax::Some(10)",
+                format!("{:?}", OptionalMax::from(10u32))
+            );
 
-            assert_eq!("OptionalMin::None",
-                       format!("{:?}", OptionalMin::<u32>::default()));
-            assert_eq!("OptionalMin::Some(10)",
-                       format!("{:?}", OptionalMin::from(10u32)));
+            assert_eq!(
+                "OptionalMin::None",
+                format!("{:?}", OptionalMin::<u32>::default())
+            );
+            assert_eq!(
+                "OptionalMin::Some(10)",
+                format!("{:?}", OptionalMin::from(10u32))
+            );
         }
     }
 }

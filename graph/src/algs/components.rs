@@ -17,7 +17,8 @@ use std::marker::PhantomData;
 // FIXME: restrict the method to appropriated graph type
 pub trait Components: Incidence {
     fn num_components(&self) -> u64
-        where Self: VertexList + WithVertexProp<Color>
+    where
+        Self: VertexList + WithVertexProp<Color>,
     {
         let mut num = 0;
         self.dfs(NumComponents(&mut num)).run();
@@ -25,7 +26,8 @@ pub trait Components: Incidence {
     }
 
     fn connected_components(&self) -> ConnectedComponents<Self, DefaultVertexPropMut<Self, usize>>
-        where Self: VertexList + WithVertexProp<Color> + WithVertexProp<usize>
+    where
+        Self: VertexList + WithVertexProp<Color> + WithVertexProp<usize>,
     {
         let mut cc = ConnectedComponents(self, self.vertex_prop(0));
         self.dfs(&mut cc).run();
@@ -33,7 +35,8 @@ pub trait Components: Incidence {
     }
 
     fn is_connected(&self) -> bool
-        where Self: VertexList + WithVertexProp<Color>
+    where
+        Self: VertexList + WithVertexProp<Color>,
     {
         let mut con = true;
         self.dfs(IsConnected(&mut con)).run();
@@ -41,7 +44,8 @@ pub trait Components: Incidence {
     }
 
     fn cut_vertices(&self) -> Vec<Vertex<Self>>
-        where Self: Graph
+    where
+        Self: Graph,
     {
         if self.num_vertices() == 0 {
             return vec![];
@@ -59,7 +63,8 @@ pub trait Components: Incidence {
     }
 
     fn cut_edges(&self) -> Vec<Edge<Self>>
-        where Self: Graph
+    where
+        Self: Graph,
     {
         let mut vis = FindCutEdges {
             time: 0,
@@ -73,7 +78,6 @@ pub trait Components: Incidence {
 }
 
 impl<G: Incidence> Components for G {}
-
 
 pub struct IsConnected<'a> {
     connected: &'a mut bool,
@@ -106,10 +110,10 @@ impl<'a, G: WithEdge> Visitor<G> for IsConnected<'a> {
     }
 }
 
-
 #[allow(non_snake_case)]
 pub fn NumComponents<T>(num: &mut T) -> OnDiscoverRootVertex<Add1<T>>
-    where T: Counter + Zero,
+where
+    T: Counter + Zero,
 {
     *num = zero();
     OnDiscoverRootVertex(Add1(num))
@@ -131,8 +135,9 @@ pub fn ConnectedComponents<G, V>(_g: &G, comp: V) -> ConnectedComponents<G, V> {
 }
 
 impl<G, V> Visitor<G> for ConnectedComponents<G, V>
-    where G: WithEdge,
-          V: VertexPropMut<G, usize>
+where
+    G: WithEdge,
+    V: VertexPropMut<G, usize>,
 {
     fn finish_root_vertex(&mut self, _g: &G, _v: Vertex<G>) -> Control {
         self.cur += 1;
@@ -146,8 +151,9 @@ impl<G, V> Visitor<G> for ConnectedComponents<G, V>
 }
 
 impl<G, V> ConnectedComponents<G, V>
-    where G: WithEdge,
-          V: VertexPropMut<G, usize>
+where
+    G: WithEdge,
+    V: VertexPropMut<G, usize>,
 {
     pub fn is_connected(&self, u: Vertex<G>, v: Vertex<G>) -> bool {
         self.comp[u] == self.comp[v]
@@ -166,7 +172,6 @@ impl<G, V> ConnectedComponents<G, V>
         self.cur
     }
 }
-
 
 pub struct FindCutVertices<G: Graph> {
     time: u64,
@@ -224,7 +229,6 @@ impl<G: Graph> Visitor<G> for FindCutVertices<G> {
     }
 }
 
-
 pub struct FindCutEdges<G: Graph> {
     time: u64,
     discover: DefaultVertexPropMut<G, u64>,
@@ -259,7 +263,6 @@ impl<G: Graph> Visitor<G> for FindCutEdges<G> {
     }
 }
 
-
 #[doc(hidden)]
 pub fn cut_vertices_naive<G: IncidenceGraph>(g: &G) -> Vec<Vertex<G>> {
     vec(g.vertices().filter(|&v| is_cut_vertex_naive(g, v)))
@@ -283,7 +286,7 @@ fn is_cut_edge_naive<G: IncidenceGraph>(g: &G, e: Edge<G>) -> bool {
 #[cfg(test)]
 mod tests {
     use prelude::*;
-    use super::{Components, cut_vertices_naive, cut_edges_naive};
+    use super::{cut_edges_naive, cut_vertices_naive, Components};
 
     #[test]
     fn cut_vertices() {
@@ -309,15 +312,17 @@ mod tests {
         // |   1      5
         // | / | \   /
         // 2   6   4
-        let g: StaticGraph = graph!(7,
-                                    (0, 1),
-                                    (0, 2),
-                                    (1, 2),
-                                    (1, 3),
-                                    (1, 4),
-                                    (1, 6),
-                                    (3, 5),
-                                    (4, 5));
+        let g: StaticGraph = graph!(
+            7,
+            (0, 1),
+            (0, 2),
+            (1, 2),
+            (1, 3),
+            (1, 4),
+            (1, 6),
+            (3, 5),
+            (4, 5)
+        );
         let exp = vec![1];
         assert_eq!(exp, sorted(cut_vertices_naive(&g)));
         assert_eq!(exp, sorted(g.cut_vertices()));
@@ -347,15 +352,17 @@ mod tests {
         // |   1      5
         // | / | \   /
         // 2   6   4
-        let g: StaticGraph = graph!(7,
-                                    (0, 1),
-                                    (0, 2),
-                                    (1, 2),
-                                    (1, 3),
-                                    (1, 4),
-                                    (1, 6),
-                                    (3, 5),
-                                    (4, 5));
+        let g: StaticGraph = graph!(
+            7,
+            (0, 1),
+            (0, 2),
+            (1, 2),
+            (1, 3),
+            (1, 4),
+            (1, 6),
+            (3, 5),
+            (4, 5)
+        );
         let exp = vec![(1, 6)];
         assert_eq!(exp, sorted_ends(&g, cut_edges_naive(&g)));
         assert_eq!(exp, sorted_ends(&g, g.cut_edges()));
@@ -367,8 +374,9 @@ mod tests {
     }
 
     fn sorted_ends<G>(g: &G, edges: Vec<Edge<G>>) -> Vec<(Vertex<G>, Vertex<G>)>
-        where G: Graph,
-              Vertex<G>: Ord
+    where
+        G: Graph,
+        Vertex<G>: Ord,
     {
         sorted(g.ends(edges).collect())
     }

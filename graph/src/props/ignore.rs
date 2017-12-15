@@ -49,8 +49,9 @@ impl<I, T: Clone> IndexMut<I> for IgnoreWriteProp<T> {
 }
 
 impl<G, T> VertexPropMutNew<G, T> for IgnoreWriteProp<T>
-    where G: WithVertex,
-          T: Clone
+where
+    G: WithVertex,
+    T: Clone,
 {
     fn new_vertex_prop(_: &G, value: T) -> Self {
         IgnoreWriteProp {
@@ -61,8 +62,9 @@ impl<G, T> VertexPropMutNew<G, T> for IgnoreWriteProp<T>
 }
 
 impl<G, T> EdgePropMutNew<G, T> for IgnoreWriteProp<T>
-    where G: WithEdge,
-          T: Clone,
+where
+    G: WithEdge,
+    T: Clone,
 {
     fn new_edge_prop(_: &G, value: T) -> Self {
         IgnoreWriteProp {
@@ -86,7 +88,7 @@ mod tests {
         for i in 0..n {
             assert_eq!(val, p[i]);
             p[i] = 20;
-            for j in 0.. n {
+            for j in 0..n {
                 assert_eq!(val, p[j]);
             }
         }

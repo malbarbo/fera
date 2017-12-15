@@ -10,7 +10,8 @@ use traverse::*;
 
 pub trait Cycles: Incidence {
     fn is_acyclic(&self) -> bool
-        where Self: VertexList + WithVertexProp<Color>
+    where
+        Self: VertexList + WithVertexProp<Color>,
     {
         let mut acyclic = true;
         self.dfs(IsAcyclic(&mut acyclic)).run();
@@ -18,7 +19,8 @@ pub trait Cycles: Incidence {
     }
 
     fn is_dag(&self) -> bool
-        where Self: VertexList + WithVertexProp<Color>
+    where
+        Self: VertexList + WithVertexProp<Color>,
     {
         let mut dag = true;
         self.dfs(IsDag(&mut dag)).run();
@@ -27,7 +29,6 @@ pub trait Cycles: Incidence {
 }
 
 impl<G: Incidence> Cycles for G {}
-
 
 pub struct IsAcyclic<'a>(pub &'a mut bool);
 
@@ -42,7 +43,6 @@ impl<'a, G: WithEdge> Visitor<G> for IsAcyclic<'a> {
         Control::Break
     }
 }
-
 
 pub struct IsDag<'a>(pub &'a mut bool);
 

@@ -10,17 +10,20 @@ use params::*;
 use std::iter;
 
 pub trait Dfs: WithEdge {
-    fn dfs<V>
-        (&self,
-         vis: V)
-         -> DfsAlg<&Self, V, AllVertices<Self>, NewVertexProp<Self, Color>, Owned<DfsStack<Self>>>
-        where V: Visitor<Self>
+    fn dfs<V>(
+        &self,
+        vis: V,
+    ) -> DfsAlg<&Self, V, AllVertices<Self>, NewVertexProp<Self, Color>, Owned<DfsStack<Self>>>
+    where
+        V: Visitor<Self>,
     {
-        DfsAlg(self,
-               vis,
-               AllVertices(self),
-               NewVertexProp(self, Color::White),
-               Owned(DfsStack::<Self>::new()))
+        DfsAlg(
+            self,
+            vis,
+            AllVertices(self),
+            NewVertexProp(self, Color::White),
+            Owned(DfsStack::<Self>::new()),
+        )
     }
 }
 
@@ -33,12 +36,13 @@ generic_struct! {
 
 impl<'a, G, V, R, C, S> DfsAlg<&'a G, V, R, C, S> {
     pub fn run(self) -> Control
-        where G: Incidence,
-              V: Visitor<G>,
-              R: IntoIterator<Item = Vertex<G>>,
-              C: ParamDerefMut,
-              C::Target: VertexPropMut<G, Color>,
-              S: ParamDerefMut<Target = DfsStack<'a, G>>
+    where
+        G: Incidence,
+        V: Visitor<G>,
+        R: IntoIterator<Item = Vertex<G>>,
+        C: ParamDerefMut,
+        C::Target: VertexPropMut<G, Color>,
+        S: ParamDerefMut<Target = DfsStack<'a, G>>,
     {
         let DfsAlg(g, mut vis, roots, color, stack) = self;
         return_unless!(vis.start(g));
@@ -58,32 +62,38 @@ impl<'a, G, V, R, C, S> DfsAlg<&'a G, V, R, C, S> {
     }
 
     pub fn root(self, root: Vertex<G>) -> DfsAlg<&'a G, V, iter::Once<Vertex<G>>, C, S>
-        where G: WithVertex
+    where
+        G: WithVertex,
     {
         self.roots(iter::once(root))
     }
 
     pub fn ignore_color_changes(self) -> DfsAlg<&'a G, V, R, Owned<IgnoreWriteProp<Color>>, S>
-        where G: WithVertex
+    where
+        G: WithVertex,
     {
         let color = Owned(self.0.vertex_prop(Color::White));
         self.color(color)
     }
 }
 
-pub fn dfs_visit<'a, G, C, V>(g: &'a G,
-                              color: &mut C,
-                              stack: &mut DfsStack<'a, G>,
-                              vis: &mut V)
-                              -> Control
-    where G: Incidence,
-          C: VertexPropMut<G, Color>,
-          V: Visitor<G>
+pub fn dfs_visit<'a, G, C, V>(
+    g: &'a G,
+    color: &mut C,
+    stack: &mut DfsStack<'a, G>,
+    vis: &mut V,
+) -> Control
+where
+    G: Incidence,
+    C: VertexPropMut<G, Color>,
+    V: Visitor<G>,
 {
     'out: while let Some((from, u, mut inc)) = stack.pop() {
         while let Some(e) = inc.next() {
             let v = g.target(e);
-            if g.orientation(e).is_undirected() && color[v] == Color::Black || G::edge_some(e) == from {
+            if g.orientation(e).is_undirected() && color[v] == Color::Black
+                || G::edge_some(e) == from
+            {
                 continue;
             }
             return_unless!(vis.discover_edge(g, e));
@@ -115,9 +125,7 @@ pub fn dfs_visit<'a, G, C, V>(g: &'a G,
     Control::Continue
 }
 
-
 pub type DfsStack<'a, G> = Vec<(OptionEdge<G>, Vertex<G>, OutEdgeIter<'a, G>)>;
-
 
 // Tests
 
@@ -134,16 +142,17 @@ mod tests {
         // 0  |  3      /   \
         //  \ | /      5 --- 6
         //    2
-        graph!(7,
-               (0, 1),
-               (0, 2),
-               (1, 2),
-               (1, 3),
-               (2, 3),
-
-               (4, 5),
-               (4, 6),
-               (5, 6))
+        graph!(
+            7,
+            (0, 1),
+            (0, 2),
+            (1, 2),
+            (1, 3),
+            (2, 3),
+            (4, 5),
+            (4, 6),
+            (5, 6)
+        )
     }
 
     #[test]
@@ -153,7 +162,6 @@ mod tests {
         let e = |x: usize, y: usize| g.edge_by_ends(v[x], v[y]);
         let expected = vec![
             Start,
-
             DiscoverRootVertex(0),
             DiscoverVertex(0),
             DiscoverEdge(e(0, 1)),
@@ -182,7 +190,6 @@ mod tests {
             FinishEdge(e(0, 1)),
             FinishVertex(0),
             FinishRootVertex(0),
-
             DiscoverRootVertex(4),
             DiscoverVertex(4),
             DiscoverEdge(e(4, 5)),
@@ -202,8 +209,7 @@ mod tests {
             FinishEdge(e(4, 5)),
             FinishVertex(4),
             FinishRootVertex(4),
-
-            Finish
+            Finish,
         ];
 
         let mut v = vec![];

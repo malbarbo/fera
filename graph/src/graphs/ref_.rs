@@ -132,7 +132,6 @@ impl<'a, G: WithEdgeIndexProp> WithEdgeIndexProp for &'a G {
     }
 }
 
-
 // Properties
 
 pub struct RefVertexProp<G: WithVertexProp<T>, T>(DefaultVertexPropMut<G, T>);
@@ -153,7 +152,8 @@ impl<G: WithVertexProp<T>, T> IndexMut<Vertex<G>> for RefVertexProp<G, T> {
 
 impl<'a, G: WithVertexProp<T>, T> VertexPropMutNew<&'a G, T> for RefVertexProp<G, T> {
     fn new_vertex_prop(g: &&'a G, value: T) -> Self
-        where T: Clone
+    where
+        T: Clone,
     {
         RefVertexProp(G::default_vertex_prop(*g, value))
     }
@@ -163,12 +163,12 @@ impl<'a, G: WithVertexProp<T>, T> WithVertexProp<T> for &'a G {
     type VertexProp = RefVertexProp<G, T>;
 
     fn default_vertex_prop(&self, value: T) -> DefaultVertexPropMut<Self, T>
-        where T: Clone
+    where
+        T: Clone,
     {
         RefVertexProp(G::default_vertex_prop(self, value))
     }
 }
-
 
 pub struct RefEdgeProp<G: WithEdgeProp<T>, T>(DefaultEdgePropMut<G, T>);
 
@@ -188,7 +188,8 @@ impl<G: WithEdgeProp<T>, T> IndexMut<Edge<G>> for RefEdgeProp<G, T> {
 
 impl<'a, G: WithEdgeProp<T>, T> EdgePropMutNew<&'a G, T> for RefEdgeProp<G, T> {
     fn new_edge_prop(g: &&'a G, value: T) -> Self
-        where T: Clone
+    where
+        T: Clone,
     {
         RefEdgeProp(G::default_edge_prop(*g, value))
     }
@@ -198,7 +199,8 @@ impl<'a, G: WithEdgeProp<T>, T> WithEdgeProp<T> for &'a G {
     type EdgeProp = RefEdgeProp<G, T>;
 
     fn default_edge_prop(&self, value: T) -> DefaultEdgePropMut<Self, T>
-        where T: Clone
+    where
+        T: Clone,
     {
         RefEdgeProp(G::default_edge_prop(self, value))
     }
@@ -210,11 +212,11 @@ impl<'a, G: BasicEdgeProps> BasicEdgeProps for &'a G {}
 
 impl<'a, G: BasicProps> BasicProps for &'a G {}
 
-
 // Choose
 
 impl<'a, G> Choose for &'a G
-    where G: 'a + Choose
+where
+    G: 'a + Choose,
 {
     fn choose_vertex<R: Rng>(&self, rng: R) -> Option<Vertex<Self>> {
         G::choose_vertex(self, rng)

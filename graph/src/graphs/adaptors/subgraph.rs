@@ -19,7 +19,8 @@ use rand::Rng;
 // TODO: delegate all (possible) methods to g
 // TODO: remove Graph bound to allow directed graphs
 pub struct Subgraph<'a, G>
-    where G: 'a + Graph
+where
+    G: 'a + Graph,
 {
     g: &'a G,
     vertices: Vec<Vertex<G>>,
@@ -27,11 +28,11 @@ pub struct Subgraph<'a, G>
     inc: DefaultVertexPropMut<G, Vec<Edge<G>>>,
 }
 
-
 // Traits implementations
 
 impl<'a, G> AsRef<G> for Subgraph<'a, G>
-    where G: 'a + Graph
+where
+    G: 'a + Graph,
 {
     #[inline]
     fn as_ref(&self) -> &G {
@@ -40,28 +41,32 @@ impl<'a, G> AsRef<G> for Subgraph<'a, G>
 }
 
 impl<'a, 'b, G> VertexTypes<'a, Subgraph<'b, G>> for Subgraph<'b, G>
-    where G: 'b + Graph
+where
+    G: 'b + Graph,
 {
     type VertexIter = Cloned<slice::Iter<'a, Vertex<G>>>;
     type OutNeighborIter = OutNeighborFromOutEdge<'b, G, OutEdgeIter<'a, Self>>;
 }
 
 impl<'a, G> WithVertex for Subgraph<'a, G>
-    where G: 'a + Graph
+where
+    G: 'a + Graph,
 {
     type Vertex = Vertex<G>;
     type OptionVertex = OptionVertex<G>;
 }
 
 impl<'a, 'b, G> EdgeTypes<'a, Subgraph<'b, G>> for Subgraph<'b, G>
-    where G: 'b + Graph
+where
+    G: 'b + Graph,
 {
     type EdgeIter = Cloned<slice::Iter<'a, Edge<G>>>;
     type OutEdgeIter = Cloned<slice::Iter<'a, Edge<G>>>;
 }
 
 impl<'a, G> WithEdge for Subgraph<'a, G>
-    where G: 'a + Graph
+where
+    G: 'a + Graph,
 {
     type Kind = G::Kind;
     type Edge = Edge<G>;
@@ -97,7 +102,8 @@ impl<'a, G> WithEdge for Subgraph<'a, G>
 }
 
 impl<'a, G> VertexList for Subgraph<'a, G>
-    where G: 'a + Graph
+where
+    G: 'a + Graph,
 {
     fn num_vertices(&self) -> usize {
         self.vertices.len()
@@ -109,7 +115,8 @@ impl<'a, G> VertexList for Subgraph<'a, G>
 }
 
 impl<'a, G> EdgeList for Subgraph<'a, G>
-    where G: 'a + Graph
+where
+    G: 'a + Graph,
 {
     fn num_edges(&self) -> usize {
         self.edges.len()
@@ -125,7 +132,8 @@ impl<'a, G> EdgeList for Subgraph<'a, G>
 }
 
 impl<'a, G> Adjacency for Subgraph<'a, G>
-    where G: 'a + Graph
+where
+    G: 'a + Graph,
 {
     fn out_neighbors(&self, v: Vertex<Self>) -> OutNeighborIter<Self> {
         OutNeighborFromOutEdge::new(self.g, self.out_edges(v))
@@ -137,7 +145,8 @@ impl<'a, G> Adjacency for Subgraph<'a, G>
 }
 
 impl<'a, G> Incidence for Subgraph<'a, G>
-    where G: 'a + Graph
+where
+    G: 'a + Graph,
 {
     fn out_edges(&self, v: Vertex<Self>) -> OutEdgeIter<Self> {
         self.inc[v].iter().cloned()
@@ -145,35 +154,53 @@ impl<'a, G> Incidence for Subgraph<'a, G>
 }
 
 impl<'a, G, T> WithVertexProp<T> for Subgraph<'a, G>
-    where G: 'a + Graph + WithVertexProp<T>
+where
+    G: 'a + Graph + WithVertexProp<T>,
 {
     type VertexProp = DelegateVertexProp<G, T>;
 }
 
 impl<'a, G, T> WithEdgeProp<T> for Subgraph<'a, G>
-    where G: 'a + Graph + WithEdgeProp<T>
+where
+    G: 'a + Graph + WithEdgeProp<T>,
 {
     type EdgeProp = DelegateEdgeProp<G, T>;
 }
 
-impl<'a, G> BasicVertexProps for Subgraph<'a, G> where G: 'a + Graph {}
+impl<'a, G> BasicVertexProps for Subgraph<'a, G>
+where
+    G: 'a + Graph,
+{
+}
 
-impl<'a, G> BasicEdgeProps for Subgraph<'a, G> where G: 'a + Graph {}
+impl<'a, G> BasicEdgeProps for Subgraph<'a, G>
+where
+    G: 'a + Graph,
+{
+}
 
-impl<'a, G> BasicProps for Subgraph<'a, G> where G: 'a + Graph {}
-
+impl<'a, G> BasicProps for Subgraph<'a, G>
+where
+    G: 'a + Graph,
+{
+}
 
 // Choose
 
 impl<'a, G> Choose for Subgraph<'a, G>
-    where G: 'a + IncidenceGraph
+where
+    G: 'a + IncidenceGraph,
 {
     fn choose_vertex<R: Rng>(&self, mut rng: R) -> Option<Vertex<Self>> {
-        self.vertices.get(rng.gen_range(0, self.num_vertices())).cloned()
+        self.vertices
+            .get(rng.gen_range(0, self.num_vertices()))
+            .cloned()
     }
 
     fn choose_out_neighbor<R: Rng>(&self, v: Vertex<Self>, mut rng: R) -> Option<Vertex<Self>> {
-        self.inc[v].get(rng.gen_range(0, self.out_degree(v))).map(|e| self.target(*e))
+        self.inc[v]
+            .get(rng.gen_range(0, self.out_degree(v)))
+            .map(|e| self.target(*e))
     }
 
     fn choose_edge<R: Rng>(&self, mut rng: R) -> Option<Edge<Self>> {
@@ -189,11 +216,12 @@ impl<'a, G> Choose for Subgraph<'a, G>
         if self.out_degree(v) == 0 {
             None
         } else {
-            self.inc[v].get(rng.gen_range(0, self.out_degree(v))).cloned()
+            self.inc[v]
+                .get(rng.gen_range(0, self.out_degree(v)))
+                .cloned()
         }
     }
 }
-
 
 // Extensions Traits
 
@@ -201,24 +229,27 @@ pub trait WithSubgraph<G: Graph> {
     fn empty_spanning_subgraph(&self) -> SpanningSubgraph<G>;
 
     fn spanning_subgraph<I>(&self, vertices: I) -> SpanningSubgraph<G>
-        where I: IntoIterator,
-              I::Item: IntoOwned<Edge<G>>;
+    where
+        I: IntoIterator,
+        I::Item: IntoOwned<Edge<G>>;
 
     fn induced_subgraph<I>(&self, vertices: I) -> Subgraph<G>
-        where G: Incidence,
-              I: IntoIterator,
-              I::Item: IntoOwned<Vertex<G>>;
+    where
+        G: Incidence,
+        I: IntoIterator,
+        I::Item: IntoOwned<Vertex<G>>;
 
     fn edge_induced_subgraph<I>(&self, edges: I) -> Subgraph<G>
-        where I: IntoIterator,
-              I::Item: IntoOwned<Edge<G>>;
+    where
+        I: IntoIterator,
+        I::Item: IntoOwned<Edge<G>>;
 }
-
 
 impl<G: Graph> WithSubgraph<G> for G {
     fn spanning_subgraph<I>(&self, iter: I) -> SpanningSubgraph<G>
-        where I: IntoIterator,
-              I::Item: IntoOwned<Edge<G>>
+    where
+        I: IntoIterator,
+        I::Item: IntoOwned<Edge<G>>,
     {
         let mut sub = SpanningSubgraph::new(self);
         sub.add_edges(iter);
@@ -230,8 +261,9 @@ impl<G: Graph> WithSubgraph<G> for G {
     }
 
     fn edge_induced_subgraph<I>(&self, edges: I) -> Subgraph<G>
-        where I: IntoIterator,
-              I::Item: IntoOwned<Edge<G>>
+    where
+        I: IntoIterator,
+        I::Item: IntoOwned<Edge<G>>,
     {
         // FIXME: should be O(edges), but is O(V) + O(edges)
         let edges = vec(edges.into_iter().map(IntoOwned::into_owned));
@@ -260,9 +292,10 @@ impl<G: Graph> WithSubgraph<G> for G {
     }
 
     fn induced_subgraph<I>(&self, vertices: I) -> Subgraph<G>
-        where G: Incidence,
-              I: IntoIterator,
-              I::Item: IntoOwned<Vertex<G>>
+    where
+        G: Incidence,
+        I: IntoIterator,
+        I::Item: IntoOwned<Vertex<G>>,
     {
         let vertices = vec(vertices.into_iter().map(IntoOwned::into_owned));
         let mut vs = self.default_vertex_prop(false);
@@ -288,7 +321,6 @@ impl<G: Graph> WithSubgraph<G> for G {
     }
 }
 
-
 // TODO: write benchs and optimize
 
 #[cfg(test)]
@@ -296,10 +328,13 @@ mod tests {
     use prelude::*;
     use fera_fun::{set, vec};
 
-    fn new_graph
-        ()
-        -> (StaticGraph, Edge<StaticGraph>, Edge<StaticGraph>, Edge<StaticGraph>, Edge<StaticGraph>)
-    {
+    fn new_graph() -> (
+        StaticGraph,
+        Edge<StaticGraph>,
+        Edge<StaticGraph>,
+        Edge<StaticGraph>,
+        Edge<StaticGraph>,
+    ) {
         let g: StaticGraph = graph!(5, (0, 1), (0, 2), (1, 2), (3, 4));
         let e = vec(g.edges());
         (g, e[0], e[1], e[2], e[3])

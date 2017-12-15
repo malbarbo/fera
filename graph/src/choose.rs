@@ -45,20 +45,18 @@ pub trait Choose: WithEdge {
 
     /// Returns an iterator that repeatedly calls `choose_vertex`.
     fn choose_vertex_iter<R: Rng>(&self, rng: R) -> ChooseVertexIter<Self, R> {
-        ChooseVertexIter {
-            g: self,
-            rng: rng,
-        }
+        ChooseVertexIter { g: self, rng: rng }
     }
 
     /// Returns a random neighbor vertex of `v` or `None` if `v` has no neighbors.
     fn choose_out_neighbor<R: Rng>(&self, v: Vertex<Self>, rng: R) -> Option<Vertex<Self>>;
 
     /// Returns an iterator that repeatedly calls `choose_out_neighbor(v)`.
-    fn choose_out_neighbor_iter<R: Rng>(&self,
-                                        v: Vertex<Self>,
-                                        rng: R)
-                                        -> ChooseOutNeighborIter<Self, R> {
+    fn choose_out_neighbor_iter<R: Rng>(
+        &self,
+        v: Vertex<Self>,
+        rng: R,
+    ) -> ChooseOutNeighborIter<Self, R> {
         ChooseOutNeighborIter {
             g: self,
             v: v,
@@ -66,16 +64,12 @@ pub trait Choose: WithEdge {
         }
     }
 
-
     /// Returns a random edge of this graph or `None` if the graph has no edges.
     fn choose_edge<R: Rng>(&self, rng: R) -> Option<Edge<Self>>;
 
     /// Returns an iterator that repeatedly calls `choose_edge`.
     fn choose_edge_iter<R: Rng>(&self, rng: R) -> ChooseEdgeIter<Self, R> {
-        ChooseEdgeIter {
-            g: self,
-            rng: rng,
-        }
+        ChooseEdgeIter { g: self, rng: rng }
     }
 
     /// Returns a random out edge of `v` or `None` if `v` has no out edges.
@@ -102,7 +96,6 @@ pub trait Choose: WithEdge {
     }
 }
 
-
 /// An iterator that produces random selected vertices of a graph.
 ///
 /// This `struct` is created by [`Choose::choose_vertex_iter`].
@@ -114,8 +107,9 @@ pub struct ChooseVertexIter<'a, G: 'a, R> {
 }
 
 impl<'a, G, R> Iterator for ChooseVertexIter<'a, G, R>
-    where G: 'a + Choose,
-          R: Rng
+where
+    G: 'a + Choose,
+    R: Rng,
 {
     type Item = Vertex<G>;
 
@@ -123,7 +117,6 @@ impl<'a, G, R> Iterator for ChooseVertexIter<'a, G, R>
         G::choose_vertex(self.g, &mut self.rng)
     }
 }
-
 
 /// An iterator that produces random selected neighbors of a vertex.
 ///
@@ -137,8 +130,9 @@ pub struct ChooseOutNeighborIter<'a, G: 'a + WithVertex, R> {
 }
 
 impl<'a, G, R> Iterator for ChooseOutNeighborIter<'a, G, R>
-    where G: 'a + Choose,
-          R: Rng
+where
+    G: 'a + Choose,
+    R: Rng,
 {
     type Item = Vertex<G>;
 
@@ -158,8 +152,9 @@ pub struct ChooseEdgeIter<'a, G: 'a, R> {
 }
 
 impl<'a, G, R> Iterator for ChooseEdgeIter<'a, G, R>
-    where G: 'a + Choose,
-          R: Rng
+where
+    G: 'a + Choose,
+    R: Rng,
 {
     type Item = Edge<G>;
 
@@ -180,8 +175,9 @@ pub struct ChooseOutEdgeIter<'a, G: 'a + WithVertex, R> {
 }
 
 impl<'a, G, R> Iterator for ChooseOutEdgeIter<'a, G, R>
-    where G: 'a + Choose,
-          R: Rng
+where
+    G: 'a + Choose,
+    R: Rng,
 {
     type Item = Edge<G>;
 
@@ -202,18 +198,21 @@ pub struct RandomWalk<'a, G: 'a + WithVertex, R> {
 }
 
 impl<'a, G, R> Iterator for RandomWalk<'a, G, R>
-    where G: 'a + Choose,
-          R: Rng
+where
+    G: 'a + Choose,
+    R: Rng,
 {
     type Item = Edge<G>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.cur.and_then(|cur| if let Some(e) = self.g.choose_out_edge(cur, &mut self.rng) {
-            self.cur = Some(self.g.target(e));
-            Some(e)
-        } else {
-            self.cur = None;
-            None
+        self.cur.and_then(|cur| {
+            if let Some(e) = self.g.choose_out_edge(cur, &mut self.rng) {
+                self.cur = Some(self.g.target(e));
+                Some(e)
+            } else {
+                self.cur = None;
+                None
+            }
         })
     }
 }

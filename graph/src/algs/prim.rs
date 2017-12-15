@@ -17,28 +17,33 @@ use std::marker::PhantomData;
 use std::ops::DerefMut;
 
 pub trait Prim: Incidence {
-    fn prim<W, T>(&self,
-                  w: W)
-                  -> PrimAlg<&Self,
-                             W,
-                             NewVertexProp<Self, Color>,
-                             NewVertexProp<Self, OptionEdge<Self>>,
-                             Owned<PrimPriorityQueue<Self, T>>,
-                             PhantomData<T>>
-        where W: EdgePropGet<Self, T>,
-              T: Ord
+    fn prim<W, T>(
+        &self,
+        w: W,
+    ) -> PrimAlg<
+        &Self,
+        W,
+        NewVertexProp<Self, Color>,
+        NewVertexProp<Self, OptionEdge<Self>>,
+        Owned<PrimPriorityQueue<Self, T>>,
+        PhantomData<T>,
+    >
+    where
+        W: EdgePropGet<Self, T>,
+        T: Ord,
     {
-        PrimAlg(self,
-                w,
-                NewVertexProp(self, Color::White),
-                NewVertexProp(self, Self::edge_none()),
-                Owned(PrimPriorityQueue::<Self, T>::new()),
-                PhantomData)
+        PrimAlg(
+            self,
+            w,
+            NewVertexProp(self, Color::White),
+            NewVertexProp(self, Self::edge_none()),
+            Owned(PrimPriorityQueue::<Self, T>::new()),
+            PhantomData,
+        )
     }
 }
 
 impl<G: Incidence> Prim for G {}
-
 
 generic_struct! {
     #[must_use]
@@ -46,14 +51,15 @@ generic_struct! {
 }
 
 impl<'a, G, W, C, P, Q, T> IntoIterator for PrimAlg<&'a G, W, C, P, Q, PhantomData<T>>
-    where G: Incidence + VertexList,
-          W: EdgePropGet<G, T>,
-          C: ParamDerefMut,
-          C::Target: VertexPropMut<G, Color>,
-          P: ParamDerefMut,
-          P::Target: VertexPropMut<G, OptionEdge<G>>,
-          Q: ParamDerefMut<Target = PrimPriorityQueue<G, T>>,
-          T: Ord + Default
+where
+    G: Incidence + VertexList,
+    W: EdgePropGet<G, T>,
+    C: ParamDerefMut,
+    C::Target: VertexPropMut<G, Color>,
+    P: ParamDerefMut,
+    P::Target: VertexPropMut<G, OptionEdge<G>>,
+    Q: ParamDerefMut<Target = PrimPriorityQueue<G, T>>,
+    T: Ord + Default,
 {
     type Item = Edge<G>;
     type IntoIter = Iter<'a, G, W, C::Output, P::Output, Q::Output, T>;
@@ -77,7 +83,8 @@ impl<'a, G, W, C, P, Q, T> IntoIterator for PrimAlg<&'a G, W, C, P, Q, PhantomDa
 }
 
 pub struct Iter<'a, G, W, C, P, Q, T>
-    where G: 'a
+where
+    G: 'a,
 {
     g: &'a G,
     w: W,
@@ -88,14 +95,15 @@ pub struct Iter<'a, G, W, C, P, Q, T>
 }
 
 impl<'a, G, W, C, P, Q, T> Iterator for Iter<'a, G, W, C, P, Q, T>
-    where G: 'a + Incidence,
-          W: EdgePropGet<G, T>,
-          C: DerefMut,
-          C::Target: VertexPropMut<G, Color>,
-          P: DerefMut,
-          P::Target: VertexPropMut<G, OptionEdge<G>>,
-          Q: DerefMut<Target = PrimPriorityQueue<G, T>>,
-          T: Ord
+where
+    G: 'a + Incidence,
+    W: EdgePropGet<G, T>,
+    C: DerefMut,
+    C::Target: VertexPropMut<G, Color>,
+    P: DerefMut,
+    P::Target: VertexPropMut<G, OptionEdge<G>>,
+    Q: DerefMut<Target = PrimPriorityQueue<G, T>>,
+    T: Ord,
 {
     type Item = Edge<G>;
 
@@ -126,7 +134,6 @@ impl<'a, G, W, C, P, Q, T> Iterator for Iter<'a, G, W, C, P, Q, T>
         None
     }
 }
-
 
 type PrimPriorityQueue<G, T> = BinaryHeap<QueueItem<T, Vertex<G>>>;
 
@@ -171,10 +178,14 @@ mod tests {
     #[test]
     fn mst() {
         let g: StaticGraph = graph!(
-            5,
-            (0, 4), (2, 3), (0, 1), (1, 4), (1, 2), (2, 4), (3, 4)
-            // expected tree
-            // 0      1       2               4
+            5,      // expected tree
+            (0, 4), // 0
+            (2, 3), // 1
+            (0, 1), // 2
+            (1, 4),
+            (1, 2), // 4
+            (2, 4),
+            (3, 4)
         );
         let mut weight = g.default_edge_prop(0usize);
         for (e, &w) in g.edges().zip(&[1, 2, 3, 4, 5, 6, 7]) {

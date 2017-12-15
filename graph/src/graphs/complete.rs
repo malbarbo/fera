@@ -6,7 +6,7 @@ use prelude::*;
 use choose::Choose;
 use props::{VecEdgeProp, VecVertexProp};
 
-use fera_optional::{BuildNone, Optioned, OptionalMax};
+use fera_optional::{BuildNone, OptionalMax, Optioned};
 
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
@@ -149,13 +149,13 @@ impl<K: CompleteEdgeKind> Incidence for Complete<K> {
     }
 }
 
-
 impl<T, K: CompleteEdgeKind> WithVertexProp<T> for Complete<K> {
     type VertexProp = VecVertexProp<Complete<K>, T>;
 }
 
 impl<T, K: CompleteEdgeKind> WithEdgeProp<T> for Complete<K>
-    where Complete<K>: WithEdgeIndexProp
+where
+    Complete<K>: WithEdgeIndexProp,
 {
     type EdgeProp = VecEdgeProp<Complete<K>, T>;
 }
@@ -199,7 +199,6 @@ impl<K: CompleteEdgeKind> Choose for Complete<K> {
     }
 }
 
-
 #[derive(Clone, Debug)]
 pub struct CVertexIndexProp;
 
@@ -219,7 +218,6 @@ impl<K: CompleteEdgeKind> WithVertexIndexProp for Complete<K> {
         CVertexIndexProp
     }
 }
-
 
 #[derive(Clone, Debug)]
 pub struct CEdgeIndexProp<E>(PhantomData<E>);
@@ -241,7 +239,6 @@ impl<K: CompleteEdgeKind> WithEdgeIndexProp for Complete<K> {
     }
 }
 
-
 #[derive(Copy, Clone, PartialEq, Eq, Hash, Debug)]
 pub struct MaxNone<E>(PhantomData<E>);
 
@@ -254,7 +251,6 @@ impl<E: EdgeImpl> BuildNone<E> for MaxNone<E> {
         "CompleteEdge"
     }
 }
-
 
 // Iterators
 
@@ -306,7 +302,6 @@ impl<E: EdgeImpl> ExactSizeIterator for COutEdgeIter<E> {
     }
 }
 
-
 // Undirected
 
 impl CompleteEdgeKind for Undirected {
@@ -340,7 +335,8 @@ impl Ord for UndirectedEdge {
 impl Hash for UndirectedEdge {
     #[inline]
     fn hash<H>(&self, state: &mut H)
-        where H: Hasher
+    where
+        H: Hasher,
     {
         self.to_index().hash(state)
     }
@@ -359,10 +355,12 @@ impl EdgeImpl for UndirectedEdge {
 
     fn new(n: CVertex, u: CVertex, v: CVertex) -> Self {
         let (n, u, v) = (n as usize, u as usize, v as usize);
-        let id = |u, v| if u < (n - 1) / 2 {
-            u * n + v
-        } else {
-            (n - u - 1) * n - v - 1
+        let id = |u, v| {
+            if u < (n - 1) / 2 {
+                u * n + v
+            } else {
+                (n - u - 1) * n - v - 1
+            }
         };
 
         if u < v {
@@ -384,7 +382,11 @@ impl EdgeImpl for UndirectedEdge {
             }
         };
 
-        if self.0 & 1 == 0 { (u, v) } else { (v, u) }
+        if self.0 & 1 == 0 {
+            (u, v)
+        } else {
+            (v, u)
+        }
     }
 
     #[inline]
@@ -392,7 +394,6 @@ impl EdgeImpl for UndirectedEdge {
         UndirectedEdge(self.0 ^ 1)
     }
 }
-
 
 // Directed
 
@@ -436,12 +437,11 @@ impl EdgeImpl for DirectedEdge {
     }
 }
 
-
 // Tests
 
 #[cfg(test)]
 mod tests {
-    pub use super::{CVertex, EdgeImpl, UndirectedEdge, DirectedEdge};
+    pub use super::{CVertex, DirectedEdge, EdgeImpl, UndirectedEdge};
     pub use prelude::*;
     pub use tests::GraphTests;
     pub use itertools::Itertools;
@@ -494,16 +494,19 @@ mod tests {
     t!{k1, 1, CompleteGraph, vec![0], vec![]}
     t!{k2, 2, CompleteGraph, vec![0, 1], vec![(0, 1)]}
 
-    t!{k3, 3,
+    t! {
+        k3, 3,
         CompleteGraph,
         vec![0, 1, 2],
-        vec![(0, 1), (0, 2), (1, 2)]}
+        vec![(0, 1), (0, 2), (1, 2)]
+    }
 
-    t!{k4, 4,
+    t!{
+        k4, 4,
         CompleteGraph,
         vec![0, 1, 2, 3],
-        vec![(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]}
-
+        vec![(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)]
+    }
 
     // Directed
 
@@ -511,18 +514,22 @@ mod tests {
     t!{directed_k1, 1, CompleteDigraph, vec![0], vec![]}
     t!{directed_k2, 2, CompleteDigraph, vec![0, 1], vec![(0, 1), (1, 0)]}
 
-    t!{directed_k3, 3,
+    t!{
+        directed_k3, 3,
         CompleteDigraph,
         vec![0, 1, 2],
         vec![(0, 1), (0, 2),
              (1, 0), (1, 2),
-             (2, 0), (2, 1)]}
+             (2, 0), (2, 1)]
+    }
 
-    t!{directed_k4, 4,
+    t!{
+        directed_k4, 4,
         CompleteDigraph,
         vec![0, 1, 2, 3],
         vec![(0, 1), (0, 2), (0, 3),
              (1, 0), (1, 2), (1, 3),
              (2, 0), (2, 1), (2, 3),
-             (3, 0), (3, 1), (3, 2)]}
+             (3, 0), (3, 1), (3, 2)]
+    }
 }

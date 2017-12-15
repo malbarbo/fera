@@ -11,17 +11,20 @@ use std::collections::VecDeque;
 use std::iter;
 
 pub trait Bfs: WithEdge {
-    fn bfs<V>
-        (&self,
-         vis: V)
-         -> BfsAlg<&Self, V, AllVertices<Self>, NewVertexProp<Self, Color>, Owned<BfsQueue<Self>>>
-        where V: Visitor<Self>
+    fn bfs<V>(
+        &self,
+        vis: V,
+    ) -> BfsAlg<&Self, V, AllVertices<Self>, NewVertexProp<Self, Color>, Owned<BfsQueue<Self>>>
+    where
+        V: Visitor<Self>,
     {
-        BfsAlg(self,
-               vis,
-               AllVertices(self),
-               NewVertexProp(self, Color::White),
-               Owned(BfsQueue::<Self>::new()))
+        BfsAlg(
+            self,
+            vis,
+            AllVertices(self),
+            NewVertexProp(self, Color::White),
+            Owned(BfsQueue::<Self>::new()),
+        )
     }
 }
 
@@ -34,12 +37,13 @@ generic_struct! {
 
 impl<'a, G, V, R, C, Q> BfsAlg<&'a G, V, R, C, Q> {
     pub fn run(self) -> Control
-        where G: Incidence,
-              V: Visitor<G>,
-              R: IntoIterator<Item = Vertex<G>>,
-              C: ParamDerefMut,
-              C::Target: VertexPropMut<G, Color>,
-              Q: ParamDerefMut<Target = BfsQueue<G>>
+    where
+        G: Incidence,
+        V: Visitor<G>,
+        R: IntoIterator<Item = Vertex<G>>,
+        C: ParamDerefMut,
+        C::Target: VertexPropMut<G, Color>,
+        Q: ParamDerefMut<Target = BfsQueue<G>>,
     {
         let BfsAlg(g, mut vis, roots, color, queue) = self;
         return_unless!(vis.start(g));
@@ -59,13 +63,15 @@ impl<'a, G, V, R, C, Q> BfsAlg<&'a G, V, R, C, Q> {
     }
 
     pub fn root(self, root: Vertex<G>) -> BfsAlg<&'a G, V, iter::Once<Vertex<G>>, C, Q>
-        where G: WithVertex
+    where
+        G: WithVertex,
     {
         self.roots(iter::once(root))
     }
 
     pub fn ignore_color_changes(self) -> BfsAlg<&'a G, V, R, Owned<IgnoreWriteProp<Color>>, Q>
-        where G: WithVertex
+    where
+        G: WithVertex,
     {
         let color = Owned(self.0.vertex_prop(Color::White));
         self.color(color)
@@ -73,14 +79,17 @@ impl<'a, G, V, R, C, Q> BfsAlg<&'a G, V, R, C, Q> {
 }
 
 pub fn bfs_visit<G, C, V>(g: &G, color: &mut C, queue: &mut BfsQueue<G>, vis: &mut V) -> Control
-    where G: Incidence,
-          C: VertexPropMut<G, Color>,
-          V: Visitor<G>
+where
+    G: Incidence,
+    C: VertexPropMut<G, Color>,
+    V: Visitor<G>,
 {
     while let Some((from, u)) = queue.pop_front() {
         for e in g.out_edges(u) {
             let v = g.target(e);
-            if g.orientation(e).is_undirected() && color[v] == Color::Black || G::edge_some(e) == from {
+            if g.orientation(e).is_undirected() && color[v] == Color::Black
+                || G::edge_some(e) == from
+            {
                 continue;
             }
             return_unless!(vis.discover_edge(g, e));
@@ -111,9 +120,7 @@ pub fn bfs_visit<G, C, V>(g: &G, color: &mut C, queue: &mut BfsQueue<G>, vis: &m
     Control::Continue
 }
 
-
 pub type BfsQueue<G> = VecDeque<(OptionEdge<G>, Vertex<G>)>;
-
 
 // Tests
 
@@ -130,16 +137,17 @@ mod tests {
         // 0  |  3      /   \
         //  \ | /      5 --- 6
         //    2
-        graph!(7,
-               (0, 1),
-               (0, 2),
-               (1, 2),
-               (1, 3),
-               (2, 3),
-
-               (4, 5),
-               (4, 6),
-               (5, 6))
+        graph!(
+            7,
+            (0, 1),
+            (0, 2),
+            (1, 2),
+            (1, 3),
+            (2, 3),
+            (4, 5),
+            (4, 6),
+            (5, 6)
+        )
     }
 
     #[test]
@@ -149,7 +157,6 @@ mod tests {
         let e = |x: usize, y: usize| g.edge_by_ends(v[x], v[y]);
         let expected = vec![
             Start,
-
             DiscoverRootVertex(0),
             DiscoverVertex(0),
             DiscoverEdge(e(0, 1)),
@@ -178,7 +185,6 @@ mod tests {
             FinishTreeEdge(e(1, 3)),
             FinishEdge(e(1, 3)),
             FinishRootVertex(0),
-
             DiscoverRootVertex(4),
             DiscoverVertex(4),
             DiscoverEdge(e(4, 5)),
@@ -198,8 +204,7 @@ mod tests {
             FinishTreeEdge(e(4, 6)),
             FinishEdge(e(4, 6)),
             FinishRootVertex(4),
-
-            Finish
+            Finish,
         ];
 
         let mut v = vec![];

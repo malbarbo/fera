@@ -9,8 +9,9 @@ use props::PropGet;
 pub struct FnProp<F>(pub F);
 
 impl<F, I, T> PropGet<I> for FnProp<F>
-    where F: Fn(I) -> T,
-          T: Sized
+where
+    F: Fn(I) -> T,
+    T: Sized,
 {
     type Output = T;
 

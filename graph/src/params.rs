@@ -135,7 +135,6 @@ macro_rules! generic_struct {
     );
 }
 
-
 pub trait ParamDerefMut {
     type Target;
     type Output: DerefMut<Target = Self::Target>;
@@ -151,7 +150,6 @@ impl<'a, T> ParamDerefMut for &'a mut T {
         self
     }
 }
-
 
 // TODO: Create an IntoIteratorOwned
 pub trait IntoOwned<Owned> {
@@ -178,7 +176,6 @@ impl<'a, T: Clone> IntoOwned<T> for &'a mut T {
         T::clone(self)
     }
 }
-
 
 pub struct Owned<T>(pub T);
 
@@ -207,12 +204,12 @@ impl<T> ParamDerefMut for Owned<T> {
     }
 }
 
-
 pub struct NewVertexProp<'a, G: 'a, T>(pub &'a G, pub T);
 
 impl<'a, G, T> ParamDerefMut for NewVertexProp<'a, G, T>
-    where G: 'a + WithVertexProp<T>,
-          T: Clone
+where
+    G: 'a + WithVertexProp<T>,
+    T: Clone,
 {
     type Target = DefaultVertexPropMut<G, T>;
     type Output = Owned<DefaultVertexPropMut<G, T>>;
@@ -224,7 +221,6 @@ impl<'a, G, T> ParamDerefMut for NewVertexProp<'a, G, T>
 
 // TODO: create NewEdgeProp
 
-
 // Iterator
 
 // TODO: find a better prefix than All
@@ -232,7 +228,8 @@ impl<'a, G, T> ParamDerefMut for NewVertexProp<'a, G, T>
 pub struct AllVertices<'a, G: 'a>(pub &'a G);
 
 impl<'a, G> IntoIterator for AllVertices<'a, G>
-    where G: 'a + VertexList
+where
+    G: 'a + VertexList,
 {
     type Item = Vertex<G>;
     type IntoIter = VertexIter<'a, G>;
@@ -242,11 +239,11 @@ impl<'a, G> IntoIterator for AllVertices<'a, G>
     }
 }
 
-
 pub struct AllEdges<'a, G: 'a>(pub &'a G);
 
 impl<'a, G> IntoIterator for AllEdges<'a, G>
-    where G: 'a + EdgeList
+where
+    G: 'a + EdgeList,
 {
     type Item = Edge<G>;
     type IntoIter = EdgeIter<'a, G>;
@@ -255,6 +252,5 @@ impl<'a, G> IntoIterator for AllEdges<'a, G>
         self.0.edges()
     }
 }
-
 
 // TODO: create AllOutEdges

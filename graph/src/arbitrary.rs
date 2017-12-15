@@ -35,7 +35,7 @@
 //! [`WithBuilder::new_gn_connected`]: ../builder/trait.WithBuilder.html#method.new_gn_connected
 
 use prelude::*;
-use graphs::adjset::{UndirectedEdge, AdjSetEdge};
+use graphs::adjset::{AdjSetEdge, UndirectedEdge};
 use props::HashMapProp;
 
 use fera_fun::vec;
@@ -46,39 +46,34 @@ use std::collections::HashSet;
 use std::fmt::Debug;
 
 fn shrink_graph<G>(g: &G) -> Box<Iterator<Item = G>>
-    where G: EdgeList + VertexList + WithBuilder,
-          G::Kind: UniformEdgeKind,
+where
+    G: EdgeList + VertexList + WithBuilder,
+    G::Kind: UniformEdgeKind,
 {
     let mut id: HashMapProp<Vertex<G>, usize> = g.vertex_prop(0);
     for (i, v) in g.vertices().enumerate() {
         id[v] = i;
     }
     let edges = vec(g.edges_ends().map(|(u, v)| (id[u], id[v])));
-    let iter = edges
-        .shrink()
-        .map(|edges| {
-            let n = edges
+    let iter = edges.shrink().map(|edges| {
+        let n = edges
+            .iter()
+            .map(|&(u, v)| cmp::max(u, v) + 1)
+            .max()
+            .unwrap_or(0);
+        if G::Kind::is_undirected() {
+            let set: HashSet<_> = edges
                 .iter()
-                .map(|&(u, v)| cmp::max(u, v) + 1)
-                .max()
-                .unwrap_or(0);
-            if G::Kind::is_undirected() {
-                let set: HashSet<_> = edges
-                    .iter()
-                    .filter(|&&(u, v)| u != v)
-                    .map(|&(u, v)| UndirectedEdge::new(u, v))
-                    .collect();
-                let edges = set.into_iter().map(|e| (e.source(), e.target()));
-                G::new_with_edges(n, edges)
-            } else {
-                let set: HashSet<_> = edges
-                    .iter()
-                    .filter(|&&(u, v)| u != v)
-                    .cloned()
-                    .collect();
-                G::new_with_edges(n, set)
-            }
-        });
+                .filter(|&&(u, v)| u != v)
+                .map(|&(u, v)| UndirectedEdge::new(u, v))
+                .collect();
+            let edges = set.into_iter().map(|e| (e.source(), e.target()));
+            G::new_with_edges(n, edges)
+        } else {
+            let set: HashSet<_> = edges.iter().filter(|&&(u, v)| u != v).cloned().collect();
+            G::new_with_edges(n, set)
+        }
+    });
     Box::new(iter)
 }
 

@@ -5,7 +5,7 @@
 use prelude::*;
 use props::HashMapProp;
 
-use fera_fun::{vec, set};
+use fera_fun::{set, vec};
 
 use std::collections::HashSet;
 
@@ -74,7 +74,6 @@ macro_rules! graph_tests {
     )
 }
 
-
 // TODO: allows Subgraph and &'a G to be tested
 pub trait GraphTests {
     type G: WithEdge;
@@ -82,7 +81,8 @@ pub trait GraphTests {
     fn new() -> (Self::G, Vec<Vertex<Self::G>>, Vec<Edge<Self::G>>);
 
     fn new_with_builder() -> (Self::G, Vec<Vertex<Self::G>>, Vec<Edge<Self::G>>)
-        where Self::G: WithBuilder
+    where
+        Self::G: WithBuilder,
     {
         let mut b = <Self::G as WithBuilder>::builder(5, 4);
         for &(u, v) in &[(0, 1), (0, 2), (1, 2), (1, 3)] {
@@ -92,12 +92,15 @@ pub trait GraphTests {
     }
 
     fn vertices()
-        where Self::G: VertexList
+    where
+        Self::G: VertexList,
     {
         let (g, vertices, _) = Self::new();
-        assert_eq!(vertices.len(),
-                   set(&vertices).len(),
-                   "found repeated vertices");
+        assert_eq!(
+            vertices.len(),
+            set(&vertices).len(),
+            "found repeated vertices"
+        );
         assert_eq!(vertices.len(), g.num_vertices());
         assert_eq!(vertices, vec(g.vertices()));
     }
@@ -117,20 +120,19 @@ pub trait GraphTests {
     }
 
     fn edges()
-        where Self::G: EdgeList
+    where
+        Self::G: EdgeList,
     {
         let (g, _, edges) = Self::new();
-        assert_eq!(edges.len(),
-                   set(&edges).len(),
-                   "found repeated edges");
+        assert_eq!(edges.len(), set(&edges).len(), "found repeated edges");
         assert_eq!(edges.len(), g.num_edges());
         assert_eq!(edges, vec(g.edges()));
-        assert_eq!(vec(g.ends(edges)),
-                   vec(g.edges_ends()));
+        assert_eq!(vec(g.ends(edges)), vec(g.edges_ends()));
     }
 
     fn get_edge_by_ends()
-        where Self::G: EdgeList
+    where
+        Self::G: EdgeList,
     {
         let (g, _, edges) = Self::new();
         for e in edges {
@@ -169,7 +171,8 @@ pub trait GraphTests {
     }
 
     fn get_reverse()
-        where Self::G: WithEdge
+    where
+        Self::G: WithEdge,
     {
         use std::hash::{Hash, Hasher};
         fn hash<T: Hash>(t: T) -> u64 {
@@ -210,7 +213,8 @@ pub trait GraphTests {
     }
 
     fn out_neighbors()
-        where Self::G: Adjacency
+    where
+        Self::G: Adjacency,
     {
         let (g, vertices, edges) = Self::new();
         let mut n = HashMapProp::new(Vec::<Vertex<Self::G>>::new());
@@ -230,7 +234,8 @@ pub trait GraphTests {
     }
 
     fn out_edges()
-        where Self::G: Incidence
+    where
+        Self::G: Incidence,
     {
         let (g, vertices, edges) = Self::new();
         let mut inc = HashMapProp::new(Vec::<Edge<Self::G>>::new());
@@ -244,17 +249,20 @@ pub trait GraphTests {
             let mut out = HashSet::new();
             for e in g.out_edges(u) {
                 assert_eq!(u, g.source(e));
-                assert!(out.insert(e),
-                        "found repeated out edge = {:?} = {:?}",
-                        e,
-                        g.end_vertices(e));
+                assert!(
+                    out.insert(e),
+                    "found repeated out edge = {:?} = {:?}",
+                    e,
+                    g.end_vertices(e)
+                );
             }
             assert_eq!(set(inc[u].iter().cloned()), out);
         }
     }
 
     fn vertex_prop()
-        where Self::G: WithVertexProp<usize>
+    where
+        Self::G: WithVertexProp<usize>,
     {
         let (g, vertices, _) = Self::new();
         let mut p = g.default_vertex_prop(0usize);
@@ -267,7 +275,8 @@ pub trait GraphTests {
     }
 
     fn edge_prop()
-        where Self::G: WithEdgeProp<usize>
+    where
+        Self::G: WithEdgeProp<usize>,
     {
         let (g, _, edges) = Self::new();
         let mut p = g.default_edge_prop(0usize);

@@ -9,7 +9,8 @@ use fun::max_prop;
 
 pub trait Distances: Incidence {
     fn diameter(&self) -> usize
-        where Self: VertexList + WithVertexProp<usize> + WithVertexProp<Color>
+    where
+        Self: VertexList + WithVertexProp<usize> + WithVertexProp<Color>,
     {
         let mut dist = self.default_vertex_prop(0);
         self.vertices()

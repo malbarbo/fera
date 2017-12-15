@@ -25,7 +25,6 @@ pub type StaticDigraph = Static<u32, (Directed, usize)>;
 
 pub type StaticGraph = Static<u32, (Undirected, usize)>;
 
-
 // Edge
 
 pub trait StaticEdgeKind: 'static {
@@ -42,7 +41,6 @@ pub trait EdgeImpl: Sized {
     fn to_index(self) -> usize;
     fn reverse(self) -> Self;
 }
-
 
 // StaticDirectedEdge
 
@@ -94,7 +92,6 @@ impl<N: Num> EdgeImpl for StaticDirectedEdge<N> {
     }
 }
 
-
 // StaticUndirectedEdge
 
 #[derive(Copy, Clone, Debug, Eq)]
@@ -124,11 +121,13 @@ impl<N: Num> EdgeImpl for StaticUndirectedEdge<N> {
     fn new_checked(e: usize) -> Option<Self> {
         e.checked_mul(2)
             .and_then(|x| x.checked_add(1))
-            .and_then(|x| if N::is_valid(x) {
-                          Some(Self::new(e))
-                      } else {
-                          None
-                      })
+            .and_then(|x| {
+                if N::is_valid(x) {
+                    Some(Self::new(e))
+                } else {
+                    None
+                }
+            })
     }
 
     fn source<T>(self, ends: &[T]) -> &T {
@@ -168,17 +167,16 @@ impl<N: Num> Ord for StaticUndirectedEdge<N> {
 
 impl<N: Num> Hash for StaticUndirectedEdge<N> {
     fn hash<H>(&self, state: &mut H)
-        where H: Hasher
+    where
+        H: Hasher,
     {
         self.to_index().hash(state)
     }
 }
 
-
 // Vertex
 
 pub type StaticVertex<N> = N;
-
 
 // Graph
 
@@ -236,7 +234,8 @@ impl<V: Num, K: StaticEdgeKind> Builder for StaticBuilder<V, K> {
     fn finalize(mut self) -> Self::Graph {
         // TODO: improve test
         let ends = self.ends;
-        self.edges.sort_by_key(|e| (e.source(&ends), e.target(&ends)));
+        self.edges
+            .sort_by_key(|e| (e.source(&ends), e.target(&ends)));
 
         let mut starts = Vec::with_capacity(self.num_vertices.checked_add(1).unwrap());
         let mut last = V::from_usize(self.num_vertices);
@@ -263,14 +262,19 @@ impl<V: Num, K: StaticEdgeKind> Builder for StaticBuilder<V, K> {
         }
     }
 
-    fn finalize_(self) -> (Self::Graph, Vec<Vertex<Self::Graph>>, Vec<Edge<Self::Graph>>) {
+    fn finalize_(
+        self,
+    ) -> (
+        Self::Graph,
+        Vec<Vertex<Self::Graph>>,
+        Vec<Edge<Self::Graph>>,
+    ) {
         let g = self.finalize();
         let v = vec(g.vertices());
         let e = vec(g.edges());
         (g, v, e)
     }
 }
-
 
 // Graph implementation
 
@@ -337,12 +341,12 @@ impl<V: Num, K: StaticEdgeKind> EdgeList for Static<V, K> {
     }
 
     fn get_edge_by_ends(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Edge<Self>> {
-        self.get_inc(u)
-            .and_then(|out_edges| {
-                          out_edges.binary_search_by_key(&v, |e| self.target(*e))
-                              .ok()
-                              .map(|i| out_edges[i])
-                      })
+        self.get_inc(u).and_then(|out_edges| {
+            out_edges
+                .binary_search_by_key(&v, |e| self.target(*e))
+                .ok()
+                .map(|i| out_edges[i])
+        })
     }
 }
 
@@ -362,7 +366,6 @@ impl<V: Num, K: StaticEdgeKind> Incidence for Static<V, K> {
     }
 }
 
-
 // Iter
 
 #[derive(Clone, Debug)]
@@ -381,7 +384,6 @@ impl<K: StaticEdgeKind> Iterator for SEdgeIter<K> {
 }
 
 impl<K: StaticEdgeKind> ExactSizeIterator for SEdgeIter<K> {}
-
 
 // Props
 
@@ -404,7 +406,6 @@ impl<V: Num, K: StaticEdgeKind> WithVertexIndexProp for Static<V, K> {
     }
 }
 
-
 #[derive(Clone, Debug)]
 pub struct SEdgeIndexProp<K>(PhantomData<K>);
 
@@ -416,7 +417,6 @@ impl<K: StaticEdgeKind> PropGet<K::Edge> for SEdgeIndexProp<K> {
     }
 }
 
-
 impl<V: Num, K: StaticEdgeKind> WithEdgeIndexProp for Static<V, K> {
     type EdgeIndexProp = SEdgeIndexProp<K>;
 
@@ -424,7 +424,6 @@ impl<V: Num, K: StaticEdgeKind> WithEdgeIndexProp for Static<V, K> {
         SEdgeIndexProp(PhantomData)
     }
 }
-
 
 impl<T, V: Num, K: StaticEdgeKind> WithVertexProp<T> for Static<V, K> {
     type VertexProp = VecVertexProp<Self, T>;
@@ -439,7 +438,6 @@ impl<T, V: Num, K: StaticEdgeKind> WithEdgeProp<T> for Static<V, K> {
 impl<V: Num, K: StaticEdgeKind> BasicEdgeProps for Static<V, K> {}
 
 impl<V: Num, K: StaticEdgeKind> BasicProps for Static<V, K> {}
-
 
 // Choose
 
@@ -481,7 +479,6 @@ impl<V: Num, K: StaticEdgeKind> Choose for Static<V, K> {
         }
     }
 }
-
 
 // Num
 
@@ -527,12 +524,11 @@ impl_num!(u32);
 impl_num!(u64);
 impl_num!(usize);
 
-
 // Tests
 
 #[cfg(test)]
 mod tests {
-    pub use super::{EdgeImpl, StaticUndirectedEdge, StaticGraph, StaticDigraph};
+    pub use super::{EdgeImpl, StaticDigraph, StaticGraph, StaticUndirectedEdge};
     pub use prelude::*;
     use tests::GraphTests;
 

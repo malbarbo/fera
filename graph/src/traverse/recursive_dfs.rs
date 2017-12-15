@@ -10,16 +10,19 @@ use params::*;
 use std::iter;
 
 pub trait RecursiveDfs: WithEdge {
-    fn recursive_dfs<V>
-        (&self,
-         vis: V)
-         -> RecursiveDfsAlg<&Self, V, AllVertices<Self>, NewVertexProp<Self, Color>>
-        where V: Visitor<Self>
+    fn recursive_dfs<V>(
+        &self,
+        vis: V,
+    ) -> RecursiveDfsAlg<&Self, V, AllVertices<Self>, NewVertexProp<Self, Color>>
+    where
+        V: Visitor<Self>,
     {
-        RecursiveDfsAlg(self,
-                        vis,
-                        AllVertices(self),
-                        NewVertexProp(self, Color::White))
+        RecursiveDfsAlg(
+            self,
+            vis,
+            AllVertices(self),
+            NewVertexProp(self, Color::White),
+        )
     }
 }
 
@@ -32,11 +35,12 @@ generic_struct! {
 
 impl<'a, G, V, R, C> RecursiveDfsAlg<&'a G, V, R, C> {
     pub fn run(self) -> Control
-        where G: Incidence,
-              V: Visitor<G>,
-              R: IntoIterator<Item = Vertex<G>>,
-              C: ParamDerefMut,
-              C::Target: VertexPropMut<G, Color>
+    where
+        G: Incidence,
+        V: Visitor<G>,
+        R: IntoIterator<Item = Vertex<G>>,
+        C: ParamDerefMut,
+        C::Target: VertexPropMut<G, Color>,
     {
         let RecursiveDfsAlg(g, mut vis, roots, color) = self;
         return_unless!(vis.start(g));
@@ -45,7 +49,13 @@ impl<'a, G, V, R, C> RecursiveDfsAlg<&'a G, V, R, C> {
             if color[v] == Color::White {
                 color[v] = Color::Gray;
                 return_unless!(vis.discover_root_vertex(g, v));
-                return_unless!(recursive_dfs_visit(g, G::edge_none(), v, &mut *color, &mut vis));
+                return_unless!(recursive_dfs_visit(
+                    g,
+                    G::edge_none(),
+                    v,
+                    &mut *color,
+                    &mut vis
+                ));
                 return_unless!(vis.finish_root_vertex(g, v));
             }
         }
@@ -53,28 +63,32 @@ impl<'a, G, V, R, C> RecursiveDfsAlg<&'a G, V, R, C> {
     }
 
     pub fn root(self, root: Vertex<G>) -> RecursiveDfsAlg<&'a G, V, iter::Once<Vertex<G>>, C>
-        where G: WithVertex
+    where
+        G: WithVertex,
     {
         self.roots(iter::once(root))
     }
 
     pub fn ignore_color_changes(self) -> RecursiveDfsAlg<&'a G, V, R, Owned<IgnoreWriteProp<Color>>>
-        where G: WithVertex
+    where
+        G: WithVertex,
     {
         let color = Owned(self.0.vertex_prop(Color::White));
         self.color(color)
     }
 }
 
-pub fn recursive_dfs_visit<G, C, V>(g: &G,
-                                    from: OptionEdge<G>,
-                                    u: Vertex<G>,
-                                    color: &mut C,
-                                    vis: &mut V)
-                                    -> Control
-    where G: Incidence,
-          C: VertexPropMut<G, Color>,
-          V: Visitor<G>
+pub fn recursive_dfs_visit<G, C, V>(
+    g: &G,
+    from: OptionEdge<G>,
+    u: Vertex<G>,
+    color: &mut C,
+    vis: &mut V,
+) -> Control
+where
+    G: Incidence,
+    C: VertexPropMut<G, Color>,
+    V: Visitor<G>,
 {
     color[u] = Color::Gray;
     return_unless!(vis.discover_vertex(g, u));

@@ -24,8 +24,9 @@ pub struct AdjSet<V: AdjSetVertex, K: AdjSetEdgeKind<V>> {
 }
 
 impl<V, K> Default for AdjSet<V, K>
-    where V: AdjSetVertex,
-          K: AdjSetEdgeKind<V>
+where
+    V: AdjSetVertex,
+    K: AdjSetEdgeKind<V>,
 {
     fn default() -> Self {
         Self::new()
@@ -41,7 +42,8 @@ pub trait AdjSetVertex: 'static + GraphItem + PartialOrd {}
 impl<V: 'static + GraphItem + PartialOrd> AdjSetVertex for V {}
 
 pub trait AdjSetEdge<V>: 'static + GraphItem
-    where V: AdjSetVertex
+where
+    V: AdjSetVertex,
 {
     fn new(u: V, v: V) -> Self;
 
@@ -49,7 +51,6 @@ pub trait AdjSetEdge<V>: 'static + GraphItem
 
     fn target(&self) -> V;
 }
-
 
 // Undirected
 
@@ -104,7 +105,8 @@ impl<V: PartialOrd + Hash> Hash for UndirectedEdge<V> {
 }
 
 impl<V> AdjSetEdge<V> for UndirectedEdge<V>
-    where V: AdjSetVertex + PartialOrd
+where
+    V: AdjSetVertex + PartialOrd,
 {
     fn new(u: V, v: V) -> Self {
         UndirectedEdge(u, v)
@@ -120,18 +122,19 @@ impl<V> AdjSetEdge<V> for UndirectedEdge<V>
 }
 
 impl<V> AdjSetEdgeKind<V> for Undirected
-    where V: AdjSetVertex + PartialOrd
+where
+    V: AdjSetVertex + PartialOrd,
 {
     type Edge = UndirectedEdge<V>;
 }
-
 
 // Directed
 
 pub type DirectedEdge<V> = (V, V);
 
 impl<V> AdjSetEdge<V> for DirectedEdge<V>
-    where V: AdjSetVertex
+where
+    V: AdjSetVertex,
 {
     fn new(u: V, v: V) -> Self {
         (u, v)
@@ -147,41 +150,45 @@ impl<V> AdjSetEdge<V> for DirectedEdge<V>
 }
 
 impl<V> AdjSetEdgeKind<V> for Directed
-    where V: AdjSetVertex
+where
+    V: AdjSetVertex,
 {
     type Edge = DirectedEdge<V>;
 }
 
-
 // Graph traits implementation
 
 impl<'a, V, K> VertexTypes<'a, AdjSet<V, K>> for AdjSet<V, K>
-    where V: AdjSetVertex,
-          K: AdjSetEdgeKind<V>
+where
+    V: AdjSetVertex,
+    K: AdjSetEdgeKind<V>,
 {
     type VertexIter = Cloned<hash_map::Keys<'a, V, HashSetAdj<V>>>;
     type OutNeighborIter = Cloned<hash_set::Iter<'a, V>>;
 }
 
 impl<V, K> WithVertex for AdjSet<V, K>
-    where V: AdjSetVertex,
-          K: AdjSetEdgeKind<V>
+where
+    V: AdjSetVertex,
+    K: AdjSetEdgeKind<V>,
 {
     type Vertex = V;
     type OptionVertex = Option<V>;
 }
 
 impl<'a, V, K> EdgeTypes<'a, AdjSet<V, K>> for AdjSet<V, K>
-    where V: AdjSetVertex,
-          K: AdjSetEdgeKind<V>
+where
+    V: AdjSetVertex,
+    K: AdjSetEdgeKind<V>,
 {
     type EdgeIter = Edges<'a, V, K>;
     type OutEdgeIter = OutEdges<'a, V, K>;
 }
 
 impl<V, K> WithEdge for AdjSet<V, K>
-    where V: AdjSetVertex,
-          K: AdjSetEdgeKind<V>
+where
+    V: AdjSetVertex,
+    K: AdjSetEdgeKind<V>,
 {
     type Kind = K;
     type Edge = K::Edge;
@@ -205,8 +212,9 @@ impl<V, K> WithEdge for AdjSet<V, K>
 }
 
 impl<V, K> VertexList for AdjSet<V, K>
-    where V: AdjSetVertex,
-          K: AdjSetEdgeKind<V>
+where
+    V: AdjSetVertex,
+    K: AdjSetEdgeKind<V>,
 {
     fn vertices(&self) -> VertexIter<Self> {
         self.adj.keys().cloned()
@@ -218,8 +226,9 @@ impl<V, K> VertexList for AdjSet<V, K>
 }
 
 impl<V, K> EdgeList for AdjSet<V, K>
-    where V: AdjSetVertex,
-          K: AdjSetEdgeKind<V>
+where
+    V: AdjSetVertex,
+    K: AdjSetEdgeKind<V>,
 {
     fn edges(&self) -> EdgeIter<Self> {
         Edges {
@@ -242,8 +251,9 @@ impl<V, K> EdgeList for AdjSet<V, K>
 }
 
 impl<V, K> Adjacency for AdjSet<V, K>
-    where V: AdjSetVertex,
-          K: AdjSetEdgeKind<V>
+where
+    V: AdjSetVertex,
+    K: AdjSetEdgeKind<V>,
 {
     fn out_neighbors(&self, v: Vertex<Self>) -> OutNeighborIter<Self> {
         self.out_neighbors_(v).iter().cloned()
@@ -255,8 +265,9 @@ impl<V, K> Adjacency for AdjSet<V, K>
 }
 
 impl<V, K> Incidence for AdjSet<V, K>
-    where V: AdjSetVertex,
-          K: AdjSetEdgeKind<V>
+where
+    V: AdjSetVertex,
+    K: AdjSetEdgeKind<V>,
 {
     fn out_edges(&self, v: Vertex<Self>) -> OutEdgeIter<Self> {
         OutEdges {
@@ -268,8 +279,9 @@ impl<V, K> Incidence for AdjSet<V, K>
 }
 
 impl<V, K> AdjSet<V, K>
-    where V: AdjSetVertex,
-          K: AdjSetEdgeKind<V>
+where
+    V: AdjSetVertex,
+    K: AdjSetEdgeKind<V>,
 {
     pub fn new() -> Self {
         AdjSet {
@@ -311,31 +323,32 @@ impl<V, K> AdjSet<V, K>
     }
 }
 
-
 // Props
 
 impl<V, K, T> WithVertexProp<T> for AdjSet<V, K>
-    where V: AdjSetVertex,
-          K: AdjSetEdgeKind<V>,
-          T: Clone
+where
+    V: AdjSetVertex,
+    K: AdjSetEdgeKind<V>,
+    T: Clone,
 {
     type VertexProp = HashMapProp<V, T>;
 }
 
 impl<V, K, T> WithEdgeProp<T> for AdjSet<V, K>
-    where V: AdjSetVertex,
-          K: AdjSetEdgeKind<V>,
-          T: Clone
+where
+    V: AdjSetVertex,
+    K: AdjSetEdgeKind<V>,
+    T: Clone,
 {
     type EdgeProp = HashMapProp<K::Edge, T>;
 }
 
-
 // Iterators
 
 pub struct Edges<'a, V, K>
-    where V: AdjSetVertex,
-          K: AdjSetEdgeKind<V>
+where
+    V: AdjSetVertex,
+    K: AdjSetEdgeKind<V>,
 {
     iter: hash_map::Iter<'a, V, HashSetAdj<V>>,
     inner: Option<(V, hash_set::Iter<'a, V>)>,
@@ -343,8 +356,9 @@ pub struct Edges<'a, V, K>
 }
 
 impl<'a, V, K> Iterator for Edges<'a, V, K>
-    where V: AdjSetVertex,
-          K: AdjSetEdgeKind<V>
+where
+    V: AdjSetVertex,
+    K: AdjSetEdgeKind<V>,
 {
     type Item = K::Edge;
 
@@ -370,10 +384,10 @@ impl<'a, V, K> Iterator for Edges<'a, V, K>
     // TODO: implements size_hint and ExactSizeIterator
 }
 
-
 pub struct OutEdges<'a, V, K>
-    where V: AdjSetVertex,
-          K: AdjSetEdgeKind<V>
+where
+    V: AdjSetVertex,
+    K: AdjSetEdgeKind<V>,
 {
     source: V,
     adj: hash_set::Iter<'a, V>,
@@ -381,8 +395,9 @@ pub struct OutEdges<'a, V, K>
 }
 
 impl<'a, V, K> Iterator for OutEdges<'a, V, K>
-    where V: AdjSetVertex,
-          K: AdjSetEdgeKind<V>
+where
+    V: AdjSetVertex,
+    K: AdjSetEdgeKind<V>,
 {
     type Item = K::Edge;
 
@@ -397,14 +412,14 @@ impl<'a, V, K> Iterator for OutEdges<'a, V, K>
 }
 
 impl<'a, V, K> ExactSizeIterator for OutEdges<'a, V, K>
-    where V: AdjSetVertex,
-          K: AdjSetEdgeKind<V>
+where
+    V: AdjSetVertex,
+    K: AdjSetEdgeKind<V>,
 {
     fn len(&self) -> usize {
         self.adj.len()
     }
 }
-
 
 #[cfg(test)]
 mod tests {

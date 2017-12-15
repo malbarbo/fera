@@ -91,7 +91,6 @@ pub trait UniformEdgeKind: EdgeKind {
     }
 }
 
-
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub enum Directed {}
 
@@ -103,7 +102,6 @@ impl UniformEdgeKind for Directed {
         Orientation::Directed
     }
 }
-
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub enum Undirected {}
@@ -117,13 +115,11 @@ impl UniformEdgeKind for Undirected {
     }
 }
 
-
 // TODO: write a graph with mixed edges and test it
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
 pub enum Mixed {}
 
 impl EdgeKind for Mixed {}
-
 
 pub trait VertexTypes<'a, G: WithVertex> {
     type VertexIter: Iterator<Item = Vertex<G>>;
@@ -145,17 +141,19 @@ pub trait WithVertex: Sized + for<'a> VertexTypes<'a, Self> {
     }
 
     fn vertex_prop<P, T>(&self, value: T) -> P
-        where P: VertexPropMutNew<Self, T>,
-              T: Clone
+    where
+        P: VertexPropMutNew<Self, T>,
+        T: Clone,
     {
         P::new_vertex_prop(self, value)
     }
 
     fn vertex_prop_from_fn<P, T, F>(&self, mut fun: F) -> P
-        where Self: VertexList,
-              P: VertexPropMutNew<Self, T>,
-              F: FnMut(Vertex<Self>) -> T,
-              T: Default + Clone
+    where
+        Self: VertexList,
+        P: VertexPropMutNew<Self, T>,
+        F: FnMut(Vertex<Self>) -> T,
+        T: Default + Clone,
     {
         // FIXME: Can we remove T: Default + Clone?
         let mut p: P = self.vertex_prop(T::default());
@@ -183,7 +181,8 @@ pub trait WithEdge: Sized + WithVertex + for<'a> EdgeTypes<'a, Self> {
     fn target(&self, e: Edge<Self>) -> Vertex<Self>;
 
     fn ends<'a, I, O>(&'a self, item: I) -> O
-        where I: Ends<'a, Self, O>
+    where
+        I: Ends<'a, Self, O>,
     {
         item._ends(self)
     }
@@ -193,8 +192,9 @@ pub trait WithEdge: Sized + WithVertex + for<'a> EdgeTypes<'a, Self> {
     }
 
     fn with_ends<I>(&self, iter: I) -> EdgesWithEnds<Self, I::IntoIter>
-        where I: IntoIterator,
-              I::Item: IntoOwned<Edge<Self>>
+    where
+        I: IntoIterator,
+        I::Item: IntoOwned<Edge<Self>>,
     {
         EdgesWithEnds {
             g: self,
@@ -219,7 +219,8 @@ pub trait WithEdge: Sized + WithVertex + for<'a> EdgeTypes<'a, Self> {
     }
 
     fn reverse(&self, e: Edge<Self>) -> Edge<Self>
-        where Self: WithEdge<Kind = Undirected>
+    where
+        Self: WithEdge<Kind = Undirected>,
     {
         self.get_reverse(e)
             .expect("the reverse of an edge (all undirected graphs must implement reverse)")
@@ -241,17 +242,19 @@ pub trait WithEdge: Sized + WithVertex + for<'a> EdgeTypes<'a, Self> {
     }
 
     fn edge_prop<P, T>(&self, value: T) -> P
-        where P: EdgePropMutNew<Self, T>,
-              T: Clone
+    where
+        P: EdgePropMutNew<Self, T>,
+        T: Clone,
     {
         P::new_edge_prop(self, value)
     }
 
     fn edge_prop_from_fn<P, F, T>(&self, mut fun: F) -> P
-        where Self: EdgeList,
-              P: EdgePropMutNew<Self, T>,
-              F: FnMut(Edge<Self>) -> T,
-              T: Default + Clone
+    where
+        Self: EdgeList,
+        P: EdgePropMutNew<Self, T>,
+        F: FnMut(Edge<Self>) -> T,
+        T: Default + Clone,
     {
         // FIXME: Can we remove T: Default + Clone?
         let mut p: P = self.edge_prop(T::default());
@@ -333,7 +336,6 @@ pub trait Incidence: WithEdge + Adjacency {
     }
 }
 
-
 // Ends
 
 pub trait Ends<'a, G, O> {
@@ -341,7 +343,8 @@ pub trait Ends<'a, G, O> {
 }
 
 impl<'a, G> Ends<'a, G, (Vertex<G>, Vertex<G>)> for Edge<G>
-    where G: WithEdge
+where
+    G: WithEdge,
 {
     fn _ends(self, g: &'a G) -> (Vertex<G>, Vertex<G>) {
         (g.source(self), g.target(self))
@@ -349,7 +352,8 @@ impl<'a, G> Ends<'a, G, (Vertex<G>, Vertex<G>)> for Edge<G>
 }
 
 impl<'a, G> Ends<'a, G, (Edge<G>, Vertex<G>, Vertex<G>)> for Edge<G>
-    where G: WithEdge
+where
+    G: WithEdge,
 {
     fn _ends(self, g: &'a G) -> (Edge<G>, Vertex<G>, Vertex<G>) {
         let (u, v) = g.ends(self);
@@ -358,9 +362,10 @@ impl<'a, G> Ends<'a, G, (Edge<G>, Vertex<G>, Vertex<G>)> for Edge<G>
 }
 
 impl<'a, G, I> Ends<'a, G, EdgesEnds<'a, G, I::IntoIter>> for I
-    where G: WithEdge,
-          I: IntoIterator,
-          I::Item: IntoOwned<Edge<G>>
+where
+    G: WithEdge,
+    I: IntoIterator,
+    I::Item: IntoOwned<Edge<G>>,
 {
     fn _ends(self, g: &'a G) -> EdgesEnds<'a, G, I::IntoIter> {
         EdgesEnds {
@@ -370,7 +375,6 @@ impl<'a, G, I> Ends<'a, G, EdgesEnds<'a, G, I::IntoIter>> for I
     }
 }
 
-
 // Iterators
 
 pub struct EdgesEnds<'a, G: 'a, I> {
@@ -379,9 +383,10 @@ pub struct EdgesEnds<'a, G: 'a, I> {
 }
 
 impl<'a, G, I> Iterator for EdgesEnds<'a, G, I>
-    where G: WithEdge,
-          I: Iterator,
-          I::Item: IntoOwned<Edge<G>>
+where
+    G: WithEdge,
+    I: Iterator,
+    I::Item: IntoOwned<Edge<G>>,
 {
     type Item = (Vertex<G>, Vertex<G>);
 
@@ -395,9 +400,10 @@ impl<'a, G, I> Iterator for EdgesEnds<'a, G, I>
 }
 
 impl<'a, G, I> ExactSizeIterator for EdgesEnds<'a, G, I>
-    where G: WithEdge,
-          I: Iterator,
-          I::Item: IntoOwned<Edge<G>>
+where
+    G: WithEdge,
+    I: Iterator,
+    I::Item: IntoOwned<Edge<G>>,
 {
 }
 
@@ -407,9 +413,10 @@ pub struct EdgesWithEnds<'a, G: 'a, I> {
 }
 
 impl<'a, G, I> Iterator for EdgesWithEnds<'a, G, I>
-    where G: WithEdge,
-          I: Iterator,
-          I::Item: IntoOwned<Edge<G>>
+where
+    G: WithEdge,
+    I: Iterator,
+    I::Item: IntoOwned<Edge<G>>,
 {
     type Item = (Edge<G>, Vertex<G>, Vertex<G>);
 
@@ -423,8 +430,9 @@ impl<'a, G, I> Iterator for EdgesWithEnds<'a, G, I>
 }
 
 impl<'a, G, I> ExactSizeIterator for EdgesWithEnds<'a, G, I>
-    where G: WithEdge,
-          I: Iterator,
-          I::Item: IntoOwned<Edge<G>>
+where
+    G: WithEdge,
+    I: Iterator,
+    I::Item: IntoOwned<Edge<G>>,
 {
 }

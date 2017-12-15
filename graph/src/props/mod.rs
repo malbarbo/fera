@@ -23,7 +23,7 @@ use std::ops::{Index, IndexMut};
 
 mod array;
 mod delegate;
-#[path="fn.rs"]
+#[path = "fn.rs"]
 mod fn_;
 mod hashmap;
 mod ignore;
@@ -46,8 +46,9 @@ pub trait PropGet<K> {
     /// Creates a mapped property that maps each property value using `fun`.
     #[inline]
     fn map<F, O>(self, fun: F) -> Map<Self, F>
-        where Self: Sized,
-              F: Fn(Self::Output) -> O
+    where
+        Self: Sized,
+        F: Fn(Self::Output) -> O,
     {
         Map(self, fun)
     }
@@ -68,7 +69,6 @@ impl<'a, K, P: PropGet<K>> PropGet<K> for &'a P {
     }
 }
 
-
 // Indexable properties
 
 // TODO: turn PropIndexMut into a extension trait
@@ -77,11 +77,12 @@ pub trait PropIndexMut<Idx>: IndexMut<Idx> {
     /// Set the value associated with each key produced by `iter` to the value associated with the
     /// key in the property `source`.
     fn set_values_from<P, I>(&mut self, iter: I, source: &P)
-        where I: IntoIterator,
-              I::Item: IntoOwned<Idx>,
-              Idx: Clone,
-              P: Index<Idx, Output = Self::Output>,
-              Self::Output: Clone
+    where
+        I: IntoIterator,
+        I::Item: IntoOwned<Idx>,
+        Idx: Clone,
+        P: Index<Idx, Output = Self::Output>,
+        Self::Output: Clone,
     {
         for v in iter {
             let v = v.into_owned();
@@ -91,9 +92,10 @@ pub trait PropIndexMut<Idx>: IndexMut<Idx> {
 
     /// Set the value associated with keys produced by `iter` to `value`.
     fn set_values<I>(&mut self, iter: I, value: Self::Output)
-        where I: IntoIterator,
-              I::Item: IntoOwned<Idx>,
-              Self::Output: Clone
+    where
+        I: IntoIterator,
+        I::Item: IntoOwned<Idx>,
+        Self::Output: Clone,
     {
         for v in iter {
             self[v.into_owned()].clone_from(&value);
@@ -103,47 +105,56 @@ pub trait PropIndexMut<Idx>: IndexMut<Idx> {
 
 impl<P: IndexMut<Idx>, Idx> PropIndexMut<Idx> for P {}
 
-
 // TODO: explain why the trait repetition for VertexProp and EdgeProp (missing trait alias?)
 
 // Vertex
 
 /// A vertex property.
 pub trait VertexPropGet<G, T>: PropGet<Vertex<G>, Output = T>
-    where G: WithVertex
+where
+    G: WithVertex,
 {
 }
 
 impl<P, G, T> VertexPropGet<G, T> for P
-    where G: WithVertex,
-          P: PropGet<Vertex<G>, Output = T>
+where
+    G: WithVertex,
+    P: PropGet<Vertex<G>, Output = T>,
 {
 }
 
 /// A vertex property that can be read using indexing operation.
-pub trait VertexProp<G, T>: Index<Vertex<G>, Output = T> where G: WithVertex {}
+pub trait VertexProp<G, T>: Index<Vertex<G>, Output = T>
+where
+    G: WithVertex,
+{
+}
 
 impl<P, G, T> VertexProp<G, T> for P
-    where G: WithVertex,
-          P: Index<Vertex<G>, Output = T>
+where
+    G: WithVertex,
+    P: Index<Vertex<G>, Output = T>,
 {
 }
 
 /// A vertex property that can be read/write using indexing operation.
 pub trait VertexPropMut<G, T>: IndexMut<Vertex<G>, Output = T>
-    where G: WithVertex
+where
+    G: WithVertex,
 {
 }
 
 impl<P, G, T> VertexPropMut<G, T> for P
-    where G: WithVertex,
-          P: IndexMut<Vertex<G>, Output = T>
+where
+    G: WithVertex,
+    P: IndexMut<Vertex<G>, Output = T>,
 {
 }
 
 /// A vertex property that can be created using a graph reference and a value.
 pub trait VertexPropMutNew<G, T>: VertexPropMut<G, T>
-    where G: WithVertex
+where
+    G: WithVertex,
 {
     /// Creates a new vertex prop.
     ///
@@ -151,7 +162,9 @@ pub trait VertexPropMutNew<G, T>: VertexPropMut<G, T>
     /// [`WithVertex::vertex_prop`].
     ///
     /// [`WithVertex::vertex_prop`]: ../trait.WithVertex.html#method.vertex_prop
-    fn new_vertex_prop(g: &G, value: T) -> Self where T: Clone;
+    fn new_vertex_prop(g: &G, value: T) -> Self
+    where
+        T: Clone;
 }
 
 /// A graph that has a default vertex property type, that is, has a default implementation to
@@ -163,7 +176,8 @@ pub trait WithVertexProp<T>: WithVertex {
     /// Creates a new default vertex property where the initial value associated with each vertex
     /// is `value`.
     fn default_vertex_prop(&self, value: T) -> DefaultVertexPropMut<Self, T>
-        where T: Clone
+    where
+        T: Clone,
     {
         self.vertex_prop(value)
     }
@@ -171,10 +185,11 @@ pub trait WithVertexProp<T>: WithVertex {
     /// Creates a new default vertex property where the initial value associated with each vertex
     /// `v` is produced by `fun(v)`.
     fn default_vertex_prop_from_fn<P, F>(&self, fun: F) -> P
-        where Self: VertexList,
-              P: VertexPropMutNew<Self, T>,
-              F: FnMut(Vertex<Self>) -> T,
-              T: Default + Clone
+    where
+        Self: VertexList,
+        P: VertexPropMutNew<Self, T>,
+        F: FnMut(Vertex<Self>) -> T,
+        T: Default + Clone,
     {
         self.vertex_prop_from_fn(fun)
     }
@@ -188,42 +203,54 @@ pub trait WithVertexIndexProp: WithVertex {
     fn vertex_index(&self) -> VertexIndexProp<Self>;
 }
 
-
 // Edge
 
 /// A edge property.
-pub trait EdgePropGet<G, T>: PropGet<Edge<G>, Output = T> where G: WithEdge {}
+pub trait EdgePropGet<G, T>: PropGet<Edge<G>, Output = T>
+where
+    G: WithEdge,
+{
+}
 
 impl<P, G, T> EdgePropGet<G, T> for P
-    where G: WithEdge,
-          P: PropGet<Edge<G>, Output = T>
+where
+    G: WithEdge,
+    P: PropGet<Edge<G>, Output = T>,
 {
 }
 
 /// An edge property that can be read using indexing operation.
-pub trait EdgeProp<G, T>: Index<Edge<G>, Output = T> where G: WithEdge {}
+pub trait EdgeProp<G, T>: Index<Edge<G>, Output = T>
+where
+    G: WithEdge,
+{
+}
 
 impl<P, G, T> EdgeProp<G, T> for P
-    where G: WithEdge,
-          P: Index<Edge<G>, Output = T>
+where
+    G: WithEdge,
+    P: Index<Edge<G>, Output = T>,
 {
 }
 
 /// A edge property that can be read/write using indexing operation.
 pub trait EdgePropMut<G, T>: IndexMut<Edge<G>, Output = T>
-    where G: WithEdge
+where
+    G: WithEdge,
 {
 }
 
 impl<P, G, T> EdgePropMut<G, T> for P
-    where G: WithEdge,
-          P: IndexMut<Edge<G>, Output = T>
+where
+    G: WithEdge,
+    P: IndexMut<Edge<G>, Output = T>,
 {
 }
 
 /// An edge property that can be read/write using indexing operation.
 pub trait EdgePropMutNew<G, T>: EdgePropMut<G, T>
-    where G: WithEdge
+where
+    G: WithEdge,
 {
     /// Creates a new edge prop.
     ///
@@ -231,7 +258,9 @@ pub trait EdgePropMutNew<G, T>: EdgePropMut<G, T>
     /// [`WithEdge::edge_prop`].
     ///
     /// [`WithEdge::edge_prop`]: ../trait.WithEdge.html#method.edge_prop
-    fn new_edge_prop(g: &G, value: T) -> Self where T: Clone;
+    fn new_edge_prop(g: &G, value: T) -> Self
+    where
+        T: Clone;
 }
 
 /// A graph that has a default edge property type, that is, has a default implementation to
@@ -242,7 +271,8 @@ pub trait WithEdgeProp<T>: WithEdge {
     /// Creates a new default edge property where the initial value associated with each edge is
     /// `value`.
     fn default_edge_prop(&self, value: T) -> DefaultEdgePropMut<Self, T>
-        where T: Clone
+    where
+        T: Clone,
     {
         self.edge_prop(value)
     }
@@ -250,10 +280,11 @@ pub trait WithEdgeProp<T>: WithEdge {
     /// Creates a new default edge property where the initial value associated with each edge `e`
     /// is produced by `fun(e)`.
     fn default_edge_prop_from_fn<P, F>(&self, fun: F) -> P
-        where Self: EdgeList,
-              P: EdgePropMutNew<Self, T>,
-              F: FnMut(Edge<Self>) -> T,
-              T: Default + Clone
+    where
+        Self: EdgeList,
+        P: EdgePropMutNew<Self, T>,
+        F: FnMut(Edge<Self>) -> T,
+        T: Default + Clone,
     {
         self.edge_prop_from_fn(fun)
     }
@@ -266,7 +297,6 @@ pub trait WithEdgeIndexProp: WithEdge {
     /// Creates an edge index map.
     fn edge_index(&self) -> EdgeIndexProp<Self>;
 }
-
 
 // Basic properties traits
 
@@ -341,7 +371,6 @@ impl Default for Color {
     }
 }
 
-
 // Adaptors
 
 /// A property that maps the value of a wrapped property with a function.
@@ -352,8 +381,9 @@ impl Default for Color {
 pub struct Map<P, F>(P, F);
 
 impl<K, P, F, O> PropGet<K> for Map<P, F>
-    where P: PropGet<K>,
-          F: Fn(P::Output) -> O
+where
+    P: PropGet<K>,
+    F: Fn(P::Output) -> O,
 {
     type Output = O;
 

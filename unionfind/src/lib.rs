@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#![doc(html_root_url="https://docs.rs/fera-unionfind/0.1.0/")]
+#![doc(html_root_url = "https://docs.rs/fera-unionfind/0.1.0/")]
 
 //! Union-find ([disjoint-set]) data structure implementation.
 //!
@@ -114,9 +114,10 @@ pub type UnionFindRange = UnionFind<usize, Vec<usize>, Vec<usize>>;
 /// [disjoint-set]: https://en.wikipedia.org/wiki/Disjoint-set_data_structure
 #[derive(Clone)]
 pub struct UnionFind<Key, Parent = IndexedHashMap<Key, Key>, Rank = IndexedHashMap<Key, usize>>
-    where Key: Copy + PartialEq,
-          Parent: IndexMut<Key, Output = Key>,
-          Rank: IndexMut<Key, Output = usize>
+where
+    Key: Copy + PartialEq,
+    Parent: IndexMut<Key, Output = Key>,
+    Rank: IndexMut<Key, Output = usize>,
 {
     parent: Parent,
     rank: Rank,
@@ -125,9 +126,10 @@ pub struct UnionFind<Key, Parent = IndexedHashMap<Key, Key>, Rank = IndexedHashM
 }
 
 impl<Key, Parent, Rank> UnionFind<Key, Parent, Rank>
-    where Key: Copy + PartialEq,
-          Parent: IndexMut<Key, Output = Key>,
-          Rank: IndexMut<Key, Output = usize>
+where
+    Key: Copy + PartialEq,
+    Parent: IndexMut<Key, Output = Key>,
+    Rank: IndexMut<Key, Output = usize>,
 {
     /// Creates a new `UnionFind`.
     #[doc(hidden)]
@@ -244,9 +246,11 @@ impl<K: Copy + Hash + Eq> UnionFind<K> {
 impl UnionFindRange {
     /// Creates a new `UnionFindRange` with keys in `range`.
     pub fn with_keys_in_range(range: RangeTo<usize>) -> Self {
-        UnionFind::with_parent_rank_num_sets((0..range.end).collect(),
-                                             vec![0; range.end],
-                                             range.end)
+        UnionFind::with_parent_rank_num_sets(
+            (0..range.end).collect(),
+            vec![0; range.end],
+            range.end,
+        )
     }
 
     /// Reset the struct putting each key in it's own set.
@@ -267,16 +271,18 @@ impl UnionFindRange {
 ///
 /// TODO: add docs of how to use a different hasher
 pub struct IndexedHashMap<K, V, S = RandomState>
-    where K: Copy + Hash + Eq,
-          S: BuildHasher
+where
+    K: Copy + Hash + Eq,
+    S: BuildHasher,
 {
     map: HashMap<K, V, S>,
     default: fn(&K) -> V,
 }
 
 impl<K, S> IndexedHashMap<K, K, S>
-    where K: Copy + Hash + Eq,
-          S: BuildHasher
+where
+    K: Copy + Hash + Eq,
+    S: BuildHasher,
 {
     pub fn new_parent_with_hasher(hasher: S) -> Self {
         IndexedHashMap {
@@ -287,8 +293,9 @@ impl<K, S> IndexedHashMap<K, K, S>
 }
 
 impl<K, S> IndexedHashMap<K, usize, S>
-    where K: Copy + Hash + Eq,
-          S: BuildHasher
+where
+    K: Copy + Hash + Eq,
+    S: BuildHasher,
 {
     pub fn new_rank_with_hasher(hasher: S) -> Self {
         fn zero<K: Clone>(_: &K) -> usize {
@@ -303,7 +310,8 @@ impl<K, S> IndexedHashMap<K, usize, S>
 }
 
 impl<K, V> Index<K> for IndexedHashMap<K, V>
-    where K: Copy + Hash + Eq
+where
+    K: Copy + Hash + Eq,
 {
     type Output = V;
     fn index(&self, index: K) -> &Self::Output {
@@ -312,7 +320,8 @@ impl<K, V> Index<K> for IndexedHashMap<K, V>
 }
 
 impl<K, V> IndexMut<K> for IndexedHashMap<K, V>
-    where K: Copy + Hash + Eq
+where
+    K: Copy + Hash + Eq,
 {
     fn index_mut(&mut self, index: K) -> &mut Self::Output {
         let f = self.default;
@@ -320,10 +329,9 @@ impl<K, V> IndexMut<K> for IndexedHashMap<K, V>
     }
 }
 
-
 #[cfg(test)]
 mod tests {
-    use *;
+    use ::*;
 
     type UF = UnionFind<usize, Vec<usize>, Vec<usize>>;
 
@@ -373,8 +381,10 @@ mod tests {
 
         ds.union(7, 15);
 
-        check(&mut ds,
-              1,
-              &[&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]]);
+        check(
+            &mut ds,
+            1,
+            &[&[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]],
+        );
     }
 }

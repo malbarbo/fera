@@ -16,7 +16,8 @@ use rand::Rng;
 
 // FIXME: unify SpanningSubgraph with Subgraph
 pub struct SpanningSubgraph<'a, G>
-    where G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>>
+where
+    G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>>,
 {
     g: &'a G,
     edges: Vec<Edge<G>>,
@@ -24,7 +25,8 @@ pub struct SpanningSubgraph<'a, G>
 }
 
 impl<'a, G> SpanningSubgraph<'a, G>
-    where G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>>
+where
+    G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>>,
 {
     #[doc(hidden)]
     pub fn new(g: &'a G) -> Self {
@@ -45,9 +47,10 @@ impl<'a, G> SpanningSubgraph<'a, G>
     }
 
     pub fn set_edges<I>(&mut self, iter: I)
-        where G: VertexList,
-              I: IntoIterator,
-              I::Item: IntoOwned<Edge<G>>
+    where
+        G: VertexList,
+        I: IntoIterator,
+        I::Item: IntoOwned<Edge<G>>,
     {
         self.clear_edges();
         for e in iter {
@@ -56,8 +59,9 @@ impl<'a, G> SpanningSubgraph<'a, G>
     }
 
     pub fn add_edges<I>(&mut self, iter: I)
-        where I: IntoIterator,
-              I::Item: IntoOwned<Edge<G>>
+    where
+        I: IntoIterator,
+        I::Item: IntoOwned<Edge<G>>,
     {
         for e in iter {
             self.add_edge(e.into_owned());
@@ -65,7 +69,8 @@ impl<'a, G> SpanningSubgraph<'a, G>
     }
 
     pub fn clear_edges(&mut self)
-        where G: VertexList
+    where
+        G: VertexList,
     {
         // FIXME: this should be linear in |E|
         self.edges.clear();
@@ -99,11 +104,11 @@ fn vec_find_swap_remove<T: PartialEq>(vec: &mut Vec<T>, value: &T) -> bool {
     }
 }
 
-
 // Trait implementations
 
 impl<'a, G> AsRef<G> for SpanningSubgraph<'a, G>
-    where G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>>
+where
+    G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>>,
 {
     #[inline]
     fn as_ref(&self) -> &G {
@@ -112,28 +117,32 @@ impl<'a, G> AsRef<G> for SpanningSubgraph<'a, G>
 }
 
 impl<'a, 'b, G> VertexTypes<'a, SpanningSubgraph<'b, G>> for SpanningSubgraph<'b, G>
-    where G: 'b + WithEdge + WithVertexProp<Vec<Edge<G>>>
+where
+    G: 'b + WithEdge + WithVertexProp<Vec<Edge<G>>>,
 {
     type VertexIter = VertexIter<'b, G>;
     type OutNeighborIter = OutNeighborFromOutEdge<'b, G, OutEdgeIter<'a, Self>>;
 }
 
 impl<'a, G> WithVertex for SpanningSubgraph<'a, G>
-    where G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>>
+where
+    G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>>,
 {
     type Vertex = Vertex<G>;
     type OptionVertex = OptionVertex<G>;
 }
 
 impl<'a, 'b, G> EdgeTypes<'a, SpanningSubgraph<'b, G>> for SpanningSubgraph<'b, G>
-    where G: 'b + WithEdge + WithVertexProp<Vec<Edge<G>>>
+where
+    G: 'b + WithEdge + WithVertexProp<Vec<Edge<G>>>,
 {
     type EdgeIter = Cloned<slice::Iter<'a, Edge<G>>>;
     type OutEdgeIter = Cloned<slice::Iter<'a, Edge<G>>>;
 }
 
 impl<'a, G> WithEdge for SpanningSubgraph<'a, G>
-    where G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>>
+where
+    G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>>,
 {
     type Kind = G::Kind;
     type Edge = Edge<G>;
@@ -172,7 +181,8 @@ impl<'a, G> WithEdge for SpanningSubgraph<'a, G>
 }
 
 impl<'a, G> VertexList for SpanningSubgraph<'a, G>
-    where G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>> + VertexList
+where
+    G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>> + VertexList,
 {
     fn num_vertices(&self) -> usize {
         self.g.num_vertices()
@@ -184,7 +194,8 @@ impl<'a, G> VertexList for SpanningSubgraph<'a, G>
 }
 
 impl<'a, G> EdgeList for SpanningSubgraph<'a, G>
-    where G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>>
+where
+    G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>>,
 {
     fn num_edges(&self) -> usize {
         self.edges.len()
@@ -200,7 +211,8 @@ impl<'a, G> EdgeList for SpanningSubgraph<'a, G>
 }
 
 impl<'a, G> Adjacency for SpanningSubgraph<'a, G>
-    where G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>>
+where
+    G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>>,
 {
     fn out_neighbors(&self, v: Vertex<Self>) -> OutNeighborIter<Self> {
         OutNeighborFromOutEdge::new(self.g, self.out_edges(v))
@@ -212,7 +224,8 @@ impl<'a, G> Adjacency for SpanningSubgraph<'a, G>
 }
 
 impl<'a, G> Incidence for SpanningSubgraph<'a, G>
-    where G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>>
+where
+    G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>>,
 {
     fn out_edges(&self, v: Vertex<Self>) -> OutEdgeIter<Self> {
         self.out_edges[v].iter().cloned()
@@ -220,34 +233,40 @@ impl<'a, G> Incidence for SpanningSubgraph<'a, G>
 }
 
 impl<'a, G, T> WithVertexProp<T> for SpanningSubgraph<'a, G>
-    where G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>> + WithVertexProp<T>
+where
+    G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>> + WithVertexProp<T>,
 {
     type VertexProp = DelegateVertexProp<G, T>;
 }
 
 impl<'a, G, T> WithEdgeProp<T> for SpanningSubgraph<'a, G>
-    where G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>> + WithEdgeProp<T>
+where
+    G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>> + WithEdgeProp<T>,
 {
     type EdgeProp = DelegateEdgeProp<G, T>;
 }
 
 impl<'a, G> BasicVertexProps for SpanningSubgraph<'a, G>
-    where G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>> + BasicVertexProps
+where
+    G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>> + BasicVertexProps,
 {
 }
 
 impl<'a, G> BasicEdgeProps for SpanningSubgraph<'a, G>
-    where G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>> + BasicEdgeProps
+where
+    G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>> + BasicEdgeProps,
 {
 }
 
 impl<'a, G> BasicProps for SpanningSubgraph<'a, G>
-    where G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>> + BasicProps
+where
+    G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>> + BasicProps,
 {
 }
 
 impl<'a, G> Choose for SpanningSubgraph<'a, G>
-    where G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>> + Choose
+where
+    G: 'a + WithEdge + WithVertexProp<Vec<Edge<G>>> + Choose,
 {
     fn choose_vertex<R: Rng>(&self, rng: R) -> Option<Vertex<Self>> {
         self.g.choose_vertex(rng)
@@ -270,7 +289,9 @@ impl<'a, G> Choose for SpanningSubgraph<'a, G>
         if self.out_degree(v) == 0 {
             None
         } else {
-            self.out_edges[v].get(rng.gen_range(0, self.out_degree(v))).cloned()
+            self.out_edges[v]
+                .get(rng.gen_range(0, self.out_degree(v)))
+                .cloned()
         }
     }
 }

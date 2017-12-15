@@ -11,21 +11,25 @@ use params::IntoOwned;
 
 pub trait Paths: Incidence {
     fn find_path(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Vec<Edge<Self>>>
-        where Self: WithVertexProp<Color>
+    where
+        Self: WithVertexProp<Color>,
     {
         if u == v {
             return None;
         }
         let mut path = vec![];
-        self.dfs(RecordPath(&mut path, v))
-            .root(u)
-            .run();
-        if path.is_empty() { None } else { Some(path) }
+        self.dfs(RecordPath(&mut path, v)).root(u).run();
+        if path.is_empty() {
+            None
+        } else {
+            Some(path)
+        }
     }
 
     fn is_walk<I>(&self, edges: I) -> bool
-        where I: IntoIterator,
-              I::Item: IntoOwned<Edge<Self>>
+    where
+        I: IntoIterator,
+        I::Item: IntoOwned<Edge<Self>>,
     {
         let mut edges = edges.into_iter();
         let mut last = if let Some(e) = edges.next() {
@@ -46,9 +50,10 @@ pub trait Paths: Incidence {
     }
 
     fn is_path<I>(&self, edges: I) -> bool
-        where Self: WithVertexProp<bool>,
-              I: IntoIterator,
-              I::Item: IntoOwned<Edge<Self>>
+    where
+        Self: WithVertexProp<bool>,
+        I: IntoIterator,
+        I::Item: IntoOwned<Edge<Self>>,
     {
         let mut visited = self.default_vertex_prop(false);
         let mut edges = edges.into_iter();
@@ -79,8 +84,11 @@ pub trait Paths: Incidence {
     }
 }
 
-impl<G> Paths for G where G: Incidence {}
-
+impl<G> Paths for G
+where
+    G: Incidence,
+{
+}
 
 pub struct RecordPath<'a, G: WithEdge> {
     path: &'a mut Vec<Edge<G>>,
@@ -89,7 +97,8 @@ pub struct RecordPath<'a, G: WithEdge> {
 
 #[allow(non_snake_case)]
 pub fn RecordPath<G>(path: &mut Vec<Edge<G>>, target: Vertex<G>) -> RecordPath<G>
-    where G: WithEdge
+where
+    G: WithEdge,
 {
     RecordPath {
         path: path,
@@ -109,7 +118,6 @@ impl<'a, G: WithEdge> Visitor<G> for RecordPath<'a, G> {
         Control::Continue
     }
 }
-
 
 #[cfg(test)]
 mod tests {

@@ -97,7 +97,6 @@ pub trait Kruskal: WithUnionFind {
 
 impl<G: WithUnionFind> Kruskal for G {}
 
-
 generic_struct! {
     #[must_use]
     pub struct KruskalAlg(graph, edges, visitor, unionfind)
@@ -118,11 +117,12 @@ where
 }
 
 impl<'a, G, E, V, U> IntoIterator for KruskalAlg<&'a G, E, V, U>
-    where G: WithUnionFind,
-          E: IntoIterator,
-          E::Item: IntoOwned<Edge<G>>,
-          V: Visitor<G>,
-          U: ParamDerefMut<Target = UnionFind<G>>
+where
+    G: WithUnionFind,
+    E: IntoIterator,
+    E::Item: IntoOwned<Edge<G>>,
+    V: Visitor<G>,
+    U: ParamDerefMut<Target = UnionFind<G>>,
 {
     type Item = Edge<G>;
     type IntoIter = Iter<'a, G, E::IntoIter, V, U::Output>;
@@ -138,7 +138,6 @@ impl<'a, G, E, V, U> IntoIterator for KruskalAlg<&'a G, E, V, U>
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::Kruskal;
@@ -147,8 +146,7 @@ mod tests {
 
     #[test]
     fn kruskal_mst() {
-        let g: StaticGraph =
-            graph!(
+        let g: StaticGraph = graph!(
             5,
             (0, 4), // 0
             (2, 3), // 1

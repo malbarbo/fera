@@ -185,7 +185,6 @@ macro_rules! graph {
     );
 }
 
-
 // TODO: rename to GraphBuilder
 /// A builder used to build graphs.
 ///
@@ -216,7 +215,13 @@ pub trait Builder {
     fn finalize(self) -> Self::Graph;
 
     #[doc(hidden)]
-    fn finalize_(self) -> (Self::Graph, Vec<Vertex<Self::Graph>>, Vec<Edge<Self::Graph>>);
+    fn finalize_(
+        self,
+    ) -> (
+        Self::Graph,
+        Vec<Vertex<Self::Graph>>,
+        Vec<Edge<Self::Graph>>,
+    );
 }
 
 /// A graph that has a [`Builder`].
@@ -242,7 +247,8 @@ pub trait WithBuilder: WithEdge {
     ///
     /// If some edges is not valid.
     fn new_with_edges<I>(n: usize, edges: I) -> Self
-        where I: IntoIterator<Item = (usize, usize)>
+    where
+        I: IntoIterator<Item = (usize, usize)>,
     {
         let edges = edges.into_iter();
         let mut b = Self::Builder::new(n, edges.size_hint().1.unwrap_or(0));
@@ -253,11 +259,13 @@ pub trait WithBuilder: WithEdge {
     }
 
     #[doc(hidden)]
-    fn new_with_edges_prop<T>(n: usize,
-                              edges: &[(usize, usize, T)])
-                              -> (Self, DefaultEdgePropMut<Self, T>)
-        where T: Copy + Default,
-              Self: WithEdgeProp<T>
+    fn new_with_edges_prop<T>(
+        n: usize,
+        edges: &[(usize, usize, T)],
+    ) -> (Self, DefaultEdgePropMut<Self, T>)
+    where
+        T: Copy + Default,
+        Self: WithEdgeProp<T>,
     {
         // TODO: Should this be optimized?
         let mut b = Self::Builder::new(n, edges.len());
@@ -281,7 +289,8 @@ pub trait WithBuilder: WithEdge {
     ///
     /// A complete graph has an edge between each pair of vertices.
     fn new_complete(n: usize) -> Self
-        where Self: WithEdge<Kind = Undirected>
+    where
+        Self: WithEdge<Kind = Undirected>,
     {
         complete::<Self>(n).finalize()
     }
@@ -291,7 +300,8 @@ pub trait WithBuilder: WithEdge {
     /// In complete binary tree all interior vertices have two children an all leaves have the
     /// same depth.
     fn new_complete_binary_tree(h: u32) -> Self
-        where Self: WithEdge<Kind = Undirected>
+    where
+        Self: WithEdge<Kind = Undirected>,
     {
         complete_binary_tree::<Self>(h).finalize()
     }
@@ -314,8 +324,9 @@ pub trait WithBuilder: WithEdge {
 
     /// Creates a random graph with `n` vertices.
     fn new_gn<R>(n: usize, mut rng: R) -> Self
-        where Self::Kind: UniformEdgeKind,
-              R: Rng
+    where
+        Self::Kind: UniformEdgeKind,
+        R: Rng,
     {
         let m = if n > 1 {
             rng.gen_range(0, max_num_edges::<Self>(n))
@@ -327,7 +338,8 @@ pub trait WithBuilder: WithEdge {
 
     /// Creates a random connected graph with `n` vertices.
     fn new_gn_connected<R: Rng>(n: usize, mut rng: R) -> Self
-        where Self::Kind: UniformEdgeKind
+    where
+        Self::Kind: UniformEdgeKind,
     {
         let m = max_num_edges::<Self>(n);
         let m = if m > n {
@@ -342,8 +354,9 @@ pub trait WithBuilder: WithEdge {
     ///
     /// Returns `None` with `m` exceeds the maximum number of edges.
     fn new_gnm<R>(n: usize, m: usize, rng: R) -> Option<Self>
-        where Self::Kind: UniformEdgeKind,
-              R: Rng
+    where
+        Self::Kind: UniformEdgeKind,
+        R: Rng,
     {
         gnm::<Self, _>(n, m, rng).map(Builder::finalize)
     }
@@ -353,7 +366,8 @@ pub trait WithBuilder: WithEdge {
     ///
     /// Returns `None` if `m` exceeds the maximum number of edges or if `m` is less than `n - 1`.
     fn new_gnm_connected<R: Rng>(n: usize, m: usize, rng: R) -> Option<Self>
-        where Self::Kind: UniformEdgeKind
+    where
+        Self::Kind: UniformEdgeKind,
     {
         gnm_connected::<Self, _>(n, m, rng).map(Builder::finalize)
     }
@@ -380,8 +394,9 @@ fn complete_binary_tree<G: WithBuilder>(height: u32) -> G::Builder {
 }
 
 fn random_tree<G, R>(n: usize, rng: R) -> G::Builder
-    where G: WithBuilder,
-          R: Rng
+where
+    G: WithBuilder,
+    R: Rng,
 {
     if n == 0 {
         return G::builder(0, 0);
@@ -394,8 +409,9 @@ fn random_tree<G, R>(n: usize, rng: R) -> G::Builder
 }
 
 fn random_tree_with_diameter<G, R>(n: u32, d: u32, mut rng: R) -> Option<G::Builder>
-    where G: WithBuilder,
-          R: Rng
+where
+    G: WithBuilder,
+    R: Rng,
 {
     if n == 0 {
         return if d == 0 { Some(G::builder(0, 0)) } else { None };
@@ -504,8 +520,9 @@ fn random_tree_with_diameter<G, R>(n: u32, d: u32, mut rng: R) -> Option<G::Buil
 }
 
 fn max_num_edges<G>(n: usize) -> usize
-    where G: WithEdge,
-          G::Kind: UniformEdgeKind
+where
+    G: WithEdge,
+    G::Kind: UniformEdgeKind,
 {
     if G::Kind::is_directed() {
         n * n
@@ -515,9 +532,10 @@ fn max_num_edges<G>(n: usize) -> usize
 }
 
 fn gnm_connected<G, R>(n: usize, m: usize, mut rng: R) -> Option<G::Builder>
-    where G: WithBuilder,
-          G::Kind: UniformEdgeKind,
-          R: Rng
+where
+    G: WithBuilder,
+    G::Kind: UniformEdgeKind,
+    R: Rng,
 {
     use std::collections::HashSet;
 
@@ -550,9 +568,10 @@ fn gnm_connected<G, R>(n: usize, m: usize, mut rng: R) -> Option<G::Builder>
 }
 
 fn gnm<G, R>(n: usize, m: usize, mut rng: R) -> Option<G::Builder>
-    where G: WithBuilder,
-          G::Kind: UniformEdgeKind,
-          R: Rng
+where
+    G: WithBuilder,
+    G::Kind: UniformEdgeKind,
+    R: Rng,
 {
     use std::collections::HashSet;
 
@@ -574,7 +593,6 @@ fn gnm<G, R>(n: usize, m: usize, mut rng: R) -> Option<G::Builder>
 
     Some(b)
 }
-
 
 // Iterator
 
@@ -623,7 +641,6 @@ impl<R: Rng> Iterator for RandomTreeIter<R> {
     }
 }
 
-
 // Tests
 
 #[doc(hidden)]
@@ -631,17 +648,14 @@ pub trait BuilderTests {
     type G: WithBuilder + VertexList + EdgeList;
 
     fn graph_macro() {
-        let g: Self::G = graph!(
-            5,
-            (1, 2),
-            (4, 0),
-        );
+        let g: Self::G = graph!(5, (1, 2), (4, 0),);
         assert_eq!(5, g.num_vertices());
         assert_eq!(2, g.num_edges());
     }
 
     fn graph_prop_macro()
-        where Self::G: WithEdgeProp<u32>
+    where
+        Self::G: WithEdgeProp<u32>,
     {
         let (g, w): (Self::G, _) = graph!(
             5,
@@ -673,7 +687,8 @@ pub trait BuilderTests {
 
     #[cfg_attr(feature = "cargo-clippy", allow(needless_range_loop))]
     fn complete_binary_tree()
-        where Self::G: Incidence + WithVertexProp<Color>
+    where
+        Self::G: Incidence + WithVertexProp<Color>,
     {
         let (g, _, _) = complete_binary_tree::<Self::G>(0).finalize_();
         assert_eq!(1, g.num_vertices());
@@ -682,8 +697,10 @@ pub trait BuilderTests {
         let (g, v, _) = complete_binary_tree::<Self::G>(1).finalize_();
         assert_eq!(3, g.num_vertices());
         assert_eq!(2, g.num_edges());
-        assert_eq!(set(vec![(v[0], v[1]), (v[0], v[2])]),
-                   set(g.out_edges_ends(v[0])));
+        assert_eq!(
+            set(vec![(v[0], v[1]), (v[0], v[2])]),
+            set(g.out_edges_ends(v[0]))
+        );
 
         for h in 2..10 {
             let (g, v, _) = complete_binary_tree::<Self::G>(h).finalize_();
@@ -699,7 +716,8 @@ pub trait BuilderTests {
     }
 
     fn random_tree()
-        where Self::G: Incidence + WithVertexProp<Color>
+    where
+        Self::G: Incidence + WithVertexProp<Color>,
     {
         let mut rng = XorShiftRng::new_unseeded();
         for n in 0..100 {
@@ -715,8 +733,9 @@ pub trait BuilderTests {
     }
 
     fn gnm()
-        where Self::G: WithEdge + VertexList + EdgeList,
-              <Self::G as WithEdge>::Kind: UniformEdgeKind
+    where
+        Self::G: WithEdge + VertexList + EdgeList,
+        <Self::G as WithEdge>::Kind: UniformEdgeKind,
     {
         let mut rng = XorShiftRng::new_unseeded();
 
@@ -733,8 +752,9 @@ pub trait BuilderTests {
     }
 
     fn gnm_connected()
-        where Self::G: Incidence + WithVertexProp<Color>,
-              <Self::G as WithEdge>::Kind: UniformEdgeKind
+    where
+        Self::G: Incidence + WithVertexProp<Color>,
+        <Self::G as WithEdge>::Kind: UniformEdgeKind,
     {
         let mut rng = XorShiftRng::new_unseeded();
 

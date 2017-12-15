@@ -22,7 +22,8 @@ pub use self::recursive_dfs::*;
 use prelude::*;
 
 pub trait Traverser<'a, G>
-    where G: 'a + Incidence
+where
+    G: 'a + Incidence,
 {
     fn graph(&self) -> &G;
 
@@ -30,11 +31,14 @@ pub trait Traverser<'a, G>
 
     fn traverse<V: Visitor<G>>(&mut self, v: Vertex<G>, vis: V) -> bool;
 
-    fn traverse_all<V: Visitor<G>>(&mut self, vis: V) where G: VertexList;
+    fn traverse_all<V: Visitor<G>>(&mut self, vis: V)
+    where
+        G: VertexList;
 
     fn traverse_vertices<I, V>(&mut self, vertices: I, mut vis: V)
-        where I: IntoIterator<Item = Vertex<G>>,
-              V: Visitor<G>
+    where
+        I: IntoIterator<Item = Vertex<G>>,
+        V: Visitor<G>,
     {
         for v in vertices {
             if !self.is_discovered(v) {

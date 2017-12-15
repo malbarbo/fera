@@ -6,7 +6,7 @@
 //!
 //! [disjoint-set]: https://en.wikipedia.org/wiki/Disjoint-set_data_structure
 use prelude::*;
-use params::{ParamDerefMut, Owned};
+use params::{Owned, ParamDerefMut};
 
 use fera_fun::first;
 use fera_unionfind::UnionFind as InnerUnionFind;
@@ -14,9 +14,11 @@ use fera_unionfind::UnionFind as InnerUnionFind;
 // FIXME: only union and reset should need &mut self
 
 pub struct UnionFind<G: Graph> {
-    inner: InnerUnionFind<Vertex<G>,
-                          DefaultVertexPropMut<G, Vertex<G>>,
-                          DefaultVertexPropMut<G, usize>>,
+    inner: InnerUnionFind<
+        Vertex<G>,
+        DefaultVertexPropMut<G, Vertex<G>>,
+        DefaultVertexPropMut<G, usize>,
+    >,
 }
 
 impl<G: Graph> UnionFind<G> {
@@ -56,15 +58,16 @@ pub trait WithUnionFind: Graph {
             parent[v] = v;
         }
         UnionFind {
-            inner: InnerUnionFind::with_parent_rank_num_sets(parent,
-                                                             self.vertex_prop(0),
-                                                             self.num_vertices()),
+            inner: InnerUnionFind::with_parent_rank_num_sets(
+                parent,
+                self.vertex_prop(0),
+                self.num_vertices(),
+            ),
         }
     }
 }
 
 impl<G: Graph> WithUnionFind for G {}
-
 
 pub struct NewUnionFind<'a, G: 'a>(pub &'a G);
 
@@ -77,16 +80,17 @@ impl<'a, G: 'a + WithUnionFind> ParamDerefMut for NewUnionFind<'a, G> {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::{UnionFind, WithUnionFind};
     use prelude::*;
     use fera_fun::vec;
 
-    fn check_groups(ds: &mut UnionFind<StaticGraph>,
-                    num_sets: usize,
-                    groups: &[&[Vertex<StaticGraph>]]) {
+    fn check_groups(
+        ds: &mut UnionFind<StaticGraph>,
+        num_sets: usize,
+        groups: &[&[Vertex<StaticGraph>]],
+    ) {
         assert_eq!(num_sets, ds.num_sets());
         for group in groups {
             for &a in *group {

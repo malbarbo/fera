@@ -90,7 +90,11 @@ where
     #[inline]
     fn index(&self, item: T) -> Option<usize> {
         let i = self.index[item];
-        if i == NONE { None } else { Some(i) }
+        if i == NONE {
+            None
+        } else {
+            Some(i)
+        }
     }
 
     #[inline]

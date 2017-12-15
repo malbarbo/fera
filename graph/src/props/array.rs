@@ -34,9 +34,10 @@ impl<P, D> ArrayProp<P, D> {
 }
 
 impl<I, P, D> PropGet<I> for ArrayProp<P, D>
-    where P: PropGet<I, Output = usize>,
-          D: Index<usize>,
-          D::Output: Clone + Sized
+where
+    P: PropGet<I, Output = usize>,
+    D: Index<usize>,
+    D::Output: Clone + Sized,
 {
     type Output = D::Output;
 
@@ -47,8 +48,9 @@ impl<I, P, D> PropGet<I> for ArrayProp<P, D>
 }
 
 impl<I, P, D> Index<I> for ArrayProp<P, D>
-    where P: PropGet<I, Output = usize>,
-          D: Index<usize>
+where
+    P: PropGet<I, Output = usize>,
+    D: Index<usize>,
 {
     type Output = D::Output;
 
@@ -59,8 +61,9 @@ impl<I, P, D> Index<I> for ArrayProp<P, D>
 }
 
 impl<I, P, D> IndexMut<I> for ArrayProp<P, D>
-    where P: PropGet<I, Output = usize>,
-          D: IndexMut<usize>
+where
+    P: PropGet<I, Output = usize>,
+    D: IndexMut<usize>,
 {
     #[inline(always)]
     fn index_mut(&mut self, item: I) -> &mut Self::Output {
@@ -69,20 +72,24 @@ impl<I, P, D> IndexMut<I> for ArrayProp<P, D>
 }
 
 impl<T, G> VertexPropMutNew<G, T> for ArrayProp<VertexIndexProp<G>, Vec<T>>
-    where G: VertexList + WithVertexIndexProp
+where
+    G: VertexList + WithVertexIndexProp,
 {
     fn new_vertex_prop(g: &G, value: T) -> Self
-        where T: Clone
+    where
+        T: Clone,
     {
         ArrayProp::new(g.vertex_index(), vec![value; g.num_vertices()])
     }
 }
 
 impl<T, G> EdgePropMutNew<G, T> for ArrayProp<EdgeIndexProp<G>, Vec<T>>
-    where G: EdgeList + WithEdgeIndexProp
+where
+    G: EdgeList + WithEdgeIndexProp,
 {
     fn new_edge_prop(g: &G, value: T) -> Self
-        where T: Clone
+    where
+        T: Clone,
     {
         ArrayProp::new(g.edge_index(), vec![value; g.num_edges()])
     }

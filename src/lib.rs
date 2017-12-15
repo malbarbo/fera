@@ -2,7 +2,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#![doc(html_root_url="https://docs.rs/fera/0.1.0/")]
+#![doc(html_root_url = "https://docs.rs/fera/0.1.0/")]
 
 //! An aggregation of algorithms, data structures and supporting crates.
 //!
@@ -51,9 +51,24 @@ macro_rules! crate_as_mod {
 
 crate_as_mod!(fera_ext, ext, "ext", "Extension traits for std types.");
 crate_as_mod!(fera_fun, fun, "fun", "Free function for fun programming.");
-crate_as_mod!(fera_graph, graph, "graph", "Graph data structures and algorithms.");
-crate_as_mod!(fera_optional, optional, "optional", "Generic optional value.");
+crate_as_mod!(
+    fera_graph,
+    graph,
+    "graph",
+    "Graph data structures and algorithms."
+);
+crate_as_mod!(
+    fera_optional,
+    optional,
+    "optional",
+    "Generic optional value."
+);
 crate_as_mod!(fera_tree, tree, "tree", "Tree data structures.");
-crate_as_mod!(fera_unionfind, unionfind, "unionfind", "Union find data structure.");
+crate_as_mod!(
+    fera_unionfind,
+    unionfind,
+    "unionfind",
+    "Union find data structure."
+);
 
 // TODO: create a prelude including all others prelude?

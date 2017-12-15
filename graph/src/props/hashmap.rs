@@ -18,8 +18,9 @@ pub struct HashMapProp<I: GraphItem, T: Clone, S = RandomState> {
 }
 
 impl<I, T> HashMapProp<I, T>
-    where I: GraphItem,
-          T: Clone,
+where
+    I: GraphItem,
+    T: Clone,
 {
     /// Creates a new [`HashMapProp`] that maps each to key to a reference to `default` value until
     /// a value is associated with the key.
@@ -35,9 +36,10 @@ impl<I, T> HashMapProp<I, T>
 }
 
 impl<I, T, S> HashMapProp<I, T, S>
-    where I: GraphItem,
-          T: Clone,
-          S: BuildHasher,
+where
+    I: GraphItem,
+    T: Clone,
+    S: BuildHasher,
 {
     pub fn with_hasher(default: T, hasher: S) -> Self {
         HashMapProp {
@@ -48,9 +50,10 @@ impl<I, T, S> HashMapProp<I, T, S>
 }
 
 impl<I, T, S> Index<I> for HashMapProp<I, T, S>
-    where I: GraphItem,
-          T: Clone,
-          S: BuildHasher,
+where
+    I: GraphItem,
+    T: Clone,
+    S: BuildHasher,
 {
     type Output = T;
 
@@ -61,9 +64,10 @@ impl<I, T, S> Index<I> for HashMapProp<I, T, S>
 }
 
 impl<I, T, S> IndexMut<I> for HashMapProp<I, T, S>
-    where I: GraphItem,
-          T: Clone,
-          S: BuildHasher,
+where
+    I: GraphItem,
+    T: Clone,
+    S: BuildHasher,
 {
     #[inline]
     fn index_mut(&mut self, v: I) -> &mut Self::Output {
@@ -73,24 +77,28 @@ impl<I, T, S> IndexMut<I> for HashMapProp<I, T, S>
 }
 
 impl<G, T, S> VertexPropMutNew<G, T> for HashMapProp<Vertex<G>, T, S>
-    where G: WithVertex,
-          T: Clone,
-          S: BuildHasher + Default,
+where
+    G: WithVertex,
+    T: Clone,
+    S: BuildHasher + Default,
 {
     fn new_vertex_prop(_: &G, value: T) -> Self
-        where T: Clone
+    where
+        T: Clone,
     {
         Self::with_hasher(value, S::default())
     }
 }
 
 impl<G, T, S> EdgePropMutNew<G, T> for HashMapProp<Edge<G>, T, S>
-    where G: WithEdge,
-          T: Clone,
-          S: BuildHasher + Default,
+where
+    G: WithEdge,
+    T: Clone,
+    S: BuildHasher + Default,
 {
     fn new_edge_prop(_: &G, value: T) -> Self
-        where T: Clone
+    where
+        T: Clone,
     {
         Self::with_hasher(value, S::default())
     }

@@ -10,7 +10,8 @@ use traverse::*;
 
 pub trait Trees: Incidence {
     fn is_tree(&self) -> bool
-        where Self: VertexList + EdgeList + WithVertexProp<Color>
+    where
+        Self: VertexList + EdgeList + WithVertexProp<Color>,
     {
         let mut tree = true;
         self.dfs(IsTree(&mut tree)).run();
@@ -18,16 +19,20 @@ pub trait Trees: Incidence {
     }
 
     fn tree_diameter(&self) -> Result<usize, ()>
-        where Self: VertexList + EdgeList + WithVertexProp<Color>
+    where
+        Self: VertexList + EdgeList + WithVertexProp<Color>,
     {
         let mut tree = false;
         let mut dist = 0;
         let mut v = Self::vertex_none();
-        self.dfs((IsTree(&mut tree), FarthestVertex(&mut v, &mut dist))).run();
+        self.dfs((IsTree(&mut tree), FarthestVertex(&mut v, &mut dist)))
+            .run();
         if tree {
             Ok(v.into_option()
                 .map(|r| {
-                    self.dfs(FarthestVertex(&mut Self::vertex_none(), &mut dist)).root(r).run();
+                    self.dfs(FarthestVertex(&mut Self::vertex_none(), &mut dist))
+                        .root(r)
+                        .run();
                     dist
                 })
                 .unwrap_or(0))
@@ -38,7 +43,6 @@ pub trait Trees: Incidence {
 }
 
 impl<G: Incidence> Trees for G {}
-
 
 pub struct IsTree<'a> {
     tree: &'a mut bool,
@@ -77,7 +81,6 @@ impl<'a, G: VertexList + EdgeList> Visitor<G> for IsTree<'a> {
     }
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -95,7 +98,7 @@ mod tests {
         }
 
         for n in 3..30 {
-            for d in 2..n-1 {
+            for d in 2..n - 1 {
                 let g = StaticGraph::new_random_tree_with_diameter(n, d, &mut rng).unwrap();
                 assert_eq!(Ok(d as usize), g.tree_diameter());
             }
