@@ -1,6 +1,6 @@
 [package]
 name = "fera-optional"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["malbarbo"]
 description = """
 An optional value trait and some implementations.
