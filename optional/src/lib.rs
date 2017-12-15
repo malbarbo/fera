@@ -224,6 +224,7 @@ impl<T: Bounded> BuildNone<T> for MinNone<T> {
 
 
 /// An `Optional` for `bool` with 1 byte size.
+/// `std::option::Option<bool>` have size 1 since rustc 1.23.
 #[derive(Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash, Default)]
 pub struct OptionalBool(OptionalMax<u8>);
 
@@ -262,7 +263,7 @@ impl Optional<bool> for OptionalBool {
 
     #[inline(always)]
     fn into_option(self) -> Option<bool> {
-        unsafe { mem::transmute(self.0.into_option()) }
+        self.0.into_option().map(|v| v == 1)
     }
 }
 
