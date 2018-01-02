@@ -373,7 +373,8 @@ impl EdgeImpl for UndirectedEdge {
     #[inline]
     fn ends(self, n: CVertex) -> (CVertex, CVertex) {
         let (u, v) = {
-            let e = (self.0 >> 1) as CVertex;
+            let n = n as usize;
+            let e = self.0 >> 1;
             let (u, v) = (e / n, e % n);
             if u < v {
                 (u, v)
@@ -383,9 +384,9 @@ impl EdgeImpl for UndirectedEdge {
         };
 
         if self.0 & 1 == 0 {
-            (u, v)
+            (u as CVertex, v as CVertex)
         } else {
-            (v, u)
+            (v as CVertex, u as CVertex)
         }
     }
 
@@ -422,13 +423,14 @@ impl EdgeImpl for DirectedEdge {
 
     #[inline]
     fn ends(self, n: CVertex) -> (CVertex, CVertex) {
-        let e = self.0 as CVertex;
+        let n = n as usize;
+        let e = self.0;
         let u = e / (n - 1);
         let mut v = e % (n - 1);
         if v >= u {
             v += 1;
         }
-        (u, v)
+        (u as CVertex, v as CVertex)
     }
 
     fn reverse(self, n: CVertex) -> Self {
@@ -452,6 +454,12 @@ mod tests {
         let r = E::reverse(e, n);
         assert_eq!((u, v), E::ends(e, n), "n = {}, e = {:?}", n, e);
         assert_eq!((v, u), E::ends(r, n), "n = {}, e = {:?}, r = {:?}", n, e, r);
+    }
+
+    #[test]
+    fn test_large_edges() {
+        let g = CompleteGraph::new(100_000);
+        assert_eq!((99_999, 99_998), g.end_vertices(g.edge_by_ends(99_999, 99_998)));
     }
 
     #[test]
