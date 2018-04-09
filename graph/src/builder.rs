@@ -306,6 +306,13 @@ pub trait WithBuilder: WithEdge {
         complete_binary_tree::<Self>(h).finalize()
     }
 
+    fn new_regular<R: Rng>(d: usize, n: usize, rng: R) -> Option<Self>
+    where
+        Self: WithEdge<Kind = Undirected>,
+    {
+        regular::<Self, R>(d, n, rng).map(Builder::finalize)
+    }
+
     /// Creates a graph with `n` vertices that is a tree, that is, is connected and acyclic.
     ///
     /// The graph has `n - 1` edges if `n > 0` or zero edges if `n = 0`.
@@ -594,6 +601,81 @@ where
     Some(b)
 }
 
+// https://doi.org/10.1017/S0963548399003867
+fn regular<G, R>(d: usize, n: usize, mut rng: R) -> Option<G::Builder>
+where
+    G: WithBuilder,
+    R: Rng,
+{
+    use std::collections::HashSet;
+    use fera_fun::vec;
+
+    let dn = d * n;
+
+    if d >= n {
+        return None;
+    }
+
+    if dn % 2 != 0 {
+        return None;
+    }
+
+    if d == 0 {
+        return Some(Builder::new(n, 0));
+    }
+
+    let max_tries = 10 * dn;
+    let mut edges = HashSet::new();
+    let mut u = vec((0..d).flat_map(|_| 0..n));
+    let mut len = u.len();
+    let mut tries = 0;
+    loop {
+        if tries == max_tries {
+            len = u.len();
+            edges.clear();
+            tries = 0;
+        }
+
+        let i = rng.gen_range(0, len);
+        let j = rng.gen_range(0, len);
+
+        if u[i] == u[j] {
+            tries += 1;
+            continue;
+        }
+
+        // sort the pair - this makes easy to use the HashSet
+        let (a, b) = if u[i] < u[j] {
+            (u[i], u[j])
+        } else {
+            (u[j], u[i])
+        };
+
+        if !edges.insert((a, b)) {
+            tries += 1;
+            continue;
+        }
+
+        if edges.len() == dn / 2 {
+            break;
+        }
+
+        if j == len - 1 {
+            u.swap(i, len - 2);
+        } else {
+            u.swap(i, len - 1);
+            u.swap(j, len - 2);
+        }
+        len -= 2;
+    }
+
+    let mut b = G::builder(n, edges.len());
+    for (u, v) in edges {
+        b.add_edge(u, v);
+    }
+    Some(b)
+}
+
 // Iterator
 
 struct RandomTreeIter<R> {
@@ -771,6 +853,24 @@ pub trait BuilderTests {
             }
         }
     }
+
+    fn regular()
+    where
+        Self::G: Adjacency + WithEdge<Kind = Undirected> + VertexList,
+    {
+        use algs::degrees::Degrees;
+        let mut rng = XorShiftRng::new_unseeded();
+        for d in 1..9 {
+            for n in (d + 1)..30 {
+                let g = Self::G::new_regular(d, n, &mut rng);
+                if n * d % 2 == 0 {
+                    assert!(g.unwrap().is_k_regular(d));
+                } else {
+                    assert!(g.is_none());
+                }
+            }
+        }
+    }
 }
 
 #[doc(hidden)]
@@ -785,7 +885,8 @@ macro_rules! graph_builder_tests {
             complete_binary_tree,
             random_tree,
             gnm,
-            gnm_connected
+            gnm_connected,
+            regular
         }
     )
 }
