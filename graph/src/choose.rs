@@ -197,6 +197,13 @@ pub struct RandomWalk<'a, G: 'a + WithVertex, R> {
     rng: R,
 }
 
+impl<'a, G: 'a + WithVertex, R> RandomWalk<'a, G, R> {
+    pub fn start(mut self, v: Vertex<G>) -> Self {
+        self.cur = Some(v);
+        self
+    }
+}
+
 impl<'a, G, R> Iterator for RandomWalk<'a, G, R>
 where
     G: 'a + Choose,
