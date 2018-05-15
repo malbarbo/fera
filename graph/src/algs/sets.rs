@@ -4,8 +4,8 @@
 
 //! Iterators for edge and vertex set complements.
 
-use prelude::*;
 use params::IntoOwned;
+use prelude::*;
 
 pub trait Sets {
     fn vertices_complement<I>(&self, vertices: I) -> VerticesComplement<Self>

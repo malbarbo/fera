@@ -21,17 +21,17 @@ macro_rules! delegate_tests {
 }
 
 macro_rules! graph_vertex_list_tests {
-    ($T: ident) => (
+    ($T:ident) => {
         delegate_tests!{
             $T,
             vertices,
             option_vertex
         }
-    )
+    };
 }
 
 macro_rules! graph_edge_list_tests {
-    ($T: ident) => (
+    ($T:ident) => {
         delegate_tests!{
             $T,
             edges,
@@ -42,36 +42,36 @@ macro_rules! graph_edge_list_tests {
             opposite,
             is_incident
         }
-    )
+    };
 }
 
 macro_rules! graph_incidence_tests {
-    ($T: ident) => (
+    ($T:ident) => {
         delegate_tests!{
             $T,
             out_neighbors,
             out_edges
         }
-    )
+    };
 }
 
 macro_rules! graph_prop_tests {
-    ($T: ident) => (
+    ($T:ident) => {
         delegate_tests!{
             $T,
             vertex_prop,
             edge_prop
         }
-    )
+    };
 }
 
 macro_rules! graph_tests {
-    ($T: ident) => (
+    ($T:ident) => {
         graph_vertex_list_tests!{$T}
         graph_edge_list_tests!{$T}
         graph_incidence_tests!{$T}
         graph_prop_tests!{$T}
-    )
+    };
 }
 
 // TODO: allows Subgraph and &'a G to be tested

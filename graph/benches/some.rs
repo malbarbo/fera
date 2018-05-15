@@ -8,8 +8,8 @@ extern crate fera_graph;
 extern crate rand;
 extern crate test;
 
-use fera_graph::prelude::*;
 use fera_graph::algs::{Components, Cycles};
+use fera_graph::prelude::*;
 
 use test::Bencher;
 

@@ -75,8 +75,8 @@
 //! [`Complete`]: ../graphs/complete/index.html
 //! [`WithBuilder`]: trait.WithBuilder.html
 
-use prelude::*;
 use algs::{Components, Trees};
+use prelude::*;
 use props::Color;
 use sets::FastVecSet;
 
@@ -84,8 +84,8 @@ use std::cmp;
 use std::mem;
 
 use fera_fun::set;
-use rand::{Rng, XorShiftRng};
 use rand::distributions::{IndependentSample, Range};
+use rand::{Rng, XorShiftRng};
 
 /// Creates a new graph with `n` vertices and the specified edges.
 ///
@@ -607,8 +607,8 @@ where
     G: WithBuilder,
     R: Rng,
 {
-    use std::collections::HashSet;
     use fera_fun::vec;
+    use std::collections::HashSet;
 
     let dn = d * n;
 
@@ -876,7 +876,7 @@ pub trait BuilderTests {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! graph_builder_tests {
-    ($T: ident) => (
+    ($T:ident) => {
         delegate_tests!{
             $T,
             graph_macro,
@@ -888,7 +888,7 @@ macro_rules! graph_builder_tests {
             gnm_connected,
             regular
         }
-    )
+    };
 }
 
 #[cfg(test)]

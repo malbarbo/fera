@@ -5,8 +5,8 @@
 #[cfg(feature = "quickcheck")]
 #[macro_use]
 extern crate quickcheck;
-extern crate fera_graph;
 extern crate fera_fun;
+extern crate fera_graph;
 
 #[cfg(feature = "quickcheck")]
 mod quickchecks {

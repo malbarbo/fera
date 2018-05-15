@@ -74,9 +74,9 @@
 
 extern crate num_traits;
 
+use std::fmt;
 use std::marker::PhantomData;
 use std::mem;
-use std::fmt;
 
 use num_traits::bounds::Bounded;
 
@@ -329,7 +329,7 @@ mod tests {
     }
 
     mod optional_bool {
-        use ::*;
+        use *;
         struct T;
 
         impl OptionalTest for T {
@@ -361,7 +361,7 @@ mod tests {
     }
 
     mod optioned_u32 {
-        use ::*;
+        use *;
         struct T;
 
         impl OptionalTest for T {

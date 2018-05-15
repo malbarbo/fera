@@ -2,14 +2,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use std::ops::AddAssign;
 use std::marker::PhantomData;
+use std::ops::AddAssign;
 
 use num_traits::{one, zero, One, Zero};
 
+use super::control::*;
 use prelude::*;
 use props::*;
-use super::control::*;
 
 // TODO: check if event names make sense for both dfs and bfs
 pub trait Visitor<G: WithEdge> {
@@ -278,18 +278,19 @@ where
 }
 
 macro_rules! def_on_vertex_visitor {
-    ($name:ident, $event:ident) => (
+    ($name:ident, $event:ident) => {
         pub struct $name<V>(pub V);
 
         impl<G, V> Visitor<G> for $name<V>
-            where G: WithEdge,
-                  V: VisitVertex<G>
+        where
+            G: WithEdge,
+            V: VisitVertex<G>,
         {
             fn $event(&mut self, g: &G, v: Vertex<G>) -> Control {
                 self.0.visit_vertex(g, v)
             }
         }
-    )
+    };
 }
 
 def_on_vertex_visitor!(OnDiscoverRootVertex, discover_root_vertex);
@@ -316,18 +317,19 @@ where
 }
 
 macro_rules! def_on_edge_visitor {
-    ($name:ident, $event:ident) => (
+    ($name:ident, $event:ident) => {
         pub struct $name<V>(pub V);
 
         impl<G, V> Visitor<G> for $name<V>
-            where G: WithEdge,
-                  V: VisitEdge<G>
+        where
+            G: WithEdge,
+            V: VisitEdge<G>,
         {
             fn $event(&mut self, g: &G, e: Edge<G>) -> Control {
                 self.0.visit_edge(g, e)
             }
         }
-    )
+    };
 }
 
 def_on_edge_visitor!(OnDiscoverEdge, discover_edge);

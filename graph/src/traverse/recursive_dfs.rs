@@ -2,10 +2,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use params::*;
 use prelude::*;
 use props::{Color, IgnoreWriteProp};
 use traverse::*;
-use params::*;
 
 use std::iter;
 

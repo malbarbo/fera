@@ -4,10 +4,10 @@
 
 //! Paths related algorithms, including find path between two vertices.
 
+use params::IntoOwned;
 use prelude::*;
 use props::Color;
 use traverse::*;
-use params::IntoOwned;
 
 pub trait Paths: Incidence {
     fn find_path(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Vec<Edge<Self>>>
@@ -122,8 +122,8 @@ impl<'a, G: WithEdge> Visitor<G> for RecordPath<'a, G> {
 #[cfg(test)]
 mod tests {
     use super::Paths;
-    use prelude::*;
     use fera_fun::vec;
+    use prelude::*;
 
     #[test]
     fn find_path() {

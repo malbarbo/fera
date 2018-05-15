@@ -98,8 +98,8 @@
 
 #![cfg_attr(feature = "cargo-clippy", allow(inline_always))]
 
-use std::collections::HashMap;
 use std::collections::hash_map::RandomState;
+use std::collections::HashMap;
 use std::hash::{BuildHasher, Hash};
 use std::marker::PhantomData;
 use std::ops::{Index, IndexMut, RangeTo};
@@ -331,7 +331,7 @@ where
 
 #[cfg(test)]
 mod tests {
-    use ::*;
+    use *;
 
     type UF = UnionFind<usize, Vec<usize>, Vec<usize>>;
 

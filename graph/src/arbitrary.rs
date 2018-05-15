@@ -34,8 +34,8 @@
 //! [`Components::is_connected`]: ../algs/components/trait.Components.html#method.is_connected
 //! [`WithBuilder::new_gn_connected`]: ../builder/trait.WithBuilder.html#method.new_gn_connected
 
-use prelude::*;
 use graphs::adjset::{AdjSetEdge, UndirectedEdge};
+use prelude::*;
 use props::HashMapProp;
 
 use fera_fun::vec;

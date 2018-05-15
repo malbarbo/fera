@@ -2,8 +2,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prelude::*;
 use choose::Choose;
+use prelude::*;
 use props::{VecEdgeProp, VecVertexProp};
 
 use fera_optional::{BuildNone, OptionalMax, Optioned};
@@ -444,10 +444,10 @@ impl EdgeImpl for DirectedEdge {
 #[cfg(test)]
 mod tests {
     pub use super::{CVertex, DirectedEdge, EdgeImpl, UndirectedEdge};
-    pub use prelude::*;
-    pub use tests::GraphTests;
     pub use itertools::Itertools;
+    pub use prelude::*;
     pub use std::fmt::Debug;
+    pub use tests::GraphTests;
 
     fn assert_edge<E: EdgeImpl + Debug + Copy>(n: CVertex, u: CVertex, v: CVertex) {
         let e = E::new(n, u, v);
@@ -459,7 +459,10 @@ mod tests {
     #[test]
     fn test_large_edges() {
         let g = CompleteGraph::new(100_000);
-        assert_eq!((99_999, 99_998), g.end_vertices(g.edge_by_ends(99_999, 99_998)));
+        assert_eq!(
+            (99_999, 99_998),
+            g.end_vertices(g.edge_by_ends(99_999, 99_998))
+        );
     }
 
     #[test]
@@ -476,7 +479,7 @@ mod tests {
     }
 
     macro_rules! t {
-        ($m:ident, $n:expr, $G:ident, $v:expr, $e:expr) => (
+        ($m:ident, $n:expr, $G:ident, $v:expr, $e:expr) => {
             mod $m {
                 use super::*;
 
@@ -487,13 +490,17 @@ mod tests {
 
                     fn new() -> (Self::G, Vec<Vertex<Self::G>>, Vec<Edge<Self::G>>) {
                         let e = $e.into_iter();
-                        ($G::new($n), $v, e.map(|(u, v)| EdgeImpl::new($n, u, v)).sorted())
+                        (
+                            $G::new($n),
+                            $v,
+                            e.map(|(u, v)| EdgeImpl::new($n, u, v)).sorted(),
+                        )
                     }
                 }
 
                 graph_tests!{Test}
             }
-        )
+        };
     }
 
     // Undirected

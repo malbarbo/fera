@@ -5,9 +5,9 @@
 extern crate fera_graph;
 extern crate rand;
 
-use fera_graph::prelude::*;
 use fera_graph::algs::Paths;
 use fera_graph::choose::Choose;
+use fera_graph::prelude::*;
 use rand::Rng;
 
 #[test]

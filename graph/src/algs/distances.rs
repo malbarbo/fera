@@ -2,10 +2,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+use fun::max_prop;
 use prelude::*;
 use props::{Color, FnProp};
 use traverse::*;
-use fun::max_prop;
 
 pub trait Distances: Incidence {
     fn diameter(&self) -> usize

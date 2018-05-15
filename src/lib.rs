@@ -37,7 +37,7 @@
 //! ```
 
 macro_rules! crate_as_mod {
-    ($c: ident, $m: ident, $f: expr, $d: expr) => (
+    ($c:ident, $m:ident, $f:expr, $d:expr) => {
         #[cfg(feature = $f)]
         extern crate $c;
 
@@ -46,7 +46,7 @@ macro_rules! crate_as_mod {
         pub mod $m {
             pub use $c::*;
         }
-    )
+    };
 }
 
 crate_as_mod!(fera_ext, ext, "ext", "Extension traits for std types.");

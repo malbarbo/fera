@@ -9,9 +9,9 @@ extern crate fera_graph;
 
 #[cfg(feature = "quickcheck")]
 mod quickchecks {
-    use fera_graph::prelude::*;
+    use fera_graph::algs::components::{cut_edges_naive, cut_vertices_naive};
     use fera_graph::algs::Components;
-    use fera_graph::algs::components::{cut_vertices_naive, cut_edges_naive};
+    use fera_graph::prelude::*;
 
     use fera_graph::arbitrary::Gn;
 

@@ -10,4 +10,3 @@ fn readme_deps() {
 fn html_root_url() {
     assert_html_root_url_updated!("src/lib.rs");
 }
-

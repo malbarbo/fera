@@ -9,9 +9,9 @@ extern crate fera_graph;
 
 #[cfg(feature = "quickcheck")]
 mod quickchecks {
-    use fera_graph::prelude::*;
-    use fera_graph::traverse::{Dfs, RecursiveDfs, OnTraverseEvent};
     use fera_graph::arbitrary::Gn;
+    use fera_graph::prelude::*;
+    use fera_graph::traverse::{Dfs, OnTraverseEvent, RecursiveDfs};
 
     quickcheck! {
         fn dfs(x: Gn<StaticGraph>) -> bool {

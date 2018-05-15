@@ -4,8 +4,8 @@
 
 //! Test if a graph is regular, find minimum and maximum degrees, etc.
 
-use prelude::*;
 use params::IntoOwned;
+use prelude::*;
 
 pub trait Degrees: Adjacency {
     fn degree_spanning_subgraph<I>(&self, edges: I) -> DefaultVertexPropMut<Self, u32>

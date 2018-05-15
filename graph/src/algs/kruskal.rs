@@ -6,8 +6,8 @@
 //!
 //! [Kruskal]: https://en.wikipedia.org/wiki/Kruskal's_algorithm
 
-use prelude::*;
 use params::*;
+use prelude::*;
 use unionfind::{NewUnionFind, UnionFind, WithUnionFind};
 
 use fera_fun::vec;
@@ -141,8 +141,8 @@ where
 #[cfg(test)]
 mod tests {
     use super::Kruskal;
-    use prelude::*;
     use fera_fun::vec;
+    use prelude::*;
 
     #[test]
     fn kruskal_mst() {

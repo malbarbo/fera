@@ -171,9 +171,9 @@ impl<A: Ord, B> Ord for QueueItem<A, B> {
 #[cfg(test)]
 mod tests {
     use super::Prim;
-    use prelude::*;
-    use fun::sum_prop;
     use fera_fun::vec;
+    use fun::sum_prop;
+    use prelude::*;
 
     #[test]
     fn mst() {

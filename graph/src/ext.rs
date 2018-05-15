@@ -42,8 +42,8 @@
 //!
 //! [prelude]: ../prelude/index.html
 
-use prelude::*;
 use params::IntoOwned;
+use prelude::*;
 
 /// Extension trait for slices.
 ///

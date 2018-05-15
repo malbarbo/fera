@@ -8,16 +8,16 @@
 
 #[macro_use]
 mod control;
-mod visitor;
 mod bfs;
 mod dfs;
 mod recursive_dfs;
+mod visitor;
 
-pub use self::control::*;
-pub use self::visitor::*;
 pub use self::bfs::*;
+pub use self::control::*;
 pub use self::dfs::*;
 pub use self::recursive_dfs::*;
+pub use self::visitor::*;
 
 use prelude::*;
 

@@ -14,7 +14,9 @@ use rand::XorShiftRng;
 use test::Bencher;
 
 fn bfs(b: &mut Bencher, g: &StaticGraph) {
-    b.iter(|| { g.bfs(OnDiscoverTreeEdge(|_| Control::Continue)).run(); });
+    b.iter(|| {
+        g.bfs(OnDiscoverTreeEdge(|_| Control::Continue)).run();
+    });
 }
 
 #[bench]
@@ -29,9 +31,10 @@ fn bfs_tree(b: &mut Bencher) {
     bfs(b, &g);
 }
 
-
 fn dfs(b: &mut Bencher, g: &StaticGraph) {
-    b.iter(|| { g.dfs(OnDiscoverTreeEdge(|_| Control::Continue)).run(); });
+    b.iter(|| {
+        g.dfs(OnDiscoverTreeEdge(|_| Control::Continue)).run();
+    });
 }
 
 #[bench]
@@ -46,9 +49,11 @@ fn dfs_tree(b: &mut Bencher) {
     dfs(b, &g);
 }
 
-
 fn recursive_dfs(b: &mut Bencher, g: &StaticGraph) {
-    b.iter(|| { g.recursive_dfs(OnDiscoverTreeEdge(|_| Control::Continue)).run(); });
+    b.iter(|| {
+        g.recursive_dfs(OnDiscoverTreeEdge(|_| Control::Continue))
+            .run();
+    });
 }
 
 #[bench]

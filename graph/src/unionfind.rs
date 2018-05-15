@@ -5,8 +5,8 @@
 //! Union-find ([disjoint-set]) data structure.
 //!
 //! [disjoint-set]: https://en.wikipedia.org/wiki/Disjoint-set_data_structure
-use prelude::*;
 use params::{Owned, ParamDerefMut};
+use prelude::*;
 
 use fera_fun::first;
 use fera_unionfind::UnionFind as InnerUnionFind;
@@ -83,8 +83,8 @@ impl<'a, G: 'a + WithUnionFind> ParamDerefMut for NewUnionFind<'a, G> {
 #[cfg(test)]
 mod tests {
     use super::{UnionFind, WithUnionFind};
-    use prelude::*;
     use fera_fun::vec;
+    use prelude::*;
 
     fn check_groups(
         ds: &mut UnionFind<StaticGraph>,

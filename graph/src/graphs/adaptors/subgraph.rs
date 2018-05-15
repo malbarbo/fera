@@ -2,10 +2,10 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-use prelude::*;
 use choose::Choose;
 use graphs::OutNeighborFromOutEdge;
 use params::IntoOwned;
+use prelude::*;
 use props::{DelegateEdgeProp, DelegateVertexProp};
 
 use fera_fun::vec;
@@ -325,8 +325,8 @@ impl<G: Graph> WithSubgraph<G> for G {
 
 #[cfg(test)]
 mod tests {
-    use prelude::*;
     use fera_fun::{set, vec};
+    use prelude::*;
 
     fn new_graph() -> (
         StaticGraph,

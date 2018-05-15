@@ -14,8 +14,8 @@ mod ref_;
 
 pub use self::common::*;
 
-use prelude::*;
 use params::IntoOwned;
+use prelude::*;
 
 use std::fmt::Debug;
 use std::hash::Hash;

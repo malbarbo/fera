@@ -4,11 +4,11 @@
 
 //! Create adapted graphs without modifying the wrapped graph.
 
-mod subgraph;
 mod spanning_subgraph;
+mod subgraph;
 
-pub use self::subgraph::{Subgraph, WithSubgraph};
 pub use self::spanning_subgraph::SpanningSubgraph;
+pub use self::subgraph::{Subgraph, WithSubgraph};
 
 // TODO: add Reversed
 // TODO: add Filtered

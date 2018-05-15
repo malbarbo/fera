@@ -31,17 +31,17 @@ pub fn break_if(cond: bool) -> Control {
 }
 
 macro_rules! return_unless {
-    ($e:expr) => (
-        if $e == Control::Break  {
+    ($e:expr) => {
+        if $e == Control::Break {
             return Control::Break;
         }
-    )
+    };
 }
 
 macro_rules! break_unless {
-    ($e:expr) => (
+    ($e:expr) => {
         if $e == Control::Break {
             break;
         }
-    )
+    };
 }

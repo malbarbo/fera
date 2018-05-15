@@ -18,8 +18,8 @@ use std::marker::PhantomData;
 use std::ops::Range;
 use std::slice::Iter;
 
-use rand::Rng;
 use num_traits::Bounded;
+use rand::Rng;
 
 pub type StaticDigraph = Static<u32, (Directed, usize)>;
 
@@ -491,13 +491,13 @@ pub trait Num: 'static + Eq + Copy + Clone + Debug + Hash + Bounded + Ord {
 }
 
 macro_rules! impl_num {
-    ($t: ident) => (
+    ($t:ident) => {
         impl Num for $t {
             type Range = Range<$t>;
 
             #[inline]
             fn range(a: usize, b: usize) -> Self::Range {
-                Self::from_usize(a) .. Self::from_usize(b)
+                Self::from_usize(a)..Self::from_usize(b)
             }
 
             #[inline]
@@ -515,7 +515,7 @@ macro_rules! impl_num {
                 (v as u64) < (Self::max_value() as u64)
             }
         }
-    )
+    };
 }
 
 impl_num!(u8);
@@ -533,7 +533,7 @@ mod tests {
     use tests::GraphTests;
 
     macro_rules! test {
-        ($m: ident, $g: ident) => (
+        ($m:ident, $g:ident) => {
             mod $m {
                 pub use super::*;
 
@@ -562,7 +562,7 @@ mod tests {
                     graph_builder_tests!{Test}
                 }
             }
-        )
+        };
     }
 
     test!(directed, StaticDigraph);

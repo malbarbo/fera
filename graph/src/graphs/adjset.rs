@@ -424,9 +424,9 @@ where
 #[cfg(test)]
 mod tests {
     pub use super::*;
+    pub use fera_fun::vec;
     pub use prelude::*;
     pub use tests::GraphTests;
-    pub use fera_fun::vec;
 
     pub fn sorted<T: Clone + Ord>(xs: &[T]) -> Vec<T> {
         let mut v = xs.to_vec();

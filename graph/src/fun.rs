@@ -4,8 +4,8 @@
 
 //! Free functions.
 
-use prelude::*;
 use params::IntoOwned;
+use prelude::*;
 use std::iter::Sum;
 
 /// Returns the iterator's item with minimum property value or `None` if the iterator is empty.
