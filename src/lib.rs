@@ -49,6 +49,12 @@ macro_rules! crate_as_mod {
     };
 }
 
+crate_as_mod!(
+    fera_array,
+    array,
+    "array",
+    "Array traits and implementations."
+);
 crate_as_mod!(fera_ext, ext, "ext", "Extension traits for std types.");
 crate_as_mod!(fera_fun, fun, "fun", "Free function for fun programming.");
 crate_as_mod!(

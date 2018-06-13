@@ -1,0 +1,24 @@
+[package]
+name = "fera-array"
+version = "0.1.0"
+authors = ["malbarbo"]
+description = """
+Arrays traits and implementations (prefixed, copy on write, nested, etc)
+"""
+repository = "https://github.com/malbarbo/fera/tree/master/array"
+readme = "README.md"
+license = "MPL-2.0"
+
+[dependencies]
+fera-fun = { version = "0.1", path = "../fun" }
+
+[dev-dependencies]
+testdrop = "0.1"
+rand = "0.5"
+version-sync = "0.5"
+
+[features]
+nightly = []
+
+[package.metadata.docs.rs]
+all-features = true
