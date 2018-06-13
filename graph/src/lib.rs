@@ -5,6 +5,9 @@
 #![doc(html_root_url = "https://docs.rs/fera-graph/0.1.1/")]
 #![cfg_attr(feature = "cargo-clippy", allow(inline_always))]
 
+#![feature(never_type)]
+#![feature(specialization)]
+
 //! Graph data structures and algorithms.
 
 #[cfg(test)]
@@ -22,6 +25,33 @@ extern crate rand;
 #[cfg(test)]
 #[macro_use]
 pub mod tests;
+
+macro_rules! specialize {
+    ($var:ident, $($trait_:path),+) => (
+    {
+        trait Spec: Sized {
+            type Out: $($trait_ +)+;
+            fn specialize(&self) -> Option<&Self::Out>;
+        }
+
+        impl<T> Spec for T {
+            default type Out = !;
+            default fn specialize(&self) -> Option<&Self::Out> {
+                None
+            }
+        }
+
+        impl<T: $($trait_ +)+> Spec for T {
+            type Out = T;
+            fn specialize(&self) -> Option<&Self::Out> {
+                Some(self)
+            }
+        }
+
+        Spec::specialize($var)
+    }
+    )
+}
 
 // basic
 #[macro_use]

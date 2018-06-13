@@ -174,7 +174,7 @@ pub trait WithEdge: Sized + WithVertex + for<'a> EdgeTypes<'a, Self> {
     type Edge: 'static + GraphItem;
     type OptionEdge: 'static + GraphItem + Optional<Edge<Self>> + From<Option<Edge<Self>>>;
 
-    fn orientation(&self, _e: Edge<Self>) -> Orientation;
+    fn orientation(&self, e: Edge<Self>) -> Orientation;
 
     fn source(&self, e: Edge<Self>) -> Vertex<Self>;
 

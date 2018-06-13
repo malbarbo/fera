@@ -58,10 +58,18 @@ pub fn IsTree(tree: &mut bool) -> IsTree {
 }
 
 // FIXME: should not require VertexList and EdgeList, it is just an optimization
-impl<'a, G: VertexList + EdgeList> Visitor<G> for IsTree<'a> {
+impl<'a, G: WithEdge> Visitor<G> for IsTree<'a> {
     fn start(&mut self, g: &G) -> Control {
         self.saw_root = false;
-        *self.tree = g.num_vertices() == 0 || g.num_edges() == g.num_vertices() - 1;
+        if let Some(g) = specialize!(g, VertexList) {
+            *self.tree = g.num_vertices() == 0
+                || if let Some(g) = specialize!(g, VertexList, EdgeList) {
+                    g.num_edges() == g.num_vertices() - 1
+                } else {
+                    false
+                }
+        }
+        // *self.tree = g.num_vertices() == 0 || g.num_edges() == g.num_vertices() - 1;
         continue_if(*self.tree)
     }
 
