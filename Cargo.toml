@@ -12,6 +12,7 @@ license = "MPL-2.0"
 
 [workspace]
 members = [
+#    "array",
     "ext",
     "fun",
     "graph",
@@ -29,7 +30,7 @@ fera-optional = { version = "0.1", path = "optional", optional = true }
 fera-unionfind = { version = "0.1", path = "unionfind", optional = true }
 
 [dev-dependencies]
-version-sync = "0.4"
+version-sync = "0.5"
 
 [features]
 ext = ["fera-ext"]

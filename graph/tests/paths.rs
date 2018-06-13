@@ -8,12 +8,12 @@ extern crate rand;
 use fera_graph::algs::Paths;
 use fera_graph::choose::Choose;
 use fera_graph::prelude::*;
-use rand::Rng;
+use rand::prelude::*;
 
 #[test]
 fn is_walk() {
     let g = CompleteGraph::new(10);
-    let mut rng = rand::weak_rng();
+    let mut rng = SmallRng::from_entropy();
     for _ in 0..100 {
         let x = rng.gen_range(0, 100);
         assert!(g.is_walk(g.random_walk(&mut rng).take(x)));

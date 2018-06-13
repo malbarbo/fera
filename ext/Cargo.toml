@@ -10,7 +10,7 @@ readme = "README.md"
 license = "MPL-2.0"
 
 [dependencies]
-rand = "0.3"
+rand = "0.5"
 
 [dev-dependencies]
 version-sync = "0.5"

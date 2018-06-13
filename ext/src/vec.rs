@@ -4,7 +4,7 @@
 
 //! An extension trait for `std::vec::Vec`.
 
-use rand::{self, Rng};
+use rand::prelude::*;
 
 use std::cmp::Ordering;
 
@@ -56,7 +56,7 @@ pub trait VecExt<T> {
 
     fn shrinked_to_fit(self) -> Self;
 
-    /// Shuffle this vector using `rand::weak_rng`.
+    /// Shuffle this vector using `SmallRng::from_entropy()`.
     fn shuffled(self) -> Self;
 
     /// Shuffle this vector using `rng`.
@@ -134,7 +134,7 @@ impl<T> VecExt<T> for Vec<T> {
     }
 
     fn shuffled(self) -> Self {
-        self.shuffled_with(rand::weak_rng())
+        self.shuffled_with(SmallRng::from_entropy())
     }
 
     fn shuffled_with<R: Rng>(mut self, mut rng: R) -> Self {

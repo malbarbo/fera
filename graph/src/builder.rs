@@ -84,8 +84,8 @@ use std::cmp;
 use std::mem;
 
 use fera_fun::set;
-use rand::distributions::{IndependentSample, Range};
-use rand::{Rng, XorShiftRng};
+use rand::prelude::*;
+use rand::distributions::Range;
 
 /// Creates a new graph with `n` vertices and the specified edges.
 ///
@@ -689,7 +689,7 @@ struct RandomTreeIter<R> {
 impl<R: Rng> RandomTreeIter<R> {
     fn new(n: usize, mut rng: R) -> Self {
         let range = Range::new(0, n);
-        let cur = range.ind_sample(&mut rng);
+        let cur = range.sample(&mut rng);
         let mut visited = vec![false; n];
         visited[cur] = true;
         RandomTreeIter {
@@ -710,7 +710,7 @@ impl<R: Rng> Iterator for RandomTreeIter<R> {
             return None;
         }
         loop {
-            let v = self.range.ind_sample(&mut self.rng);
+            let v = self.range.sample(&mut self.rng);
             if self.visited[v] {
                 self.cur = v;
             } else {
@@ -801,7 +801,7 @@ pub trait BuilderTests {
     where
         Self::G: Incidence + WithVertexProp<Color>,
     {
-        let mut rng = XorShiftRng::new_unseeded();
+        let mut rng = SmallRng::from_entropy();
         for n in 0..100 {
             for _ in 0..10 {
                 let g = Self::G::new_random_tree(n, &mut rng);
@@ -819,7 +819,7 @@ pub trait BuilderTests {
         Self::G: WithEdge + VertexList + EdgeList,
         <Self::G as WithEdge>::Kind: UniformEdgeKind,
     {
-        let mut rng = XorShiftRng::new_unseeded();
+        let mut rng = SmallRng::from_entropy();
 
         assert!(Self::G::new_gnm(4, 20, &mut rng).is_none());
 
@@ -838,7 +838,7 @@ pub trait BuilderTests {
         Self::G: Incidence + WithVertexProp<Color>,
         <Self::G as WithEdge>::Kind: UniformEdgeKind,
     {
-        let mut rng = XorShiftRng::new_unseeded();
+        let mut rng = SmallRng::from_entropy();
 
         assert!(Self::G::new_gnm_connected(4, 20, &mut rng).is_none());
         assert!(Self::G::new_gnm_connected(4, 2, &mut rng).is_none());
@@ -859,7 +859,7 @@ pub trait BuilderTests {
         Self::G: Adjacency + WithEdge<Kind = Undirected> + VertexList,
     {
         use algs::degrees::Degrees;
-        let mut rng = XorShiftRng::new_unseeded();
+        let mut rng = SmallRng::from_entropy();
         for d in 1..9 {
             for n in (d + 1)..30 {
                 let g = Self::G::new_regular(d, n, &mut rng);
@@ -894,11 +894,10 @@ macro_rules! graph_builder_tests {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rand;
 
     #[test]
     fn random_tree_mean_diameter() {
-        let mut rng = rand::weak_rng();
+        let mut rng = SmallRng::from_entropy();
         let n = 100;
         let times = 1000;
         let sum: Result<usize, _> = (0..times)

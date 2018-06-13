@@ -10,12 +10,12 @@ readme = "README.md"
 license = "MPL-2.0"
 
 [dependencies]
-num-traits = "0.1"
-rand = "0.3"
+num-traits = "0.2"
+rand = "0.5"
 fera-fun = { version = "0.1", path = "../fun" }
 fera-optional = { version = "0.1", path = "../optional" }
 fera-unionfind = { version = "0.1", path = "../unionfind" }
-quickcheck = { version = "0.5", optional = true, default-features = false }
+quickcheck = { version = "0.6", optional = true, default-features = false }
 
 [dev-dependencies]
 itertools = "0.7"

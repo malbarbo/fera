@@ -85,11 +85,11 @@ impl<'a, G: VertexList + EdgeList> Visitor<G> for IsTree<'a> {
 mod tests {
     use super::*;
     use algs::Distances;
-    use rand;
+    use rand::prelude::*;
 
     #[test]
     fn tree_diameter() {
-        let mut rng = rand::weak_rng();
+        let mut rng = SmallRng::from_entropy();
         for n in 1..10 {
             for _ in 0..20 {
                 let g = StaticGraph::new_random_tree(n, &mut rng);
