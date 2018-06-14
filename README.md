@@ -48,6 +48,7 @@ fera = { version = "0.2", features = ["ext", "fun"] }
 Licensed under [Mozilla Public License 2.0][mpl]. Contributions will be
 accepted under the same license.
 
+[`fera-array`]: https://github.com/malbarbo/fera/tree/master/array
 [`fera-ext`]: https://github.com/malbarbo/fera/tree/master/ext
 [`fera-fun`]: https://github.com/malbarbo/fera/tree/master/fun
 [`fera-graph`]: https://github.com/malbarbo/fera/tree/master/graph
