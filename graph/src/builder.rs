@@ -306,6 +306,11 @@ pub trait WithBuilder: WithEdge {
         complete_binary_tree::<Self>(h).finalize()
     }
 
+    /// Creates a new `d`-regular graph.
+    ///
+    /// Return `None` if `d >= n` of if `d * n` is not even.
+    ///
+    /// See <https://doi.org/10.1017/S0963548399003867>
     fn new_regular<R: Rng>(d: usize, n: usize, rng: R) -> Option<Self>
     where
         Self: WithEdge<Kind = Undirected>,
@@ -601,7 +606,6 @@ where
     Some(b)
 }
 
-// https://doi.org/10.1017/S0963548399003867
 fn regular<G, R>(d: usize, n: usize, mut rng: R) -> Option<G::Builder>
 where
     G: WithBuilder,
