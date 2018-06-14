@@ -12,6 +12,7 @@ it is recommend to enable only the features that will be used.
 
 ## Crates
 
+- [`fera-array`]: Arrays traits and implementations (prefixed, copy on write, nested, etc).
 - [`fera-ext`]: Extensions traits for [`std`] types.
 - [`fera-fun`]: Free functions for fun programming.
 - [`fera-graph`]: Graph data structures and algorithms.
@@ -38,7 +39,7 @@ it is necessary to add this to `Cargo.toml`:
 
 ```toml
 [dependencies]
-fera = { version = "0.1", features = ["ext", "fun"] }
+fera = { version = "0.2", features = ["ext", "fun"] }
 ```
 
 
