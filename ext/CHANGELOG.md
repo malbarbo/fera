@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.2.0] - 2018-06-14
+## [0.2.0] - Unreleased
 
 - Update `rand` to 0.5
 

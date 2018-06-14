@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.2.0] - 2018-06-14
+## [0.2.0] - Unreleased
 
 - Update `num-traits` to 0.2
 - Update `quickcheck` to 0.6
