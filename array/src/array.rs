@@ -18,11 +18,12 @@ pub trait Array<T>: IndexMut<usize, Output = T> {
 
     /// Returns `true` if the array contains `value`, `false` otherwise.
     fn contains(&self, value: &T) -> bool
-    where T: PartialEq
+    where
+        T: PartialEq,
     {
         for i in 0..self.len() {
             if unsafe { self.get_unchecked(i) } == value {
-                return true
+                return true;
             }
         }
         false
@@ -200,7 +201,6 @@ pub trait DynamicArray<T>: Array<T> {
     }
 }
 
-
 /// An iterator over `Array`.
 pub struct Iter<'a, T, A: 'a + Array<T>> {
     cur: usize,
@@ -240,7 +240,6 @@ where
         self.len - self.cur
     }
 }
-
 
 /// A set of tests for `Array` implementations.
 #[doc(hidden)]
@@ -350,7 +349,6 @@ pub trait ArrayTests {
     }
 }
 
-
 /// A set of tests for `Array` implementations.
 #[doc(hidden)]
 pub trait DynamicArrayTests: ArrayTests
@@ -392,7 +390,6 @@ where
         Self::assert_all(&*exp, &mut actual)
     }
 }
-
 
 #[cfg(all(feature = "nightly", test))]
 use test::Bencher;
@@ -445,8 +442,9 @@ where
 
     fn clone_change(b: &mut Bencher, n: usize, ins: usize) {
         fn setup<A: Array<usize>>(n: usize, ins: usize) -> (Vec<A>, Vec<usize>, Vec<usize>) {
-            use rand::{Rng, StdRng, SeedableRng};
-            let mut rng = StdRng::from_seed(&[0]);
+            use rand::{Rng, SeedableRng, XorShiftRng};
+            let mut rng =
+                XorShiftRng::from_seed([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
             let mut arrays = Vec::with_capacity(ins + 1);
             arrays.push(A::with_value(0, n));
             let ii = vec((0..ins).map(|e| rng.gen_range(0, e + 1)));
@@ -455,10 +453,12 @@ where
         }
 
         let (mut arrays, ii, jj) = setup::<Self::A>(n, ins);
-        b.iter(|| for (&i, &j) in ii.iter().zip(jj.iter()) {
-            let mut new = arrays[i].clone();
-            new[j] = j + i;
-            arrays.push(new);
+        b.iter(|| {
+            for (&i, &j) in ii.iter().zip(jj.iter()) {
+                let mut new = arrays[i].clone();
+                new[j] = j + i;
+                arrays.push(new);
+            }
         });
     }
 }
