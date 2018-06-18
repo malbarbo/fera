@@ -181,8 +181,8 @@ impl<K: CompleteEdgeKind> Choose for Complete<K> {
         if self.num_edges() == 0 {
             None
         } else {
-            // FIXME: always generates (u, v) such that u < v
-            Some(K::Edge::from_index(rng.gen_range(0, self.num_edges())))
+            let e = K::Edge::from_index(rng.gen_range(0, self.num_edges()));
+            Some(if rng.gen() { e } else { e.reverse(self.n) })
         }
     }
 

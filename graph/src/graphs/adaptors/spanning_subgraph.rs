@@ -276,12 +276,19 @@ where
         self.g.choose_out_edge(v, rng).map(|e| self.target(e))
     }
 
-    fn choose_edge<R: Rng>(&self, mut rng: R) -> Option<Edge<Self>> {
-        if self.num_edges() == 0 {
-            None
+    fn choose_edge<R: Rng>(&self, rng: R) -> Option<Edge<Self>> {
+        use graphs::common::gen_range_bool;
+        if let Some((i, rev)) = gen_range_bool(self.num_edges(), rng) {
+            let e = self.edges[i];
+            if rev && self.orientation(e).is_undirected() {
+                let e = self.get_reverse(e);
+                debug_assert!(e.is_some());
+                e
+            } else {
+                Some(e)
+            }
         } else {
-            // TODO: choose to reverse undirected edges?
-            self.edges.get(rng.gen_range(0, self.num_edges())).cloned()
+            None
         }
     }
 

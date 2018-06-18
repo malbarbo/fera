@@ -3,6 +3,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 use prelude::*;
+use rand::Rng;
 
 pub struct OutNeighborFromOutEdge<'a, G: 'a, I> {
     g: &'a G,
@@ -45,5 +46,17 @@ where
     #[inline]
     fn len(&self) -> usize {
         self.iter.len()
+    }
+}
+
+pub(crate) fn gen_range_bool<R: Rng>(to: usize, mut rng: R) -> Option<(usize, bool)> {
+    if to == 0 {
+        return None;
+    }
+    if let Some(to) = to.checked_mul(2) {
+        let i = rng.gen_range(0, to);
+        Some((i / 2, i % 2 == 0))
+    } else {
+        Some((rng.gen_range(0, to), rng.gen()))
     }
 }

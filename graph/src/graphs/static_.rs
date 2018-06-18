@@ -455,15 +455,13 @@ impl<V: Num, K: StaticEdgeKind> Choose for Static<V, K> {
     }
 
     fn choose_edge<R: Rng>(&self, mut rng: R) -> Option<Edge<Self>> {
+        use graphs::common::gen_range_bool;
         if self.num_edges() == 0 {
             None
         } else if K::Kind::is_undirected() {
-            let i = rng.gen_range(0, 2 * self.num_edges());
-            if i % 2 == 0 {
-                Some(K::Edge::new(i / 2))
-            } else {
-                Some(K::Edge::new(i / 2).reverse())
-            }
+            let (i, rev) = gen_range_bool(self.num_edges(), rng).unwrap();
+            let e = K::Edge::new(i);
+            Some(if rev { e.reverse() } else { e })
         } else {
             Some(K::Edge::new(rng.gen_range(0, self.num_edges())))
         }
