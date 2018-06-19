@@ -10,7 +10,7 @@ use fera_optional::{BuildNone, OptionalMax, Optioned};
 
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
-use std::iter::{Chain, Map};
+use std::iter::Map;
 use std::marker::PhantomData;
 use std::ops::Range;
 
@@ -53,7 +53,7 @@ pub trait EdgeImpl {
 
 impl<'a, K: CompleteEdgeKind> VertexTypes<'a, Complete<K>> for Complete<K> {
     type VertexIter = Range<Vertex<Self>>;
-    type OutNeighborIter = Chain<Range<CVertex>, Range<CVertex>>;
+    type OutNeighborIter = COutNeighborIter;
 }
 
 impl<K: CompleteEdgeKind> WithVertex for Complete<K> {
@@ -132,19 +132,19 @@ impl<K: CompleteEdgeKind> EdgeList for Complete<K> {
 
 impl<K: CompleteEdgeKind> Adjacency for Complete<K> {
     fn out_neighbors(&self, v: CVertex) -> OutNeighborIter<Self> {
-        debug_assert!(v <= self.n);
-        (0..v).chain((v + 1)..self.n)
+        debug_assert!(v < self.n);
+        COutNeighborIter::new(v, self.n)
     }
 
     fn out_degree(&self, v: Vertex<Self>) -> usize {
-        debug_assert!(v <= self.n);
+        debug_assert!(v < self.n);
         self.num_vertices().checked_sub(1).unwrap_or(0)
     }
 }
 
 impl<K: CompleteEdgeKind> Incidence for Complete<K> {
     fn out_edges(&self, v: Vertex<Self>) -> OutEdgeIter<Self> {
-        debug_assert!(v <= self.n);
+        debug_assert!(v < self.n);
         COutEdgeIter::new(self.n, v)
     }
 }
@@ -302,6 +302,55 @@ impl<E: EdgeImpl> ExactSizeIterator for COutEdgeIter<E> {
     }
 }
 
+pub struct COutNeighborIter {
+    cur: CVertex,
+    source: CVertex,
+    n: CVertex,
+}
+
+impl COutNeighborIter {
+    fn new(source: CVertex, n: CVertex) -> Self {
+        COutNeighborIter { cur: 0, source, n }
+    }
+}
+
+impl Iterator for COutNeighborIter {
+    type Item = CVertex;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.cur == self.source && self.cur != self.n {
+            self.cur += 1;
+        }
+        if self.cur == self.n {
+            return None;
+        }
+        let cur = self.cur;
+        self.cur += 1;
+        Some(cur)
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let rem = self.len();
+        (rem, Some(rem))
+    }
+
+    fn nth(&mut self, n: usize) -> Option<Self::Item> {
+        if n >= self.len() {
+            return None
+        }
+        let n = n as CVertex;
+        let i = self.source.checked_sub(self.cur).unwrap_or(0);
+        self.cur += n + (n >= i) as CVertex;
+        self.next()
+    }
+}
+
+impl ExactSizeIterator for COutNeighborIter {
+    fn len(&self) -> usize {
+        (self.n - self.cur - (self.cur >= self.source) as CVertex) as usize
+    }
+}
+
 // Undirected
 
 impl CompleteEdgeKind for Undirected {
@@ -454,6 +503,29 @@ mod tests {
         let r = E::reverse(e, n);
         assert_eq!((u, v), E::ends(e, n), "n = {}, e = {:?}", n, e);
         assert_eq!((v, u), E::ends(r, n), "n = {}, e = {:?}, r = {:?}", n, e, r);
+    }
+
+    #[test]
+    fn out_neighbor_nth() {
+        use super::COutNeighborIter;
+        let iter = |source, n, nth| COutNeighborIter::new(source, n).nth(nth);
+        assert_eq!(Some(0), iter(2, 4, 0));
+        assert_eq!(Some(1), iter(2, 4, 1));
+        assert_eq!(Some(3), iter(2, 4, 2));
+        assert_eq!(None, iter(2, 4, 3));
+        assert_eq!(None, iter(2, 4, 4));
+
+        assert_eq!(Some(1), iter(0, 4, 0));
+        assert_eq!(Some(2), iter(0, 4, 1));
+        assert_eq!(Some(3), iter(0, 4, 2));
+        assert_eq!(None, iter(0, 4, 3));
+        assert_eq!(None, iter(0, 4, 4));
+
+        assert_eq!(Some(0), iter(3, 4, 0));
+        assert_eq!(Some(1), iter(3, 4, 1));
+        assert_eq!(Some(2), iter(3, 4, 2));
+        assert_eq!(None, iter(3, 4, 3));
+        assert_eq!(None, iter(3, 4, 4));
     }
 
     #[test]
