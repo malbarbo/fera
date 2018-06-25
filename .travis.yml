@@ -10,4 +10,8 @@ matrix:
     - rust: nightly
 
 script:
-  cargo test --all-features --all
+  - cargo test --features ext,fun --all
+  - if [ "$TRAVIS_RUST_VERSION" == "nightly" ]; then
+      cargo bench --features ext,fun --all
+      cargo bench --features ext,fun,quickcheck --all
+    fi
