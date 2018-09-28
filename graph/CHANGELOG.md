@@ -3,7 +3,7 @@
 ## [0.2.0] - Unreleased
 
 - Update `num-traits` to 0.2
-- Update `quickcheck` to 0.6
+- Update `quickcheck` to 0.7
 - Update `rand` to 0.5
 - Add `Builder::new_regular`
 - Add `RandomWalk::start`

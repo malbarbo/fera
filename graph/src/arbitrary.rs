@@ -40,6 +40,7 @@ use props::HashMapProp;
 
 use fera_fun::vec;
 use quickcheck::{Arbitrary, Gen};
+use rand::Rng;
 
 use std::cmp;
 use std::collections::HashSet;

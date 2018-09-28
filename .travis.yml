@@ -5,13 +5,10 @@ rust:
   - beta
   - nightly
 
-matrix:
-  allow_failures:
-    - rust: nightly
-
 script:
   - cargo test --features ext,fun --all
+  - cargo test --all-features -p fera-graph
   - if [ "$TRAVIS_RUST_VERSION" == "nightly" ]; then
       cargo bench --features ext,fun --all
-      cargo bench --features ext,fun,quickcheck --all
+      cargo bench --all-features -p fera-graph
     fi

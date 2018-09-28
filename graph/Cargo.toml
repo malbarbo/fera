@@ -15,7 +15,7 @@ rand = "0.5"
 fera-fun = { version = "0.1", path = "../fun" }
 fera-optional = { version = "0.1", path = "../optional" }
 fera-unionfind = { version = "0.1", path = "../unionfind" }
-quickcheck = { version = "0.6", optional = true, default-features = false }
+quickcheck = { version = "0.7", optional = true, default-features = false }
 
 [dev-dependencies]
 itertools = "0.7"

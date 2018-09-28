@@ -10,11 +10,11 @@ extern crate test;
 
 use fera_graph::algs::Paths;
 use fera_graph::prelude::*;
-use rand::XorShiftRng;
+use rand::{FromEntropy, XorShiftRng};
 use test::Bencher;
 
 fn find_path_n(b: &mut Bencher, n: usize) {
-    let mut rng = XorShiftRng::new_unseeded();
+    let mut rng = XorShiftRng::from_entropy();
     let g = StaticGraph::new_random_tree(n, &mut rng);
     b.iter(|| {
         for (u, v) in g.edges_ends() {
