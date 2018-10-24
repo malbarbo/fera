@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.2.0] - Unreleased
+## [0.2.0] - 2018-10-24
 
 - Update `fera-optional` to 0.2
 - Update `num-traits` to 0.2
