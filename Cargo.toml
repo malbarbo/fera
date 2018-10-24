@@ -26,7 +26,7 @@ fera-array = { version = "0.1", path = "array", optional = true }
 fera-ext = { version = "0.2", path = "ext", optional = true }
 fera-fun = { version = "0.1", path = "fun", optional = true }
 fera-graph = { version = "0.2", path = "graph", optional = true }
-fera-optional = { version = "0.1.1", path = "optional", optional = true }
+fera-optional = { version = "0.2", path = "optional", optional = true }
 # fera-tree = { version = "0.1", path = "tree/", optional = true }
 fera-unionfind = { version = "0.1", path = "unionfind", optional = true }
 

@@ -2,6 +2,7 @@
 
 ## [0.2.0] - Unreleased
 
+- Update `fera-optional` to 0.2
 - Update `num-traits` to 0.2
 - Update `quickcheck` to 0.7
 - Update `rand` to 0.5
