@@ -3,7 +3,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #![doc(html_root_url="https://docs.rs/fera-tree/0.1.0/")]
-#![feature(slice_rotate)]
 
 //! Tree data structures.
 

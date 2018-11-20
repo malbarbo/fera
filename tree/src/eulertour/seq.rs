@@ -34,7 +34,7 @@ impl Index<usize> for Seq {
 impl Sequence for Seq {
     fn with_capacity(cap: usize) -> Self {
         Self {
-            parent: ptr::null().into(),
+            parent: Cell::new(ptr::null() as *const ()),
             inner: Vec::with_capacity(cap).into(),
         }
     }
@@ -50,7 +50,7 @@ impl Sequence for Seq {
     }
 
     fn rotate(&self, p: usize) {
-        self.inner_mut().rotate(p);
+        self.inner_mut().rotate_left(p);
         for (i, t) in self.inner_mut().iter_mut().enumerate() {
             t.set_rank(i);
         }
@@ -233,7 +233,7 @@ impl Sequence for NestedSeq {
     fn rotate(&self, p: usize) {
         let (i, j) = self.find_seq(p);
         if j == 0 {
-            self.inner_mut().rotate(i);
+            self.inner_mut().rotate_left(i);
             return;
         }
 
@@ -250,7 +250,7 @@ impl Sequence for NestedSeq {
             let tree = &self.inner()[i];
             let prev = &self.inner()[i - 1];
             tree.extract_to(0..j, prev);
-            self.inner_mut().rotate(i);
+            self.inner_mut().rotate_left(i);
         }
 
         debug_assert!(self.check());
@@ -441,7 +441,7 @@ impl Edge {
         Self {
             id: id,
             rank: 0.into(),
-            tree: ptr::null().into(),
+            tree: Cell::new(ptr::null() as *const ()),
         }
     }
 
@@ -513,7 +513,7 @@ mod tests {
         assert_eq!(expected, ids(&seq));
 
         for i in 0..n {
-            expected.rotate(i);
+            expected.rotate_left(i);
             seq.rotate(i);
             assert_eq!(expected, ids(&seq), "rotate = {}", i);
             assert_eq!(expected.len(), seq.len(), "rotate = {}", i);
