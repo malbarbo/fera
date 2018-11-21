@@ -325,6 +325,7 @@ impl Sequence for NestedSeq {
         _other: &Self,
         _p: usize,
     ) {
+        unimplemented!()
     }
 
     fn append(&self, from: &Self) {
