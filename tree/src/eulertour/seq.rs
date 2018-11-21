@@ -12,8 +12,8 @@ pub trait Sequence: 'static + Index<usize, Output = EdgeRef> {
     fn insert_rotated(&self, index: usize, first: EdgeRef, last: EdgeRef, other: &Self, p: usize);
     fn append(&self, from: &Self);
     fn len(&self) -> usize;
-    fn seq(e: &Edge) -> &'static Self;
-    fn seq_and_rank(e: &Edge) -> (&'static Self, usize);
+    fn seq(e: &SeqEdge) -> &'static Self;
+    fn seq_and_rank(e: &SeqEdge) -> (&'static Self, usize);
 }
 
 pub struct Seq {
@@ -58,7 +58,8 @@ impl Sequence for Seq {
 
     fn extract(&self, range: Range<usize>, to: &Self) {
         let s = to.len();
-        to.inner_mut().extend(&self.inner()[range.start + 1..range.end - 1]);
+        to.inner_mut()
+            .extend(&self.inner()[range.start + 1..range.end - 1]);
         self.inner_mut().drain(range.clone());
 
         for (t, i) in to.inner_mut()[s..].iter_mut().zip(s..) {
@@ -72,12 +73,14 @@ impl Sequence for Seq {
         }
     }
 
-    fn insert_rotated(&self,
-                      mut index: usize,
-                      first: EdgeRef,
-                      last: EdgeRef,
-                      other: &Self,
-                      p: usize) {
+    fn insert_rotated(
+        &self,
+        mut index: usize,
+        first: EdgeRef,
+        last: EdgeRef,
+        other: &Self,
+        p: usize,
+    ) {
         let inner = self.inner_mut();
         let new_len = inner.len() + other.len() + 2;
         let old_index = index;
@@ -139,11 +142,11 @@ impl Sequence for Seq {
         self.inner().len()
     }
 
-    fn seq(e: &Edge) -> &'static Self {
+    fn seq(e: &SeqEdge) -> &'static Self {
         unsafe { mem::transmute(e.tree()) }
     }
 
-    fn seq_and_rank(e: &Edge) -> (&'static Self, usize) {
+    fn seq_and_rank(e: &SeqEdge) -> (&'static Self, usize) {
         (Self::seq(e), e.rank())
     }
 }
@@ -188,7 +191,6 @@ impl Seq {
         self.inner_mut().pop()
     }
 }
-
 
 pub struct NestedSeq {
     pref_seq_len: usize,
@@ -315,12 +317,14 @@ impl Sequence for NestedSeq {
         debug_assert!(to.check());
     }
 
-    fn insert_rotated(&self,
-                      _index: usize,
-                      _first: EdgeRef,
-                      _last: EdgeRef,
-                      _other: &Self,
-                      _p: usize) {
+    fn insert_rotated(
+        &self,
+        _index: usize,
+        _first: EdgeRef,
+        _last: EdgeRef,
+        _other: &Self,
+        _p: usize,
+    ) {
     }
 
     fn append(&self, from: &Self) {
@@ -346,11 +350,11 @@ impl Sequence for NestedSeq {
         self.inner().iter().map(|x| x.len()).sum()
     }
 
-    fn seq(e: &Edge) -> &'static Self {
+    fn seq(e: &SeqEdge) -> &'static Self {
         unsafe { mem::transmute(Seq::seq(e).parent()) }
     }
 
-    fn seq_and_rank(e: &Edge) -> (&'static Self, usize) {
+    fn seq_and_rank(e: &SeqEdge) -> (&'static Self, usize) {
         let (tree, rank) = Seq::seq_and_rank(e);
         let seq: &'static Self = unsafe { mem::transmute(tree.parent()) };
         let mut count = 0;
@@ -393,7 +397,8 @@ impl NestedSeq {
     }
 
     fn add_new_seq(&self) -> &Seq {
-        self.inner_mut().push(Seq::with_capacity(self.pref_seq_len).into());
+        self.inner_mut()
+            .push(Seq::with_capacity(self.pref_seq_len).into());
         let seq = self.inner().last().unwrap();
         seq.set_parent(ptr(self));
         seq
@@ -422,21 +427,20 @@ impl NestedSeq {
     }
 }
 
-
 fn ptr<T>(x: &T) -> *const () {
     x as *const _ as _
 }
 
-pub type EdgeRef = &'static Edge;
+pub type EdgeRef = &'static SeqEdge;
 
 #[derive(Debug)]
-pub struct Edge {
+pub struct SeqEdge {
     id: usize,
     rank: Cell<usize>,
     tree: Cell<*const ()>,
 }
 
-impl Edge {
+impl SeqEdge {
     pub fn new(id: usize) -> Self {
         Self {
             id: id,
@@ -475,14 +479,12 @@ impl Edge {
 }
 
 #[cfg(test)]
-unsafe fn static_lifetime<T>(x: &T) -> &'static T {
-    ::std::mem::transmute(x)
-}
-
-
-#[cfg(test)]
 mod tests {
     use super::*;
+
+    unsafe fn static_lifetime<T>(x: &T) -> &'static T {
+        ::std::mem::transmute(x)
+    }
 
     #[test]
     fn test_seq() {
@@ -500,7 +502,7 @@ mod tests {
 
     fn basic<S: Sequence>() {
         let n = 9;
-        let edges: Vec<_> = (0..n).map(Edge::new).collect();
+        let edges: Vec<_> = (0..n).map(SeqEdge::new).collect();
         let e = |i: usize| -> EdgeRef { unsafe { static_lifetime(&edges[i]) } };
 
         let seq = S::with_capacity(n);
@@ -517,10 +519,12 @@ mod tests {
             seq.rotate(i);
             assert_eq!(expected, ids(&seq), "rotate = {}", i);
             assert_eq!(expected.len(), seq.len(), "rotate = {}", i);
-            assert_eq!(expected.first(),
-                       seq.first().map(|e| &e.id),
-                       "rotate = {}",
-                       i);
+            assert_eq!(
+                expected.first(),
+                seq.first().map(|e| &e.id),
+                "rotate = {}",
+                i
+            );
         }
 
         for i in 0..n {

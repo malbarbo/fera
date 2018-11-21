@@ -16,15 +16,17 @@ pub use self::seq::*;
 pub struct EulerTourTree<A: Sequence> {
     trees: Vec<Box<A>>,
     ends: Box<[(usize, usize)]>,
-    edges: Box<[Edge]>,
+    edges: Box<[SeqEdge]>,
     active: Box<[Option<EdgeRef>]>,
     free_trees: Vec<&'static A>,
     free_edges: Vec<usize>,
 }
 
+#[derive(Clone, Copy)]
+pub struct Edge(usize);
+
 impl<A: Sequence> DynamicTree for EulerTourTree<A> {
-    // TODO: use an opaque type
-    type Edge = usize;
+    type Edge = Edge;
 
     fn is_connected(&self, u: usize, v: usize) -> bool {
         if u == v {
@@ -78,10 +80,11 @@ impl<A: Sequence> DynamicTree for EulerTourTree<A> {
         }
         debug_assert!(self.is_connected(u, v));
         debug_assert!(self.check());
-        Some(i)
+        Some(Edge(i))
     }
 
     fn cut(&mut self, edge: Self::Edge) {
+        let edge = edge.0;
         let (mut u, mut v) = self.ends(self.edges(edge).0);
 
         let (i_tree, range) = self.tree_range(edge);
@@ -129,7 +132,7 @@ impl<A: Sequence> EulerTourTree<A> {
             trees: Vec::with_capacity(max_trees),
             ends: vec![(0, 0); n - 1].into_boxed_slice(),
             edges: (0..max_edges)
-                .map(Edge::new)
+                .map(SeqEdge::new)
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
             active: vec![None; n].into_boxed_slice(),
@@ -159,20 +162,20 @@ impl<A: Sequence> EulerTourTree<A> {
         }
     }
 
-    fn source(&self, e: &Edge) -> usize {
+    fn source(&self, e: &SeqEdge) -> usize {
         self.ends(e).0
     }
 
-    fn ends(&self, e: &Edge) -> (usize, usize) {
+    fn ends(&self, e: &SeqEdge) -> (usize, usize) {
         let (u, v) = self.ends[e.index()];
         if e.is_reversed() { (v, u) } else { (u, v) }
     }
 
-    fn tree(&self, e: &Edge) -> &'static A {
+    fn tree(&self, e: &SeqEdge) -> &'static A {
         A::seq(e)
     }
 
-    fn tree_and_rank(&self, e: &Edge) -> (&'static A, usize) {
+    fn tree_and_rank(&self, e: &SeqEdge) -> (&'static A, usize) {
         A::seq_and_rank(e)
     }
 
