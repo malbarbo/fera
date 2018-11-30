@@ -67,4 +67,10 @@ impl DynamicTree for ParentPointerTree {
     fn ends(&self, e: &Self::Edge) -> (usize, usize) {
         *e
     }
+
+    fn clear(&mut self) {
+        for i in 0..self.parent.len() {
+            self.parent[i] = i;
+        }
+    }
 }

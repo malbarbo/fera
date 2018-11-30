@@ -125,6 +125,19 @@ impl<A: Sequence> DynamicTree for EulerTourTree<A> {
     fn ends(&self, e: &Self::Edge) -> (usize, usize) {
         self.ends(&self.edges[e.0 << 1])
     }
+
+    fn clear(&mut self) {
+        self.free_trees.clear();
+        for tree in &self.trees {
+            tree.clear();
+            self.free_trees.push(unsafe { ::std::mem::transmute(&**tree) });
+        }
+        for act in &mut *self.active {
+            *act = None;
+        }
+        self.free_edges.clear();
+        self.free_edges.extend(0..self.ends.len());
+    }
 }
 
 impl<A: Sequence> EulerTourTree<A> {

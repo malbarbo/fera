@@ -14,6 +14,7 @@ pub trait Sequence: 'static + Index<usize, Output = EdgeRef> {
     fn len(&self) -> usize;
     fn seq(e: &SeqEdge) -> &'static Self;
     fn seq_and_rank(e: &SeqEdge) -> (&'static Self, usize);
+    fn clear(&self);
 }
 
 pub struct Seq {
@@ -148,6 +149,11 @@ impl Sequence for Seq {
 
     fn seq_and_rank(e: &SeqEdge) -> (&'static Self, usize) {
         (Self::seq(e), e.rank())
+    }
+
+    fn clear(&self) {
+        // FIXME: reuse the trees, do not deallocate
+        self.inner_mut().clear()
     }
 }
 
@@ -366,6 +372,10 @@ impl Sequence for NestedSeq {
             count += t.len();
         }
         unreachable!();
+    }
+
+    fn clear(&self) {
+        self.inner_mut().clear()
     }
 }
 

@@ -36,6 +36,13 @@ impl DynamicTree for LinkCutTree {
     fn ends(&self, e: &Self::Edge) -> (usize, usize) {
         *e
     }
+
+    fn clear(&mut self) {
+        for node in &mut self.nodes {
+            node.revert.set(false);
+            node.inner = UnsafeCell::default();
+        }
+    }
 }
 
 #[derive(Default, Debug)]

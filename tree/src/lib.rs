@@ -28,9 +28,11 @@ pub trait DynamicTree {
     fn cut(&mut self, e: Self::Edge);
 
     fn ends(&self, e: &Self::Edge) -> (usize, usize);
+
+    fn clear(&mut self);
 }
 
-struct CheckedDynamicTree<D: DynamicTree>(D);
+struct CheckedDynamicTree<D: DynamicTree>(D, usize);
 
 impl<D: DynamicTree> DynamicTree for CheckedDynamicTree<D> {
     type Edge = D::Edge;
@@ -57,52 +59,75 @@ impl<D: DynamicTree> DynamicTree for CheckedDynamicTree<D> {
     fn ends(&self, _e: &Self::Edge) -> (usize, usize) {
         unimplemented!()
     }
+
+    fn clear(&mut self) {
+        let tree = &mut self.0;
+        let n = self.1;
+        tree.clear();
+        for i in 0..n {
+            for j in 0..n {
+                assert_eq!(i == j, tree.is_connected(i, j), "{} {}", i, j);
+            }
+        }
+    }
 }
 
 pub fn check_dynamic_tree_incremental<D: DynamicTree>(edges: Vec<(u8, u8)>, actual: D, n: usize) {
-    let mut expected = CheckedDynamicTree(ParentPointerTree::new(n));
-    let mut actual = CheckedDynamicTree(actual);
+    let mut expected = CheckedDynamicTree(ParentPointerTree::new(n), n);
+    let mut actual = CheckedDynamicTree(actual, n);
 
-    for (u, v) in edges {
-        let u = u as usize % n;
-        let v = v as usize % n;
-        assert_eq!(expected.is_connected(u, v), actual.is_connected(u, v));
+    // run twice to test the tree after clear
+    for _ in 0..2 {
+        for &(u, v) in &edges {
+            let u = u as usize % n;
+            let v = v as usize % n;
+            assert_eq!(expected.is_connected(u, v), actual.is_connected(u, v));
 
-        if !expected.is_connected(u, v) {
-            let _ = expected.link(u, v);
-            let _ = actual.link(u, v);
+            if !expected.is_connected(u, v) {
+                let _ = expected.link(u, v);
+                let _ = actual.link(u, v);
+            }
+
+            check_all_pairs(&expected, &actual, n);
         }
 
-        check_all_pairs(&expected, &actual, n);
+        expected.clear();
+        actual.clear();
     }
 }
 
 pub fn check_dynamic_tree<D: DynamicTree>(edges: Vec<(u8, u8)>, actual: D, n: usize) {
-    let mut expected = CheckedDynamicTree(ParentPointerTree::new(n));
-    let mut actual = CheckedDynamicTree(actual);
+    let mut expected = CheckedDynamicTree(ParentPointerTree::new(n), n);
+    let mut actual = CheckedDynamicTree(actual, n);
     let mut map = HashMap::new();
 
-    for (u, v) in edges {
-        let u = u as usize % n;
-        let v = v as usize % n;
-        let e = if let Some(e) = map.remove(&(u, v)) {
-            Some(e)
-        } else {
-            map.remove(&(v, u))
-        };
+    // run twice to test the tree after clear
+    for _ in 0..1 {
+        for &(u, v) in &edges {
+            let u = u as usize % n;
+            let v = v as usize % n;
+            let e = if let Some(e) = map.remove(&(u, v)) {
+                Some(e)
+            } else {
+                map.remove(&(v, u))
+            };
 
-        if let Some(e) = e {
-            assert!(expected.is_connected(u, v));
-            expected.cut((u, v));
+            if let Some(e) = e {
+                assert!(expected.is_connected(u, v));
+                expected.cut((u, v));
 
-            assert!(actual.is_connected(u, v));
-            actual.cut(e);
-        } else if !expected.is_connected(u, v) {
-            let _ = expected.link(u, v);
-            map.insert((u, v), actual.link(u, v).unwrap());
+                assert!(actual.is_connected(u, v));
+                actual.cut(e);
+            } else if !expected.is_connected(u, v) {
+                let _ = expected.link(u, v);
+                map.insert((u, v), actual.link(u, v).unwrap());
+            }
+
+            check_all_pairs(&expected, &actual, n);
         }
-
-        check_all_pairs(&expected, &actual, n);
+        expected.clear();
+        actual.clear();
+        map.clear();
     }
 }
 
