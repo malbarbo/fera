@@ -6,10 +6,6 @@ pub struct ParentPointerTree {
 }
 
 impl ParentPointerTree {
-    pub fn new(n: usize) -> Self {
-        Self { parent: (0..n).collect() }
-    }
-
     pub fn has_edge(&self, x: usize, y: usize) -> bool {
         x != y && (self.parent[x] == y || self.parent[y] == x)
     }
@@ -39,6 +35,14 @@ impl ParentPointerTree {
 impl DynamicTree for ParentPointerTree {
     // TODO: use an opaque type?
     type Edge = (usize, usize);
+
+    fn new(n: usize) -> Self {
+        Self { parent: (0..n).collect() }
+    }
+
+    fn num_vertices(&self) -> usize {
+        self.parent.len()
+    }
 
     fn is_connected(&self, x: usize, y: usize) -> bool {
         self.find_root(x) == self.find_root(y)

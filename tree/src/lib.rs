@@ -20,6 +20,10 @@ pub use parentpointer::ParentPointerTree;
 pub trait DynamicTree {
     type Edge;
 
+    fn new(num_vertices: usize) -> Self;
+
+    fn num_vertices(&self) -> usize;
+
     fn is_connected(&self, u: usize, v: usize) -> bool;
 
     #[must_use]
@@ -32,10 +36,18 @@ pub trait DynamicTree {
     fn clear(&mut self);
 }
 
-struct CheckedDynamicTree<D: DynamicTree>(D, usize);
+struct CheckedDynamicTree<D: DynamicTree>(D);
 
 impl<D: DynamicTree> DynamicTree for CheckedDynamicTree<D> {
     type Edge = D::Edge;
+
+    fn new(_num_vertices: usize) -> Self {
+        unimplemented!()
+    }
+
+    fn num_vertices(&self) -> usize {
+        self.0.num_vertices()
+    }
 
     fn is_connected(&self, u: usize, v: usize) -> bool {
         self.0.is_connected(u, v)
@@ -62,7 +74,7 @@ impl<D: DynamicTree> DynamicTree for CheckedDynamicTree<D> {
 
     fn clear(&mut self) {
         let tree = &mut self.0;
-        let n = self.1;
+        let n = tree.num_vertices();
         tree.clear();
         for i in 0..n {
             for j in 0..n {
@@ -73,8 +85,8 @@ impl<D: DynamicTree> DynamicTree for CheckedDynamicTree<D> {
 }
 
 pub fn check_dynamic_tree_incremental<D: DynamicTree>(edges: Vec<(u8, u8)>, actual: D, n: usize) {
-    let mut expected = CheckedDynamicTree(ParentPointerTree::new(n), n);
-    let mut actual = CheckedDynamicTree(actual, n);
+    let mut expected = CheckedDynamicTree(ParentPointerTree::new(n));
+    let mut actual = CheckedDynamicTree(actual);
 
     // run twice to test the tree after clear
     for _ in 0..2 {
@@ -97,8 +109,8 @@ pub fn check_dynamic_tree_incremental<D: DynamicTree>(edges: Vec<(u8, u8)>, actu
 }
 
 pub fn check_dynamic_tree<D: DynamicTree>(edges: Vec<(u8, u8)>, actual: D, n: usize) {
-    let mut expected = CheckedDynamicTree(ParentPointerTree::new(n), n);
-    let mut actual = CheckedDynamicTree(actual, n);
+    let mut expected = CheckedDynamicTree(ParentPointerTree::new(n));
+    let mut actual = CheckedDynamicTree(actual);
     let mut map = HashMap::new();
 
     // run twice to test the tree after clear

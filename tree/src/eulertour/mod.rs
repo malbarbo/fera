@@ -28,6 +28,27 @@ pub struct Edge(usize);
 impl<A: Sequence> DynamicTree for EulerTourTree<A> {
     type Edge = Edge;
 
+    fn new(n: usize) -> Self {
+        let max_edges = 2 * (n - 1);
+        let max_trees = n / 2 + 1;
+
+        Self {
+            trees: Vec::with_capacity(max_trees),
+            ends: vec![(0, 0); n - 1].into_boxed_slice(),
+            edges: (0..max_edges)
+                .map(SeqEdge::new)
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+            active: vec![None; n].into_boxed_slice(),
+            free_edges: (0..n - 1).rev().collect(),
+            free_trees: Vec::with_capacity(max_trees),
+        }
+    }
+
+    fn num_vertices(&self) -> usize {
+        self.active.len()
+    }
+
     fn is_connected(&self, u: usize, v: usize) -> bool {
         if u == v {
             return true
@@ -141,23 +162,6 @@ impl<A: Sequence> DynamicTree for EulerTourTree<A> {
 }
 
 impl<A: Sequence> EulerTourTree<A> {
-    pub fn new(n: usize) -> Self {
-        let max_edges = 2 * (n - 1);
-        let max_trees = n / 2 + 1;
-
-        Self {
-            trees: Vec::with_capacity(max_trees),
-            ends: vec![(0, 0); n - 1].into_boxed_slice(),
-            edges: (0..max_edges)
-                .map(SeqEdge::new)
-                .collect::<Vec<_>>()
-                .into_boxed_slice(),
-            active: vec![None; n].into_boxed_slice(),
-            free_edges: (0..n - 1).rev().collect(),
-            free_trees: Vec::with_capacity(max_trees),
-        }
-    }
-
     fn make_root(&mut self, x: usize) {
         if let Some(e) = self.active[x] {
             assert_eq!(x, self.source(e));

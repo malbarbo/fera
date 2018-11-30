@@ -10,15 +10,17 @@ pub struct LinkCutTree {
     nodes: Vec<UnsafeCellNode<'static>>,
 }
 
-impl LinkCutTree {
-    pub fn new(n: usize) -> Self {
-        Self { nodes: (0..n).map(UnsafeCellNode::new).collect() }
-    }
-}
-
 impl DynamicTree for LinkCutTree {
     // TODO: use an opaque type?
     type Edge = (usize, usize);
+
+    fn new(n: usize) -> Self {
+        Self { nodes: (0..n).map(UnsafeCellNode::new).collect() }
+    }
+
+    fn num_vertices(&self) -> usize {
+        self.nodes.len()
+    }
 
     fn is_connected(&self, x: usize, y: usize) -> bool {
         x == y || is_connected(&self.nodes[x], &self.nodes[y])

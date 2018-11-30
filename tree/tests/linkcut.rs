@@ -3,7 +3,7 @@ extern crate quickcheck;
 extern crate fera_tree;
 
 use fera_tree::linkcut::{LinkCutTree, Node, UnsafeCellNode};
-use fera_tree::{check_dynamic_tree, check_dynamic_tree_incremental};
+use fera_tree::{check_dynamic_tree, check_dynamic_tree_incremental, DynamicTree};
 
 #[test]
 fn basic() {
