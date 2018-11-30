@@ -51,7 +51,7 @@ impl<A: Sequence> DynamicTree for EulerTourTree<A> {
 
     fn is_connected(&self, u: usize, v: usize) -> bool {
         if u == v {
-            return true
+            return true;
         }
         if let Some(e1) = self.active[u] {
             if let Some(e2) = self.active[v] {
@@ -151,7 +151,8 @@ impl<A: Sequence> DynamicTree for EulerTourTree<A> {
         self.free_trees.clear();
         for tree in &self.trees {
             tree.clear();
-            self.free_trees.push(unsafe { ::std::mem::transmute(&**tree) });
+            self.free_trees
+                .push(unsafe { ::std::mem::transmute(&**tree) });
         }
         for act in &mut *self.active {
             *act = None;
@@ -189,7 +190,11 @@ impl<A: Sequence> EulerTourTree<A> {
 
     fn ends(&self, e: &SeqEdge) -> (usize, usize) {
         let (u, v) = self.ends[e.index()];
-        if e.is_reversed() { (v, u) } else { (u, v) }
+        if e.is_reversed() {
+            (v, u)
+        } else {
+            (u, v)
+        }
     }
 
     fn tree(&self, e: &SeqEdge) -> &'static A {
@@ -273,18 +278,22 @@ impl<A: Sequence> EulerTourTree<A> {
         for tree in &self.trees {
             for j in 0..tree.len() {
                 let (u, v) = self.ends(tree[j]);
-                assert_eq!(self.find_root_node(u),
-                           self.find_root_node(v),
-                           "\nactive {} = {:?}\nactive {} = {:?}",
-                           u,
-                           self.active[u],
-                           v,
-                           self.active[v]);
+                assert_eq!(
+                    self.find_root_node(u),
+                    self.find_root_node(v),
+                    "\nactive {} = {:?}\nactive {} = {:?}",
+                    u,
+                    self.active[u],
+                    v,
+                    self.active[v]
+                );
                 let (j_tree, j_rank) = self.tree_and_rank(tree[j]);
-                assert!(ptr::eq(j_tree, &**tree),
-                        "edge {} = {:?}",
-                        tree[j].index(),
-                        self.ends(tree[j]));
+                assert!(
+                    ptr::eq(j_tree, &**tree),
+                    "edge {} = {:?}",
+                    tree[j].index(),
+                    self.ends(tree[j])
+                );
                 assert_eq!(j_rank, j);
             }
         }
@@ -303,4 +312,66 @@ impl<A: Sequence> EulerTourTree<A> {
 
 unsafe fn static_lifetime<T>(x: &T) -> &'static T {
     mem::transmute(x)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use check_dynamic_tree;
+    use check_dynamic_tree_incremental;
+
+    #[test]
+    fn basic_seq() {
+        basic::<Seq>();
+    }
+
+    #[test]
+    fn basic_nested_seq() {
+        basic::<NestedSeq>();
+    }
+
+    fn basic<S: Sequence>() {
+        let mut dc = EulerTourTree::<S>::new(3);
+
+        assert!(!dc.is_connected(0, 1));
+        assert!(!dc.is_connected(0, 2));
+        assert!(!dc.is_connected(1, 2));
+
+        let e = dc.link(0, 1).unwrap();
+        assert!(dc.is_connected(0, 1));
+        assert!(!dc.is_connected(0, 2));
+        assert!(!dc.is_connected(1, 2));
+
+        let f = dc.link(0, 2).unwrap();
+        assert!(dc.is_connected(0, 1));
+        assert!(dc.is_connected(0, 2));
+        assert!(dc.is_connected(1, 2));
+
+        dc.cut(e);
+        assert!(!dc.is_connected(0, 1));
+        assert!(dc.is_connected(0, 2));
+        assert!(!dc.is_connected(1, 2));
+
+        dc.cut(f);
+        assert!(!dc.is_connected(0, 1));
+        assert!(!dc.is_connected(0, 2));
+        assert!(!dc.is_connected(1, 2));
+
+        incremental::<S>(vec![(0, 1), (0, 2)]);
+        incremental::<S>(vec![(1, 2), (0, 3), (0, 1)]);
+        check::<S>(vec![(2, 0), (1, 0), (0, 1)]);
+        check::<S>(vec![(0, 2), (4, 3), (3, 2), (3, 2), (4, 3)]);
+        check::<S>(vec![(2, 3), (2, 4), (0, 3), (4, 2), (2, 3)]);
+        check::<S>(vec![(2, 4), (4, 0), (2, 3), (4, 2)]);
+    }
+
+    fn incremental<S: Sequence>(edges: Vec<(u8, u8)>) {
+        let n = 5;
+        check_dynamic_tree_incremental(edges, EulerTourTree::<S>::new(n), n);
+    }
+
+    fn check<S: Sequence>(edges: Vec<(u8, u8)>) {
+        let n = 5;
+        check_dynamic_tree(edges, EulerTourTree::<S>::new(n), n);
+    }
 }
