@@ -1,6 +1,7 @@
 use DynamicTree;
 
 pub struct ParentPointerTree {
+    // If a vertex x has no parent, than parent[x] == x.
     parent: Vec<usize>,
 }
 
@@ -36,6 +37,7 @@ impl ParentPointerTree {
 }
 
 impl DynamicTree for ParentPointerTree {
+    // TODO: use an opaque type?
     type Edge = (usize, usize);
 
     fn is_connected(&self, x: usize, y: usize) -> bool {
@@ -60,5 +62,9 @@ impl DynamicTree for ParentPointerTree {
         } else {
             panic!("The edge ({}, {}) does not exist", x, y);
         }
+    }
+
+    fn ends(&self, e: &Self::Edge) -> (usize, usize) {
+        *e
     }
 }

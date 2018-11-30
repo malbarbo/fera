@@ -121,6 +121,10 @@ impl<A: Sequence> DynamicTree for EulerTourTree<A> {
         debug_assert!(!self.is_connected(u, v));
         debug_assert!(self.check());
     }
+
+    fn ends(&self, e: &Self::Edge) -> (usize, usize) {
+        self.ends(&self.edges[e.0 << 1])
+    }
 }
 
 impl<A: Sequence> EulerTourTree<A> {

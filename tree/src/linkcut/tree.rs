@@ -17,6 +17,7 @@ impl LinkCutTree {
 }
 
 impl DynamicTree for LinkCutTree {
+    // TODO: use an opaque type?
     type Edge = (usize, usize);
 
     fn is_connected(&self, x: usize, y: usize) -> bool {
@@ -30,6 +31,10 @@ impl DynamicTree for LinkCutTree {
 
     fn cut(&mut self, (x, y): Self::Edge) {
         cut(&self.nodes[x], &self.nodes[y]);
+    }
+
+    fn ends(&self, e: &Self::Edge) -> (usize, usize) {
+        *e
     }
 }
 
