@@ -143,6 +143,7 @@ mod tests {
     use super::Kruskal;
     use fera_fun::vec;
     use prelude::*;
+    use fun::sum_prop;
 
     #[test]
     fn kruskal_mst() {
@@ -161,7 +162,9 @@ mod tests {
             weight[e] = w;
         }
         let e = vec(g.edges());
-        assert_eq!(vec![e[0], e[1], e[2], e[4]], vec(g.kruskal_mst(&weight)));
+        let tree = vec(g.kruskal_mst(&weight));
+        assert_eq!(11usize, sum_prop(&weight, &tree));
+        assert_eq!(vec![e[0], e[1], e[2], e[4]], tree);
     }
 }
 

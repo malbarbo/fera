@@ -4,6 +4,7 @@
 
 //! Collection of algorithms.
 
+pub mod boruvka;
 pub mod components;
 pub mod cycles;
 pub mod degrees;
@@ -14,6 +15,7 @@ pub mod prim;
 pub mod sets;
 pub mod trees;
 
+pub use self::boruvka::Boruvka;
 pub use self::components::Components;
 pub use self::cycles::Cycles;
 pub use self::degrees::Degrees;

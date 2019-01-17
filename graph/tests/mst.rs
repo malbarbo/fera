@@ -11,7 +11,7 @@ extern crate fera_graph;
 #[cfg(feature = "quickcheck")]
 mod quickchecks {
     use fera_fun::vec;
-    use fera_graph::algs::{Kruskal, Prim, Trees};
+    use fera_graph::algs::{Boruvka, Kruskal, Prim, Trees};
     use fera_graph::arbitrary::GnConnectedWithEdgeProp;
     use fera_graph::prelude::*;
     use fera_graph::sum_prop;
@@ -22,13 +22,17 @@ mod quickchecks {
             if g.num_vertices() == 0 || g.num_edges() == 0 {
                 return true;
             }
-            let prim = vec(g.prim(&w));
-            let w_prim: u32 = sum_prop(&w, &prim);
+            let boruvka = g.boruvka(&w).run();
+            let w_boruvka: u32 = sum_prop(&w, &boruvka);
             let kruskal = vec(g.kruskal_mst(&w));
             let w_kruskal: u32 = sum_prop(&w, &kruskal);
-            assert!(g.spanning_subgraph(&prim).is_tree());
+            let prim = vec(g.prim(&w));
+            let w_prim: u32 = sum_prop(&w, &prim);
+            assert!(g.spanning_subgraph(&boruvka).is_tree());
             assert!(g.spanning_subgraph(&kruskal).is_tree());
-            assert_eq!(w_prim, w_kruskal);
+            assert!(g.spanning_subgraph(&prim).is_tree());
+            assert_eq!(w_boruvka, w_kruskal);
+            assert_eq!(w_boruvka, w_prim);
             true
         }
     }
