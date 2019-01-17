@@ -26,6 +26,31 @@ pub trait Cycles: Incidence {
         self.dfs(IsDag(&mut dag)).run();
         dag
     }
+
+    fn is_cycle_graph(&self) -> bool
+    where
+        Self: VertexList + EdgeList + WithVertexProp<Color>,
+    {
+        self.num_edges() == self.num_vertices()
+            && self
+                .vertices()
+                .next()
+                .map(|first| {
+                    let mut prev = first;
+                    let mut count = 1;
+                    let mut cur = self.out_neighbors(prev).next().unwrap();
+                    while let Some(v) = self.out_neighbors(cur).filter(|&u| prev != u).next() {
+                        count += 1;
+                        prev = cur;
+                        cur = v;
+                        if count == self.num_edges() {
+                            break;
+                        }
+                    }
+                    count == self.num_edges() && cur == first
+                })
+                .unwrap_or(false)
+    }
 }
 
 impl<G: Incidence> Cycles for G {}
@@ -60,5 +85,22 @@ impl<'a, G: WithEdge> Visitor<G> for IsDag<'a> {
     fn discover_back_edge(&mut self, _g: &G, _e: Edge<G>) -> Control {
         *self.0 = false;
         Control::Break
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn is_cycle_graph() {
+        let g: StaticDigraph = graph!(4, (0, 1), (1, 2), (2, 3), (3, 0));
+        assert!(g.is_cycle_graph());
+        let g: StaticDigraph = graph!(4, (0, 1), (1, 2), (1, 3), (0, 3));
+        assert!(!g.is_cycle_graph());
+        let g: StaticDigraph = graph!(4, (0, 1), (1, 2), (1, 3), (3, 1));
+        assert!(!g.is_cycle_graph());
+        let g: StaticDigraph = graph!(4, (0, 1), (1, 2), (1, 3));
+        assert!(!g.is_cycle_graph());
     }
 }
