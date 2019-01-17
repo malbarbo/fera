@@ -82,13 +82,32 @@ pub trait Paths: Incidence {
             }
         })
     }
+
+    fn is_path_graph(&self) -> bool
+    where
+        Self: VertexList + EdgeList,
+    {
+        self.num_vertices() == 1
+            || self.num_edges() + 1 == self.num_vertices()
+                && self
+                    .vertices()
+                    .filter(|&v| self.out_degree(v) == 1)
+                    .next()
+                    .map(|mut prev| {
+                        let mut count = 1;
+                        let mut cur = self.out_neighbors(prev).next().unwrap();
+                        while let Some(v) = self.out_neighbors(cur).filter(|&u| prev != u).next() {
+                            count += 1;
+                            prev = cur;
+                            cur = v;
+                        }
+                        count == self.num_edges()
+                    })
+                    .unwrap_or(false)
+    }
 }
 
-impl<G> Paths for G
-where
-    G: Incidence,
-{
-}
+impl<G> Paths for G where G: Incidence {}
 
 pub struct RecordPath<'a, G: WithEdge> {
     path: &'a mut Vec<Edge<G>>,
@@ -137,5 +156,13 @@ mod tests {
         assert_eq!(vec![e[0]], g.find_path(0, 1).unwrap());
 
         assert_eq!(vec![e[0], e[1], e[4]], g.find_path(1, 4).unwrap());
+    }
+
+    #[test]
+    fn is_path_graph() {
+        let g: StaticDigraph = graph!(4, (0, 1), (1, 2), (2, 3));
+        assert!(g.is_path_graph());
+        let g: StaticDigraph = graph!(4, (0, 1), (1, 2), (1, 3));
+        assert!(!g.is_path_graph());
     }
 }
