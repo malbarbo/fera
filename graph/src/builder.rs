@@ -84,8 +84,8 @@ use std::cmp;
 use std::mem;
 
 use fera_fun::set;
-use rand::prelude::*;
 use rand::distributions::Range;
+use rand::prelude::*;
 
 /// Creates a new graph with `n` vertices and the specified edges.
 ///
@@ -419,10 +419,10 @@ where
     G: WithBuilder,
     R: Rng,
 {
-    use fera_fun::vec;
     use fera_ext::VecExt;
+    use fera_fun::vec;
     if n < 3 {
-        return None
+        return None;
     }
     let mut b = G::builder(n, n - 1);
     let vertices = vec(0..n).shuffled_with(rng);
@@ -438,8 +438,8 @@ where
     G: WithBuilder,
     R: Rng,
 {
-    use fera_fun::vec;
     use fera_ext::VecExt;
+    use fera_fun::vec;
     if n < 2 {
         return None;
     }
@@ -471,6 +471,60 @@ where
     G: WithBuilder,
     R: Rng,
 {
+    use std::cmp::max;
+
+    struct Tree {
+        // If a vertex x has no parent, than parent[x] == x.
+        parent: Vec<usize>,
+        dist: Vec<usize>,
+    }
+
+    impl Tree {
+        fn new(n: usize) -> Self {
+            Self {
+                parent: (0..n).collect(),
+                dist: vec![0; n],
+            }
+        }
+
+        fn add_edge(&mut self, root: usize, v: usize) {
+            assert_eq!(self.parent[root], root);
+            self.make_root(v);
+            self.parent[v] = root;
+        }
+
+        fn update_dist(&mut self) {
+            let len = self.dist.len();
+            self.dist.clear();
+            self.dist.resize(len, 0);
+            for u in 0..len {
+                self.update_max(u);
+            }
+        }
+
+        fn update_max(&mut self, u: usize) -> usize {
+            let p = self.parent[u];
+            if p != u && self.dist[u] == 0 {
+                self.dist[u] = self.update_max(p) + 1;
+            }
+            self.dist[u]
+        }
+
+        fn make_root(&mut self, x: usize) {
+            let mut prev = x;
+            let mut cur = x;
+            let mut p = self.parent[cur];
+            while p != cur {
+                self.parent[cur] = prev;
+                prev = cur;
+                cur = p;
+                p = self.parent[cur];
+            }
+            self.parent[cur] = prev;
+            assert_eq!(x, self.parent[x]);
+        }
+    }
+
     if n == 0 {
         return if d == 0 { Some(G::builder(0, 0)) } else { None };
     }
@@ -479,27 +533,20 @@ where
         return None;
     }
 
-    let mut b = G::builder(n as usize, (n - 1) as usize);
+    let n = n as usize;
+    let d = d as usize;
+    let mut b = G::builder(n, n - 1);
     let mut vertices: Vec<_> = (0..n).collect();
-    let mut visited = vec![false; n as usize];
-    let mut maxd = vec![0; n as usize];
-    // create a complete graph so we can use graph properties
-    let g = CompleteGraph::new(n);
-    let mut dist = g.default_edge_prop(0);
+    let mut maxd = vec![0; n];
+    let mut tree = Tree::new(n);
     let mut num_edges = 0;
 
     // create the initial path
     rng.shuffle(&mut vertices);
-    vertices.truncate(d as usize + 1);
-    for i in 0..vertices.len() - 1 {
-        for j in (i + 1)..vertices.len() {
-            let (u, v) = (vertices[i], vertices[j]);
-            let duv = (j - i) as u32;
-            dist[g.edge_by_ends(u, v)] = duv;
-            maxd[u as usize] = maxd[u as usize].max(duv);
-            maxd[v as usize] = maxd[v as usize].max(duv);
-        }
-        b.add_edge(vertices[i] as usize, vertices[i + 1] as usize);
+    vertices.truncate(d + 1);
+    for w in vertices.windows(2) {
+        b.add_edge(w[0], w[1]);
+        tree.add_edge(w[1], w[0]);
         num_edges += 1;
     }
 
@@ -507,68 +554,54 @@ where
         return Some(b);
     }
 
-    // compute good
-    let mut good = FastVecSet::new_vertex_set(&g);
-    for &v in &vertices {
-        visited[v as usize] = true;
-    }
-    for v in 0..n {
-        if maxd[v as usize] != d {
-            good.insert(v);
-        }
+    // init maxd
+    for (i, &v) in vertices.iter().enumerate() {
+        maxd[v] = max(i, vertices.len() - i - 1);
     }
 
-    // complete the tree
-    let mut cur = *good.choose(&mut rng).unwrap();
-    while !visited[cur as usize] {
-        cur = *good.choose(&mut rng).unwrap();
+    // a vertex u is good if an edge (u, v) can be added respecting the diameter
+    // we create a complete graph only to use FastVecSet easily
+    let mut good = FastVecSet::new_vertex_set(&CompleteGraph::new(n as u32));
+    for v in (0..n).filter(|&v| maxd[v] != d) {
+        good.insert(v as u32);
+    }
+
+    // we have a path, now we complete the tree
+    let mut cur = *good.choose(&mut rng).unwrap() as usize;
+    while maxd[cur] == 0 {
+        cur = *good.choose(&mut rng).unwrap() as usize;
     }
     while num_edges != n - 1 {
         // choose a new edge
-        if !good.contains(cur) {
-            cur = *good.choose(&mut rng).unwrap();
-            while !visited[cur as usize] {
-                cur = *good.choose(&mut rng).unwrap();
+        if !good.contains(cur as u32) {
+            cur = *good.choose(&mut rng).unwrap() as usize;
+            while maxd[cur] == 0 {
+                cur = *good.choose(&mut rng).unwrap() as usize;
             }
         }
-        let v = *good.choose(&mut rng).unwrap();
-        if visited[v as usize] || cur == v {
+        let v = *good.choose(&mut rng).unwrap() as usize;
+        if maxd[v] != 0 || cur == v {
             cur = v;
             continue;
         }
-        assert!(maxd[cur as usize] < d);
+
+        assert!(maxd[cur] < d);
+
+        tree.add_edge(v, cur);
 
         // update dist
-        for i in 0..n {
-            if i == cur {
-                continue;
+        tree.update_dist();
+        maxd[v] = maxd[cur] + 1;
+        for v in 0..n {
+            maxd[v] = max(maxd[v], tree.dist[v]);
+            if maxd[v] == d {
+                good.remove(v as u32);
             }
-            let dci = dist[g.edge_by_ends(cur, i)];
-            if dci != 0 && v != i {
-                dist[g.edge_by_ends(v, i)] = dci + 1;
-            }
-        }
-
-        // update maxd and good
-        maxd[v as usize] = maxd[cur as usize] + 1;
-        if maxd[v as usize] == d {
-            good.remove(v);
-        }
-        for i in 0..n {
-            if v == i {
-                continue;
-            }
-            maxd[i as usize] = maxd[i as usize].max(dist[g.edge_by_ends(v, i)]);
-            if maxd[i as usize] == d && good.contains(i) {
-                good.remove(i);
-            }
-            assert!(maxd[i as usize] <= d);
         }
 
         // update tree
-        b.add_edge(cur as usize, v as usize);
+        b.add_edge(v, cur);
         num_edges += 1;
-        visited[v as usize] = true;
 
         // iterate
         cur = v;
@@ -818,7 +851,8 @@ pub trait BuilderTests {
     }
 
     fn random_cycle()
-        where Self::G: Incidence + VertexList + EdgeList + WithVertexProp<Color>
+    where
+        Self::G: Incidence + VertexList + EdgeList + WithVertexProp<Color>,
     {
         use algs::cycles::Cycles;
 
@@ -837,7 +871,8 @@ pub trait BuilderTests {
     }
 
     fn random_path()
-        where Self::G: Incidence + VertexList + EdgeList
+    where
+        Self::G: Incidence + VertexList + EdgeList,
     {
         use algs::paths::Paths;
 
@@ -964,7 +999,7 @@ pub trait BuilderTests {
 #[macro_export]
 macro_rules! graph_builder_tests {
     ($T:ident) => {
-        delegate_tests!{
+        delegate_tests! {
             $T,
             graph_macro,
             graph_prop_macro,
