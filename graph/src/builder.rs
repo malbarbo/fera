@@ -306,6 +306,14 @@ pub trait WithBuilder: WithEdge {
         complete_binary_tree::<Self>(h).finalize()
     }
 
+    fn new_random_cycle<R: Rng>(n: usize, rng: R) -> Option<Self> {
+        random_cycle::<Self, R>(n, rng).map(Builder::finalize)
+    }
+
+    fn new_random_path<R: Rng>(n: usize, rng: R) -> Option<Self> {
+        random_path::<Self, R>(n, rng).map(Builder::finalize)
+    }
+
     /// Creates a new `d`-regular graph.
     ///
     /// Return `None` if `d >= n` of if `d * n` is not even.
@@ -315,6 +323,7 @@ pub trait WithBuilder: WithEdge {
     where
         Self: WithEdge<Kind = Undirected>,
     {
+        // FIXME: this should be name new_random_regular
         regular::<Self, R>(d, n, rng).map(Builder::finalize)
     }
 
@@ -403,6 +412,43 @@ fn complete_binary_tree<G: WithBuilder>(height: u32) -> G::Builder {
         b.add_edge(i, 2 * i + 2);
     }
     b
+}
+
+fn random_cycle<G, R>(n: usize, rng: R) -> Option<G::Builder>
+where
+    G: WithBuilder,
+    R: Rng,
+{
+    use fera_fun::vec;
+    use fera_ext::VecExt;
+    if n < 3 {
+        return None
+    }
+    let mut b = G::builder(n, n - 1);
+    let vertices = vec(0..n).shuffled_with(rng);
+    for w in vertices.windows(2) {
+        b.add_edge(w[0], w[1]);
+    }
+    b.add_edge(*vertices.last().unwrap(), *vertices.first().unwrap());
+    Some(b)
+}
+
+fn random_path<G, R>(n: usize, rng: R) -> Option<G::Builder>
+where
+    G: WithBuilder,
+    R: Rng,
+{
+    use fera_fun::vec;
+    use fera_ext::VecExt;
+    if n < 2 {
+        return None;
+    }
+    let mut b = G::builder(n, n - 1);
+    let vertices = vec(0..n).shuffled_with(rng);
+    for w in vertices.windows(2) {
+        b.add_edge(w[0], w[1]);
+    }
+    Some(b)
 }
 
 fn random_tree<G, R>(n: usize, rng: R) -> G::Builder
@@ -771,6 +817,43 @@ pub trait BuilderTests {
         }
     }
 
+    fn random_cycle()
+        where Self::G: Incidence + VertexList + EdgeList + WithVertexProp<Color>
+    {
+        use algs::cycles::Cycles;
+
+        let mut rng = SmallRng::from_entropy();
+
+        assert!(random_cycle::<Self::G, _>(0, &mut rng).is_none());
+        assert!(random_cycle::<Self::G, _>(1, &mut rng).is_none());
+        assert!(random_cycle::<Self::G, _>(2, &mut rng).is_none());
+
+        for n in 3..10 {
+            let (g, _, _) = random_cycle::<Self::G, _>(n, &mut rng).unwrap().finalize_();
+            assert_eq!(n, g.num_vertices());
+            assert_eq!(n, g.num_edges());
+            assert!(g.is_cycle_graph())
+        }
+    }
+
+    fn random_path()
+        where Self::G: Incidence + VertexList + EdgeList
+    {
+        use algs::paths::Paths;
+
+        let mut rng = SmallRng::from_entropy();
+
+        assert!(random_path::<Self::G, _>(0, &mut rng).is_none());
+        assert!(random_path::<Self::G, _>(1, &mut rng).is_none());
+
+        for n in 2..10 {
+            let (g, _, _) = random_path::<Self::G, _>(n, &mut rng).unwrap().finalize_();
+            assert_eq!(n, g.num_vertices());
+            assert_eq!(n - 1, g.num_edges());
+            assert!(g.is_path_graph())
+        }
+    }
+
     #[cfg_attr(feature = "cargo-clippy", allow(needless_range_loop))]
     fn complete_binary_tree()
     where
@@ -887,9 +970,11 @@ macro_rules! graph_builder_tests {
             graph_prop_macro,
             complete,
             complete_binary_tree,
-            random_tree,
             gnm,
             gnm_connected,
+            random_cycle,
+            random_path,
+            random_tree,
             regular
         }
     };
