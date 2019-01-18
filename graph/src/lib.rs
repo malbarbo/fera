@@ -13,6 +13,7 @@ extern crate itertools;
 #[cfg(feature = "quickcheck")]
 extern crate quickcheck;
 
+extern crate fera_ext;
 extern crate fera_fun;
 extern crate fera_optional;
 extern crate fera_unionfind;
