@@ -11,7 +11,7 @@ use std::ops::IndexMut;
 use std::slice;
 use std::vec;
 
-use rand::Rng;
+use rand::prelude::*;
 
 // TODO: use OptionalMax
 const NONE: usize = ::std::usize::MAX;
@@ -84,7 +84,7 @@ where
 
     #[inline]
     pub fn choose<R: Rng>(&self, mut rng: R) -> Option<&T> {
-        rng.choose(&self.values)
+        self.values.choose(&mut rng)
     }
 
     #[inline]

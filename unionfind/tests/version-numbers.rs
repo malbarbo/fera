@@ -8,6 +8,5 @@ fn readme_deps() {
 
 #[test]
 fn html_root_url() {
-    // FIXME: version-sync fails to parse!
-    // assert_html_root_url_updated!("src/lib.rs");
+    assert_html_root_url_updated!("src/lib.rs");
 }

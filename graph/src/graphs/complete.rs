@@ -561,11 +561,12 @@ mod tests {
                     type G = $G;
 
                     fn new() -> (Self::G, Vec<Vertex<Self::G>>, Vec<Edge<Self::G>>) {
+                        use fera_fun::vec;
                         let e = $e.into_iter();
                         (
                             $G::new($n),
                             $v,
-                            e.map(|(u, v)| EdgeImpl::new($n, u, v)).sorted(),
+                            vec(e.map(|(u, v)| EdgeImpl::new($n, u, v)).sorted()),
                         )
                     }
                 }
