@@ -40,7 +40,7 @@ it is necessary to add this to `Cargo.toml`:
 
 ```toml
 [dependencies]
-fera = { version = "0.2", features = ["ext", "fun"] }
+fera = { version = "0.3", features = ["ext", "fun"] }
 ```
 
 

@@ -1,6 +1,6 @@
 [package]
 name = "fera-ext"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["malbarbo"]
 description = """
 Extensions traits for std types.
