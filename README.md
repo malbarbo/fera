@@ -12,6 +12,8 @@ it is recommend to enable only the features that will be used.
 
 ## Crates
 
+- [`fera-array`]: Arrays traits and implementations (prefixed, copy on write,
+  nested, etc).
 - [`fera-ext`]: Extensions traits for [`std`] types.
 - [`fera-fun`]: Free functions for fun programming.
 - [`fera-graph`]: Graph data structures and algorithms.
