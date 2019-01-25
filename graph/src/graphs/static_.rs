@@ -13,7 +13,7 @@ use fera_optional::OptionalMax;
 use std::cmp::Ordering;
 use std::fmt::Debug;
 use std::hash::{Hash, Hasher};
-use std::iter::Cloned;
+use std::iter::{Cloned, Map};
 use std::marker::PhantomData;
 use std::ops::Range;
 use std::slice::Iter;
@@ -115,31 +115,29 @@ impl<N: Num> Bounded for StaticUndirectedEdge<N> {
 // TODO: Document the representation of StaticUndirectedEdge
 impl<N: Num> EdgeImpl for StaticUndirectedEdge<N> {
     fn new(e: usize) -> Self {
-        StaticUndirectedEdge(N::from_usize(2 * e + 1))
+        StaticUndirectedEdge(N::from_usize(e << 1))
     }
 
     fn new_checked(e: usize) -> Option<Self> {
-        e.checked_mul(2)
-            .and_then(|x| x.checked_add(1))
-            .and_then(|x| {
-                if N::is_valid(x) {
-                    Some(Self::new(e))
-                } else {
-                    None
-                }
-            })
+        e.checked_mul(2).and_then(|x| {
+            if N::is_valid(x) {
+                Some(Self::new(e))
+            } else {
+                None
+            }
+        })
     }
 
     fn source<T>(self, ends: &[T]) -> &T {
-        &ends[N::to_usize(self.0) ^ 1]
-    }
-
-    fn target<T>(self, ends: &[T]) -> &T {
         &ends[N::to_usize(self.0)]
     }
 
+    fn target<T>(self, ends: &[T]) -> &T {
+        &ends[N::to_usize(self.0) ^ 1]
+    }
+
     fn to_index(self) -> usize {
-        N::to_usize(self.0) / 2
+        N::to_usize(self.0) >> 1
     }
 
     fn reverse(self) -> Self {
@@ -316,7 +314,7 @@ impl<'a, V: Num, K: StaticEdgeKind> VertexTypes<'a, Static<V, K>> for Static<V, 
 }
 
 impl<'a, V: Num, K: StaticEdgeKind> EdgeTypes<'a, Static<V, K>> for Static<V, K> {
-    type EdgeIter = SEdgeIter<K>;
+    type EdgeIter = Map<Range<usize>, fn(usize) -> K::Edge>;
     type OutEdgeIter = Cloned<Iter<'a, Edge<Self>>>;
 }
 
@@ -336,8 +334,7 @@ impl<V: Num, K: StaticEdgeKind> EdgeList for Static<V, K> {
     }
 
     fn edges(&self) -> EdgeIter<Self> {
-        // TODO: specialization undirect 1, 3, 5, ...
-        SEdgeIter(0..self.num_edges(), PhantomData)
+        (0..self.num_edges()).map(K::Edge::new)
     }
 
     fn get_edge_by_ends(&self, u: Vertex<Self>, v: Vertex<Self>) -> Option<Edge<Self>> {
@@ -365,25 +362,6 @@ impl<V: Num, K: StaticEdgeKind> Incidence for Static<V, K> {
         self.inc(v).iter().cloned()
     }
 }
-
-// Iter
-
-#[derive(Clone, Debug)]
-pub struct SEdgeIter<K>(Range<usize>, PhantomData<K>);
-
-impl<K: StaticEdgeKind> Iterator for SEdgeIter<K> {
-    type Item = K::Edge;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(K::Edge::new)
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.0.size_hint()
-    }
-}
-
-impl<K: StaticEdgeKind> ExactSizeIterator for SEdgeIter<K> {}
 
 // Props
 
