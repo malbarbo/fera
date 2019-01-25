@@ -54,9 +54,10 @@
 //!
 //! use fera_graph::prelude::*;
 //! use fera_graph::algs::{Components, Trees};
+//! use rand::prelude::*;
 //!
 //! # fn main() {
-//! let mut rng = rand::weak_rng();
+//! let mut rng = SmallRng::from_entropy();
 //!
 //! // Creates a connected graph with 10 vertices
 //! let g = StaticGraph::new_gn_connected(10, &mut rng);
@@ -84,7 +85,7 @@ use std::cmp;
 use std::mem;
 
 use fera_fun::set;
-use rand::distributions::Range;
+use rand::distributions::Uniform;
 use rand::prelude::*;
 
 /// Creates a new graph with `n` vertices and the specified edges.
@@ -542,7 +543,7 @@ where
     let mut num_edges = 0;
 
     // create the initial path
-    rng.shuffle(&mut vertices);
+    vertices.shuffle(&mut rng);
     vertices.truncate(d + 1);
     for w in vertices.windows(2) {
         b.add_edge(w[0], w[1]);
@@ -765,13 +766,13 @@ struct RandomTreeIter<R> {
     visited: Vec<bool>,
     rem: usize,
     rng: R,
-    range: Range<usize>,
+    range: Uniform<usize>,
     cur: usize,
 }
 
 impl<R: Rng> RandomTreeIter<R> {
     fn new(n: usize, mut rng: R) -> Self {
-        let range = Range::new(0, n);
+        let range = Uniform::new(0, n);
         let cur = range.sample(&mut rng);
         let mut visited = vec![false; n];
         visited[cur] = true;

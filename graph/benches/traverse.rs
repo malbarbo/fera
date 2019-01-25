@@ -10,7 +10,7 @@ extern crate test;
 
 use fera_graph::prelude::*;
 use fera_graph::traverse::*;
-use rand::{FromEntropy, XorShiftRng};
+use rand::prelude::*;
 use test::Bencher;
 
 fn bfs(b: &mut Bencher, g: &StaticGraph) {
@@ -27,7 +27,7 @@ fn bfs_complete_graph(b: &mut Bencher) {
 
 #[bench]
 fn bfs_tree(b: &mut Bencher) {
-    let g = StaticGraph::new_random_tree(100, XorShiftRng::from_entropy());
+    let g = StaticGraph::new_random_tree(100, SmallRng::from_entropy());
     bfs(b, &g);
 }
 
@@ -45,7 +45,7 @@ fn dfs_complete_graph(b: &mut Bencher) {
 
 #[bench]
 fn dfs_tree(b: &mut Bencher) {
-    let g = StaticGraph::new_random_tree(100, XorShiftRng::from_entropy());
+    let g = StaticGraph::new_random_tree(100, SmallRng::from_entropy());
     dfs(b, &g);
 }
 
@@ -64,6 +64,6 @@ fn recursive_dfs_complete_graph(b: &mut Bencher) {
 
 #[bench]
 fn recursive_dfs_tree(b: &mut Bencher) {
-    let g = StaticGraph::new_random_tree(100, XorShiftRng::from_entropy());
+    let g = StaticGraph::new_random_tree(100, SmallRng::from_entropy());
     recursive_dfs(b, &g);
 }

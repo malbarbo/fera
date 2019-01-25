@@ -442,9 +442,8 @@ where
 
     fn clone_change(b: &mut Bencher, n: usize, ins: usize) {
         fn setup<A: Array<usize>>(n: usize, ins: usize) -> (Vec<A>, Vec<usize>, Vec<usize>) {
-            use rand::{Rng, SeedableRng, XorShiftRng};
-            let mut rng =
-                XorShiftRng::from_seed([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]);
+            use rand::prelude::*;
+            let mut rng = SmallRng::from_entropy();
             let mut arrays = Vec::with_capacity(ins + 1);
             arrays.push(A::with_value(0, n));
             let ii = vec((0..ins).map(|e| rng.gen_range(0, e + 1)));
@@ -453,12 +452,14 @@ where
         }
 
         let (mut arrays, ii, jj) = setup::<Self::A>(n, ins);
+        let len = arrays.len();
         b.iter(|| {
             for (&i, &j) in ii.iter().zip(jj.iter()) {
                 let mut new = arrays[i].clone();
                 new[j] = j + i;
                 arrays.push(new);
             }
+            arrays.truncate(len);
         });
     }
 }

@@ -138,7 +138,7 @@ impl<T> VecExt<T> for Vec<T> {
     }
 
     fn shuffled_with<R: Rng>(mut self, mut rng: R) -> Self {
-        rng.shuffle(&mut self[..]);
+        self.shuffle(&mut rng);
         self
     }
 

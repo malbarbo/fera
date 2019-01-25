@@ -12,10 +12,11 @@
 //!
 //! use fera_graph::prelude::*;
 //! use fera_graph::choose::Choose;
+//! use rand::prelude::*;
 //!
 //! # fn main() {
 //! let g = CompleteGraph::new(5);
-//! let iter = g.choose_vertex_iter(rand::weak_rng()).take(100);
+//! let iter = g.choose_vertex_iter(SmallRng::from_entropy()).take(100);
 //!
 //! let mut saw = g.default_vertex_prop(false);
 //! for v in iter {

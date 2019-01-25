@@ -1,6 +1,6 @@
 [package]
 name = "fera-graph"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["malbarbo"]
 description = """
 Graph data structures and algorithms.
@@ -11,16 +11,22 @@ license = "MPL-2.0"
 
 [dependencies]
 num-traits = "0.2"
-rand = "0.5"
-fera-ext = { version = "0.2", path = "../ext" }
+rand = "0.6"
+fera-ext = { version = "0.3", path = "../ext" }
 fera-fun = { version = "0.1", path = "../fun" }
 fera-optional = { version = "0.2", path = "../optional" }
 fera-unionfind = { version = "0.1", path = "../unionfind" }
-quickcheck = { version = "0.7", optional = true, default-features = false }
+quickcheck = { version = "0.8", optional = true, default-features = false }
 
 [dev-dependencies]
-itertools = "0.7"
-version-sync = "0.5"
+itertools = "0.8"
+version-sync = "0.7"
+
+[build-dependencies]
+rustc_version = "0.2"
+
+[features]
+nightly = []
 
 [package.metadata.docs.rs]
 all-features = true
