@@ -10,12 +10,12 @@ extern crate test;
 
 use fera_graph::algs::{Components, Cycles};
 use fera_graph::prelude::*;
-use rand::{FromEntropy, XorShiftRng};
+use rand::prelude::*;
 
 use test::Bencher;
 
 fn bench_is_acyclic(b: &mut Bencher, n: usize) {
-    let mut rng = XorShiftRng::from_entropy();
+    let mut rng = SmallRng::from_entropy();
     let g = StaticGraph::new_random_tree(n, &mut rng);
     b.iter(|| {
         assert!(g.is_acyclic());
@@ -38,7 +38,7 @@ fn bench_is_acyclic_1000(b: &mut Bencher) {
 }
 
 fn bench_is_connected(b: &mut Bencher, n: usize) {
-    let mut rng = XorShiftRng::from_entropy();
+    let mut rng = SmallRng::from_entropy();
     let g = StaticGraph::new_random_tree(n, &mut rng);
     b.iter(|| {
         assert!(g.is_connected());
