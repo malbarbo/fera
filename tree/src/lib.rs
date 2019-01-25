@@ -114,7 +114,7 @@ pub fn check_dynamic_tree<D: DynamicTree>(edges: Vec<(u8, u8)>, actual: D, n: us
     let mut map = HashMap::new();
 
     // run twice to test the tree after clear
-    for _ in 0..1 {
+    for _ in 0..2 {
         for &(u, v) in &edges {
             let u = u as usize % n;
             let v = v as usize % n;
