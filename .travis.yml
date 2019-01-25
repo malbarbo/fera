@@ -6,10 +6,10 @@ rust:
   - nightly
 
 script:
-  - cargo test --features ext,fun --all
+  - cargo test --features ext,fun --all --exclude fera-array
   - cargo test --all-features -p fera-graph
   - |
     if [ "$TRAVIS_RUST_VERSION" == "nightly" ]; then
-      cargo bench --features ext,fun --all
+      cargo bench --features ext,fun --all --exclude fera-array
       cargo bench --all-features -p fera-graph
     fi
