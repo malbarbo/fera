@@ -137,6 +137,8 @@ impl Sequence for Seq {
             t.set_rank(self.len() + i);
         }
         self.inner_mut().append(from.inner_mut());
+        // FIXME: clear from?
+        from.inner_mut().clear();
     }
 
     fn len(&self) -> usize {
@@ -227,14 +229,14 @@ impl Sequence for NestedSeq {
 
     fn push(&self, edge: EdgeRef) {
         if let Some(seq) = self.inner().last() {
-            if seq.len() < self.max_seq_len() {
+            if seq.len() + 1 <= self.max_seq_len() {
                 seq.push(edge);
                 debug_assert!(self.check());
                 return;
             }
         }
-        // FIXME: respect min_seq_len, add and split
         self.add_new_seq().push(edge);
+        self.fix_len();
         debug_assert!(self.check());
     }
 
@@ -261,6 +263,8 @@ impl Sequence for NestedSeq {
             self.inner_mut().rotate_left(i);
         }
 
+        self.fix_len();
+
         debug_assert!(self.check());
     }
 
@@ -276,6 +280,11 @@ impl Sequence for NestedSeq {
             if to.inner().last().unwrap().len() == 0 {
                 to.inner_mut().pop().unwrap();
             }
+            self.fix_len();
+            to.fix_len();
+
+            debug_assert!(self.check());
+            debug_assert!(to.check());
             return;
         }
 
@@ -319,6 +328,9 @@ impl Sequence for NestedSeq {
             self.inner_mut().remove(start);
         }
 
+        self.fix_len();
+        to.fix_len();
+
         debug_assert!(self.check());
         debug_assert!(to.check());
     }
@@ -336,7 +348,7 @@ impl Sequence for NestedSeq {
 
     fn append(&self, from: &Self) {
         if let (Some(last), Some(first)) = (self.inner().last(), from.inner().first()) {
-            if last.len() + first.len() < self.max_seq_len() {
+            if last.len() + first.len() <= self.max_seq_len() {
                 last.append(first);
                 self.inner_mut().extend(from.inner_mut().drain(1..));
                 from.inner_mut().pop();
@@ -349,6 +361,8 @@ impl Sequence for NestedSeq {
         for t in self.inner() {
             t.set_parent(ptr(self));
         }
+        self.fix_len();
+        from.fix_len();
         debug_assert!(self.check());
         debug_assert!(from.check());
     }
@@ -391,6 +405,51 @@ impl NestedSeq {
         panic!("index out of bounds: {}", index)
     }
 
+    fn fix_len(&self) {
+        let mut i = 0;
+        while i < self.inner().len() {
+            if self.inner()[i].len() < self.min_seq_len() {
+                i = self.fix_min_len(i);
+                continue
+            }
+            if self.inner()[i].len() > self.max_seq_len() {
+                i = self.fix_max_len(i);
+                continue
+            }
+            i += 1;
+        }
+    }
+
+    fn fix_min_len(&self, i: usize) -> usize{
+        if i + 1 < self.inner().len() {
+            let t1 = &self.inner()[i];
+            let t2 = &self.inner()[i + 1];
+            t1.append(t2);
+            self.inner_mut().remove(i + 1);
+            i
+        } else if i > 0 {
+            let t1 = &self.inner()[i - 1];
+            let t2 = &self.inner()[i];
+            t1.append(t2);
+            self.inner_mut().remove(i);
+            i - 1
+        } else {
+            assert!(self.inner().len() == 1);
+            i + 1
+        }
+    }
+
+    fn fix_max_len(&self, i: usize) -> usize {
+        let t1 = &self.inner()[i];
+        self.add_new_seq();
+        let t2 = self.inner_mut().pop().unwrap();
+        self.inner_mut().insert(i + 1, t2);
+        let t2 = &self.inner()[i + 1];
+        let m = t1.len() / 2;
+        t1.extract_to(m..t1.len(), t2);
+        i
+    }
+
     fn max_seq_len(&self) -> usize {
         2 * self.pref_seq_len
     }
@@ -419,6 +478,10 @@ impl NestedSeq {
         let mut count = 0;
         for t in self.inner() {
             let t: &Seq = t;
+            assert!(t.len() <= self.max_seq_len());
+            if self.inner().len() != 1 {
+                assert!(t.len() >= self.min_seq_len());
+            }
             assert_ne!(0, t.len());
             assert_eq!(ptr(self), t.parent());
             for (i, &e) in t.inner().iter().enumerate() {
@@ -547,8 +610,6 @@ mod tests {
                     let exp1: Vec<_> = d.collect();
                     (e1, e2, exp1)
                 };
-                println!("len = {}, range = {:?}", seq.len(), i..j);
-                println!("seq = {:?}", ids(&seq));
 
                 let seq1 = S::with_capacity(n);
                 seq.extract(i..j, &seq1);
