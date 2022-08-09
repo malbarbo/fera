@@ -15,7 +15,7 @@ fera-fun = { version = "0.1", path = "../fun" }
 [dev-dependencies]
 testdrop = "0.1"
 rand = "0.6"
-version-sync = "0.7"
+version-sync = "0.9"
 
 [build-dependencies]
 rustc_version = "0.2"

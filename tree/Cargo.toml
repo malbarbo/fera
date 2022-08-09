@@ -14,4 +14,4 @@ rand = "0.6"
 
 [dev-dependencies]
 quickcheck = { version = "0.8", default-features = false }
-version-sync = "0.7"
+version-sync = "0.9"
